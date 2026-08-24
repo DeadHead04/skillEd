@@ -1,0 +1,38 @@
+# macOS and editors
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Environment and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+
+# JavaScript / TypeScript
+node_modules/
+.next/
+dist/
+coverage/
+*.tsbuildinfo
+.turbo/
+.pnpm-store/
+
+# Go and Skill-Up generated files
+bin/
+.cache/
+.tools/
+*.test
+coverage.out
+skill-up/docs/.vitepress/dist/
+skill-up/action/__pycache__/
+
+# Evaluation output and local state
+.skill-up/
+reports/
+artifacts/
+tmp/
+*.log

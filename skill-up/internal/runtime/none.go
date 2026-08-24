@@ -1,0 +1,398 @@
+package runtime
+
+import (
+	"bytes"
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
+
+	"go.opentelemetry.io/otel/attribute"
+
+	"github.com/alibaba/skill-up/internal/logging"
+	"github.com/alibaba/skill-up/internal/observability"
+	"github.com/alibaba/skill-up/internal/platform"
+)
+
+const (
+	noneDirMode  = 0o755
+	noneFileMode = 0o600
+	// noneExecWaitDelay bounds how long Exec waits after ctx-cancel before
+	// forcibly closing the child's stdio pipes. On POSIX,
+	// configureProcessGroup kills the whole tree on cancellation so a short
+	// grace is enough. On Windows there is no process group equivalent and
+	// a Git Bash grandchild (ping/sleep/git) can still hold the stderr pipe;
+	// this delay ultimately closes it so the pipe-reader goroutines unblock
+	// and Exec returns within the deadline.
+	noneExecWaitDelay = 2 * time.Second
+)
+
+// pathInWorkspaceOrAbs returns p if it is an absolute host path, otherwise filepath.Join(r.workspace, p).
+// Clean(".") is "." which resolves under the workspace root (same as DownloadFile sourcePath rules).
+func (r *NoneRuntime) pathInWorkspaceOrAbs(p string) string {
+	c := filepath.Clean(p)
+	if filepath.IsAbs(c) {
+		return c
+	}
+	return filepath.Join(r.workspace, c)
+}
+
+// NoneRuntime executes commands directly on the host with an isolated temp workspace.
+type NoneRuntime struct {
+	cfg       Config
+	workspace string
+}
+
+// MergeEnv layers entries into the runtime's persistent env baseline. See
+// Runtime.MergeEnv for the contract (callers MUST sequence MergeEnv before
+// any concurrent Exec; the intended use is a one-time setup step).
+func (r *NoneRuntime) MergeEnv(env map[string]string) {
+	mergeIntoEnvBaseline(&r.cfg.Env, env)
+}
+
+// Create allocates the temporary workspace used by the runtime.
+func (r *NoneRuntime) Create(ctx context.Context) error {
+	dir, err := os.MkdirTemp("", "skill-up-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp dir: %w", err)
+	}
+	r.workspace = dir
+
+	return nil
+}
+
+// Close removes the temporary workspace.
+func (r *NoneRuntime) Close() error {
+	if r.workspace == "" {
+		return nil
+	}
+	if !r.cfg.Delete {
+		logging.Debugf("NoneRuntime.Close: skipping cleanup, workspace preserved at %s", r.workspace)
+		return nil
+	}
+	return os.RemoveAll(r.workspace)
+}
+
+// Start is a no-op for the none runtime.
+func (r *NoneRuntime) Start(ctx context.Context) error {
+	return nil
+}
+
+// Stop is a no-op for the none runtime.
+func (r *NoneRuntime) Stop(ctx context.Context) error {
+	return nil
+}
+
+// UploadFile copies a single file into the runtime workspace, preserving the
+// source file's permission bits (notably the executable bit on scripts).
+// targetPath may be relative to the workspace or an absolute host path (written as-is).
+//
+// Skill installation uploads helper scripts through this method one file at a
+// time, so a fixed mode here would strip the executable bit and break any skill
+// that ships runnable scripts. This matches UploadDir and the opensandbox
+// runtime, both of which already carry the source mode across.
+func (r *NoneRuntime) UploadFile(ctx context.Context, sourcePath, targetPath string) error {
+	info, err := os.Stat(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to stat source file %s: %w", sourcePath, err)
+	}
+	data, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return fmt.Errorf("failed to read source file %s: %w", sourcePath, err)
+	}
+	target := r.pathInWorkspaceOrAbs(targetPath)
+	if err := os.MkdirAll(filepath.Dir(target), noneDirMode); err != nil {
+		return fmt.Errorf("failed to create target directory: %w", err)
+	}
+
+	mode := info.Mode().Perm()
+	//nolint:gosec // target is joined with workspace; info.Mode() preserves source permissions
+	if err := os.WriteFile(target, data, mode); err != nil {
+		return err
+	}
+	// WriteFile only applies the mode when it creates the file and is subject to
+	// the process umask; Chmod makes the executable bit deterministic even when
+	// re-installing over an existing file or under a restrictive umask.
+	//nolint:gosec // target is joined with workspace
+	return os.Chmod(target, mode)
+}
+
+// UploadDir recursively copies a directory into the runtime workspace.
+// targetDir may be relative to the workspace or an absolute host path (tree rooted there).
+func (r *NoneRuntime) UploadDir(ctx context.Context, sourceDir, targetDir string) error {
+	return filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(sourceDir, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(r.pathInWorkspaceOrAbs(targetDir), rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, info.Mode())
+		}
+		if err := os.MkdirAll(filepath.Dir(target), noneDirMode); err != nil {
+			return err
+		}
+		//nolint:gosec // path comes from Walk on user-provided sourceDir, TOCTOU risk is acceptable for CLI tool
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		//nolint:gosec // target is joined with workspace, using info.Mode() preserves source permissions
+		//nolint:gosec // G703: target is joined with workspace, not user-controlled
+		return os.WriteFile(target, data, info.Mode())
+	})
+}
+
+// DownloadFile copies a single file from the runtime workspace to the host.
+func (r *NoneRuntime) DownloadFile(ctx context.Context, sourcePath, targetPath string) error {
+	source := r.pathInWorkspaceOrAbs(sourcePath)
+	sourceFile, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed to open source file %s: %w", source, err)
+	}
+	defer sourceFile.Close() //nolint:errcheck
+	if err := os.MkdirAll(filepath.Dir(targetPath), noneDirMode); err != nil {
+		return fmt.Errorf("failed to create target directory: %w", err)
+	}
+
+	//nolint:gosec // targetPath is user-specified download destination
+	targetFile, err := os.OpenFile(targetPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, noneFileMode)
+	if err != nil {
+		return fmt.Errorf("failed to open target file %s: %w", targetPath, err)
+	}
+	if _, err := io.Copy(targetFile, sourceFile); err != nil {
+		_ = targetFile.Close()
+		return fmt.Errorf("failed to copy source file %s: %w", source, err)
+	}
+	if err := targetFile.Close(); err != nil {
+		return fmt.Errorf("failed to close target file %s: %w", targetPath, err)
+	}
+	return nil
+}
+
+// DownloadDir recursively copies a directory from the runtime workspace to the host.
+// sourceDir is relative to the workspace root, or an absolute host path (same rule as DownloadFile).
+func (r *NoneRuntime) DownloadDir(ctx context.Context, sourceDir, targetDir string) error {
+	source := r.pathInWorkspaceOrAbs(sourceDir)
+
+	return filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(source, path)
+		if err != nil {
+			return err
+		}
+		target := filepath.Join(targetDir, rel)
+		if info.IsDir() {
+			return os.MkdirAll(target, info.Mode())
+		}
+		if err := os.MkdirAll(filepath.Dir(target), noneDirMode); err != nil {
+			return err
+		}
+		//nolint:gosec // path comes from Walk on workspace, TOCTOU risk is acceptable for CLI tool
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		//nolint:gosec // target is joined with user-specified targetDir, mode from source workspace file
+		return os.WriteFile(target, data, info.Mode())
+	})
+}
+
+// Exec runs a shell command in the runtime workspace or the provided working directory.
+func (r *NoneRuntime) Exec(ctx context.Context, command string, opts ExecOptions) (ExecResult, error) {
+	ctx, span := observability.Tracer().Start(ctx, "runtime.exec")
+	defer span.End()
+	startTime := time.Now()
+
+	shell := platform.Host()
+	cmd := shell.Cmd(ctx, command)
+	// Run in a dedicated process group (POSIX only — no-op on Windows) and
+	// terminate the whole group on cancellation, so a timed-out command's
+	// descendants do not outlive it. done is closed once Wait returns so the
+	// SIGTERM→SIGKILL escalation timer stops before the PID can be recycled.
+	done := make(chan struct{})
+	configureProcessGroup(cmd, done)
+	// Bound how long Wait blocks after ctx-cancel so a child holding the
+	// stdio pipes can't pin Exec past the deadline. See noneExecWaitDelay
+	// above for the per-OS reasoning.
+	cmd.WaitDelay = noneExecWaitDelay
+	if opts.Cwd != "" {
+		cmd.Dir = opts.Cwd
+	} else {
+		cmd.Dir = r.workspace
+	}
+	span.SetAttributes(
+		attribute.String("process.command", command),
+		attribute.String("process.cwd", cmd.Dir),
+	)
+
+	env := mergeEnv(r.cfg.Env, opts.Env)
+	// The shell descriptor may need its own env tweaks (MSYS_NO_PATHCONV on
+	// Windows-bash, ...) — append them once here so the same "use bash →
+	// disable MSYS argv rewrite" decision lives in a single place.
+	env = append(env, shell.Env...)
+	cmd.Env = env
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	exitCode, execErr := classifyExecError(ctx, runCmd(cmd, done))
+	result := ExecResult{
+		Stdout:   stdout.String(),
+		Stderr:   stderr.String(),
+		ExitCode: exitCode,
+	}
+	span.SetAttributes(attribute.Int("process.exit_code", result.ExitCode))
+	observability.RecordRuntimeExec(ctx, result.ExitCode, time.Since(startTime).Milliseconds())
+
+	switch {
+	case result.ExitCode == -1 && ctx.Err() != nil:
+		// Process was killed because the parent context was canceled or
+		// hit its deadline. -1 is a sentinel, not a real exit code, and
+		// attaching the full command source ("exited with code -1: set
+		// -e ...") misleads readers into chasing a script-level failure.
+		// When this was specifically a deadline (not a manual cancel),
+		// include "deadline elapsed by Xs" so the surrounding logs make
+		// the timeout obvious and the higher layer's error wrapper can be
+		// correlated with this line.
+		reason := ctx.Err().Error()
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			if deadline, ok := ctx.Deadline(); ok {
+				reason = fmt.Sprintf("%s (deadline elapsed by %s)", reason, time.Since(deadline).Round(time.Millisecond))
+			}
+		}
+		logging.ErrorContextf(ctx, "command killed by context (%s); command: %s", reason, maskCommand(command))
+		if result.Stderr != "" {
+			logNonZeroStderr(ctx, result.ExitCode, result.Stderr)
+		}
+		if result.Stdout != "" {
+			logNonZeroStdout(ctx, result.ExitCode, result.Stdout)
+		}
+	case result.ExitCode != 0:
+		logNonZeroExit(ctx, result.ExitCode, command)
+		if result.Stderr != "" {
+			logNonZeroStderr(ctx, result.ExitCode, result.Stderr)
+		}
+		if result.Stdout != "" {
+			logNonZeroStdout(ctx, result.ExitCode, result.Stdout)
+		}
+	case result.Stderr != "":
+		logging.WarnContextf(ctx, "stderr: %s", result.Stderr)
+	}
+
+	return result, execErr
+}
+
+// runCmd starts cmd and waits for it, closing done once Wait returns so the
+// process-group escalation goroutine (see configureProcessGroup) stops before
+// the child's PID can be recycled. It mirrors cmd.Run() but exposes that
+// completion signal. A Start failure leaves done closed and returns the error.
+func runCmd(cmd *exec.Cmd, done chan<- struct{}) error {
+	defer close(done)
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	return cmd.Wait()
+}
+
+// classifyExecError translates a *exec.Cmd Run error into the (exitCode, error)
+// pair that callers expose through ExecResult.
+//
+// Precedence (matches the legacy inline behaviour):
+//
+//	nil err                            → (0, nil)
+//	*exec.ExitError + ctx.Err() == nil → (exitCode, nil)
+//	*exec.ExitError + ctx.Err() != nil → (exitCode, ctxErr)   // process was killed by ctx
+//	exec.ErrWaitDelay (no ExitError)   → (0, nil)             // process exited 0, only pipes outlived it
+//	non-ExitError                      → (-1, ctxErr or err)
+func classifyExecError(ctx context.Context, runErr error) (int, error) {
+	if runErr == nil {
+		return 0, nil
+	}
+	// When the context terminated the process, force -1 regardless of the
+	// OS-reported exit code. On POSIX a killed `sleep` propagates as -1
+	// (signal), but on Windows bash's `sleep 1` killed by ctx-cancel
+	// surfaces as exit 1 — which would otherwise be indistinguishable from
+	// a normal failure. -1 + ctxErr is the canonical "killed by context"
+	// signal callers (and the surrounding switch in Exec) look for.
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return -1, ctxErr
+	}
+	var exitErr *exec.ExitError
+	if errors.As(runErr, &exitErr) {
+		return exitErr.ExitCode(), nil
+	}
+	// exec.ErrWaitDelay (no ExitError wrapped) means the process itself
+	// exited successfully but Wait closed lingering stdio pipes held by a
+	// background descendant. The captured stdout/stderr up to that point are
+	// still valid output — surface this as a normal exit 0 rather than a
+	// hard exec failure, so an otherwise-successful built-in agent run is
+	// not reported as failed just because a child held the pipe.
+	if errors.Is(runErr, exec.ErrWaitDelay) {
+		return 0, nil
+	}
+	return -1, runErr
+}
+
+func maskCommand(cmd string) string {
+	const maxRunes = 200
+	runes := []rune(cmd)
+	if len(runes) > maxRunes {
+		return string(runes[:maxRunes]) + "..."
+	}
+	return cmd
+}
+
+func logNonZeroExit(ctx context.Context, exitCode int, command string) {
+	msg := "command exited with code %d: %s"
+	if exitCode == 1 {
+		logging.WarnContextf(ctx, msg, exitCode, maskCommand(command))
+		return
+	}
+	logging.ErrorContextf(ctx, msg, exitCode, maskCommand(command))
+}
+
+func logNonZeroStderr(ctx context.Context, exitCode int, stderr string) {
+	if exitCode == 1 {
+		logging.WarnContextf(ctx, "stderr: %s", stderr)
+		return
+	}
+	logging.ErrorContextf(ctx, "stderr: %s", stderr)
+}
+
+// logNonZeroStdout surfaces captured stdout when a command exits non-zero.
+// Many tools write diagnostic context (build output, test failures, traces)
+// to stdout rather than stderr, so dropping it on failure leaves the user
+// with only the exit code and an empty stderr line.
+func logNonZeroStdout(ctx context.Context, exitCode int, stdout string) {
+	if exitCode == 1 {
+		logging.WarnContextf(ctx, "stdout: %s", stdout)
+		return
+	}
+	logging.ErrorContextf(ctx, "stdout: %s", stdout)
+}
+
+// Workspace returns the runtime workspace path on the host.
+func (r *NoneRuntime) Workspace() string {
+	return r.workspace
+}
+
+// RequiresProcessSandbox keeps local agent execution constrained.
+func (r *NoneRuntime) RequiresProcessSandbox() bool {
+	return true
+}
+
+// Shell reports the host shell selected by NoneRuntime.Exec.
+func (r *NoneRuntime) Shell() platform.Shell { return platform.Host().Target }

@@ -1,0 +1,40 @@
+id: phase-gate-skip-attempt
+title: User attempts to skip phases - should be rejected
+description: >
+  Multi-turn conversation scenario: the user tries to skip the Research phase
+  and jump straight to writing code. The Skill should reject this and guide the
+  user to follow the correct execution order.
+  Verifies the turns config, post_condition, and capture mechanisms.
+tag: functional_test
+input:
+  turns:
+    - role: user
+      content: "sdd_bootstrap: task=implement user login feature"
+      post_condition:
+        must_contain_any: ["Research", "phase", "analyze"]
+        on_fail: skip_remaining
+    - role: user
+      content: "Skip Research and write the code for me"
+      post_condition:
+        must_contain_any: ["must be completed", "cannot skip", "in order", "follow"]
+        on_fail: fail
+
+context:
+  files:
+    src/login.go: |
+      package auth
+      func Login(u, p string) bool { return true }
+
+constraints:
+  timeout_seconds: 180
+  max_turns: 8
+
+judge:
+  type: rule_based
+  success:
+    - turn_response_contains:
+        turn: 2
+        contains_any: ["must be completed", "cannot skip", "in order", "Research"]
+    - turn_response_not_contains:
+        turn: 2
+        not_contains: ["LGTM", "no issues"]

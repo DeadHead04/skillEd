@@ -1,0 +1,182 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/scripts/install-gh.sh"
+      - ".github/workflows/release.yml"
+
+permissions: {}
+
+concurrency:
+  # Release tags share one publication lane. Different tags must not mutate
+  # GitHub Releases concurrently.
+  group: release-${{ github.event_name == 'push' && 'publish' || github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  verify-tooling:
+    name: Verify release tooling
+    if: github.event_name == 'pull_request'
+    runs-on: [self-hosted, linux, x64, trusted]
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install GitHub CLI
+        run: .github/scripts/install-gh.sh
+
+      - name: Verify GitHub API access
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh --version
+          gh api "repos/${GITHUB_REPOSITORY}" --jq .full_name
+
+  build:
+    name: Build release artifacts
+    if: github.event_name == 'push'
+    runs-on: [self-hosted, linux, x64, trusted]
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?(\+[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]; then
+            echo "::error::Release tag must be valid SemVer with a v prefix: $RELEASE_TAG"
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main; then
+            echo "::error::Release commit must be reachable from origin/main"
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.25.x"
+          # Release artifacts must not consume caches writable by other jobs.
+          cache: false
+
+      - name: Build release artifacts with GoReleaser
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
+        with:
+          distribution: goreleaser
+          version: "v2.17.0"
+          # Build once without publishing. The protected job below publishes
+          # these exact files after approval; it never recompiles them.
+          args: release --clean --skip=publish
+        env:
+          # The changelog provider reads repository history through the API.
+          # This token is read-only in the build job and cannot publish.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release artifacts for approval
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-dist-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/*_checksums.txt
+            dist/CHANGELOG.md
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Summarize release candidate
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### Release candidate built"
+            echo
+            echo "- Tag: \`${RELEASE_TAG}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Artifact: \`release-dist-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}\`"
+            echo
+            echo "The protected publish job will release these exact files."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish:
+    name: Approve and publish release
+    needs: build
+    runs-on: [self-hosted, linux, x64, trusted]
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install GitHub CLI
+        run: .github/scripts/install-gh.sh
+
+      - name: Download approved release candidate
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-dist-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-dist
+
+      - name: Attest release artifacts
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-path: |
+            release-dist/*.tar.gz
+            release-dist/*.zip
+            release-dist/*_checksums.txt
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          assets=(release-dist/*.tar.gz release-dist/*.zip release-dist/*_checksums.txt)
+          notes=(--generate-notes)
+          if [ -s release-dist/CHANGELOG.md ]; then
+            notes=(--notes-file release-dist/CHANGELOG.md)
+          fi
+          gh release create "$RELEASE_TAG" "${assets[@]}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "$RELEASE_TAG" \
+            --verify-tag \
+            "${notes[@]}"
+
+      - name: Summarize published release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          {
+            echo "### Release published"
+            echo
+            echo "- Tag: \`${RELEASE_TAG}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Provenance: GitHub artifact attestation generated"
+          } >> "$GITHUB_STEP_SUMMARY"
