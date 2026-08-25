@@ -13,9 +13,9 @@ The immediate product loop is:
 
 ## First-release outcome
 
-A permitted workspace user can:
+A user can:
 
-1. Import one or multiple Skills from GitHub or an uploaded archive.
+1. Import or create one or multiple Skills from GitHub or an uploaded archive.
 2. Search and list imported Skills.
 3. Inspect `SKILL.md`, supporting files, source provenance, and validation
    findings.
@@ -28,20 +28,6 @@ A permitted workspace user can:
 The release is successful when this flow works without a terminal or manual
 Skill-Up configuration.
 
-## Users and responsibilities
-
-| User | Primary work |
-| --- | --- |
-| Skill author | Imports a Skill, fixes validation problems, creates tests, and reviews failures. |
-| Reviewer | Checks test quality and compares evidence before accepting a new version. |
-| Consumer | Searches the catalog and determines whether a Skill is understandable and tested. |
-| Workspace administrator | Controls membership, model credentials, retention, and run limits. |
-
-Humans own expected behavior and promotion decisions. SkillEd performs
-structural validation, deterministic grading, comparison, and aggregation.
-Agent-assisted test generation and Skill rewriting are deferred until the
-manual workflow is reliable.
-
 ## Product boundary
 
 Skill-Up already supplies declarative suites and cases, with-Skill versus
@@ -51,14 +37,15 @@ evaluator.
 
 SkillEd owns:
 
-- Workspaces, users, and authorization.
+- Workspaces
 - Import, catalog, search, and stable Skill identity.
 - Immutable Skill and suite snapshots.
 - UI-based test authoring and policy validation.
 - Job scheduling and secure container orchestration.
 - Model-gateway policy and credential isolation.
 - Report ingestion, normalized results, cost calculation, and statistics.
-- GitHub synchronization and later release/package workflows.
+- GitHub synchronization
+  - And later in the project release/package workflows.
 
 Skill-Up owns:
 
@@ -68,25 +55,20 @@ Skill-Up owns:
 - Assertion execution, grading, benchmark generation, and reports.
 - Standard `SessionInput` and `SessionResult` contracts for custom engines.
 
-Product code must not import `skill-up/internal/*`. Integration is through the
+Product code must NOT import `skill-up/internal/*`. Integration is through the
 supported CLI/config/report boundary so the upstream copy can be updated.
 
 ## Locked MVP decisions
 
 - UI-first; no user-facing CLI is required.
 - Tests are single-turn and response-only initially.
-- The model is sent no tool definitions and any tool-call transcript entry is a
-  policy failure.
 - Only the main `SKILL.md` instructions are evaluated. Scripts are not run and
   references/assets are not automatically injected.
-- Deterministic text and regular-expression assertions are supported first.
+- Deterministic text, regular-expression and tests assertions are supported first.
 - Each run pairs the with-Skill and without-Skill variants.
-- OpenAI is reached only through an internal gateway; evaluation containers do
+- Model providers are reached only through an internal gateway; evaluation containers do
   not receive provider keys or general internet access.
-- Git commits or upload checksums pin Skill versions; run inputs are immutable.
-- Native agent routing/trigger selection is not measured. The UI reports
-  `Not measured`, consistent with the open upstream
-  [routing proposal](https://github.com/alibaba/skill-up/issues/166).
+- Skills are versioned by Git commit hashes; run inputs are immutable.
 
 ## Explicitly deferred
 
@@ -107,13 +89,10 @@ expand the first-release schemas or screens prematurely.
 
 ## Product principles
 
-1. **Evidence over a single score.** Always expose case output, assertion
-   evidence, errors, sample count, and comparison arm.
-2. **Immutable comparisons.** A result is meaningful only when Skill, tests,
-   model, engine, and runner versions are pinned.
-3. **Honest unsupported states.** Do not infer trigger selection, auxiliary-file
-   coverage, or semantic correctness when the run cannot prove it.
-4. **Portable Skills and tests.** Keep product infrastructure and secrets out of
-   the Skill repository; materialize standard Skill-Up YAML.
-5. **Secure by construction.** Users cannot supply arbitrary commands, images,
-   network destinations, engines, or judge scripts in the first release.
+1. **UI First Skill Management**: The user must be easily able to see and manage the skills
+that they have in their system.
+2. **Easy Evaluation Bench**: The user must be able to easily evaluate their skill against
+parameters set by them.
+3. **Versioned Skills**: The skill files are immutable, every iteration is a new version.
+4. **Skill observability**: Only the evealuations run on the skill should be considered for
+calculating skill metrics like average cost, latency, token usage and drift.

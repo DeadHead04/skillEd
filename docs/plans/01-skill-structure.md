@@ -11,7 +11,7 @@ skill-name/
 ├── scripts/                     optional executable helpers
 ├── references/                  optional on-demand documentation
 ├── assets/                      optional templates and static resources
-├── evals/                       Skill-Up tests; never installed with the Skill
+├── evals/                       Skill-Up tests; NEVER installed with the Skill
 │   ├── eval.yaml
 │   └── cases/
 │       ├── primary-workflow.yaml
@@ -20,46 +20,9 @@ skill-name/
 └── LICENSE                      optional
 ```
 
-Additional files are permitted, but SkillEd classifies known directories in the
+Additional files are permitted, but SkillEd classifies ONLY known directories in the
 package viewer. The initial evaluator loads only `SKILL.md`; it does not execute
 or inject supporting resources.
-
-## `SKILL.md` contract
-
-The file contains YAML frontmatter followed by Markdown instructions:
-
-```yaml
----
-name: release-notes-writer
-description: Creates structured release notes. Use when summarizing software or product changes.
-license: Apache-2.0
-compatibility: Produces text responses without external tools.
-metadata:
-  author: example-team
-  version: "1.0"
----
-
-# Workflow
-
-1. Identify user-visible changes.
-2. Group them by feature, fix, and operational impact.
-3. Produce concise Markdown release notes.
-```
-
-Required validation:
-
-- `name` is 1–64 lowercase letters, numbers, and hyphens.
-- It has no leading, trailing, or consecutive hyphen.
-- It matches the containing directory name.
-- `description` is non-empty, at most 1024 characters, and explains both what
-  the Skill does and when it should be used.
-- Frontmatter is delimited correctly and parses as YAML.
-- Markdown content follows the closing delimiter.
-
-Optional fields are `license`, `compatibility`, string-to-string `metadata`, and
-experimental `allowed-tools`. A non-empty `allowed-tools` value produces a
-response-only compatibility warning because the first release cannot exercise
-those tools.
 
 ## Progressive disclosure and coverage
 
@@ -129,10 +92,7 @@ root.
 | Warning | Import succeeds but needs attention | Tool-dependent compatibility, broken relative reference, oversized instruction file. |
 | Information | Context only | Scripts or assets exist but are not covered by response-only tests. |
 
-Archive and file safety checks reject absolute paths, `..` traversal, device
-files, escaping symlinks, duplicate normalized paths, excessive file count,
-excessive uncompressed size, and files above configured limits. The scanner
-must never execute package contents.
+The scanner must never execute package contents.
 
 ## Evaluation files
 

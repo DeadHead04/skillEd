@@ -16,7 +16,7 @@ flowchart LR
     Docker --> SkillUp["Pinned Skill-Up"]
     SkillUp --> Adapter["skilled-response Custom Engine"]
     Adapter --> Gateway["Internal model gateway"]
-    Gateway --> OpenAI["OpenAI API"]
+    Gateway --> Model Factory["OpenAI/Anthropic/Other Models API"]
     SkillUp --> Reports["Skill-Up structured reports"]
     Reports --> Worker
     Worker --> DB
@@ -98,6 +98,7 @@ The local Custom Engine receives Skill-Up `SessionInput` and returns
 5. Call the configured model with no tools.
 6. Return final message, minimal transcript, token counts, duration, model, and
    exit code.
+7. Ensure no PII is logged in the final response.
 
 The runner cannot execute Skill scripts, follow file links, perform shell
 commands, or accept arbitrary provider URLs.

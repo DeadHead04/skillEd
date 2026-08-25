@@ -5,7 +5,7 @@
 ### Workspace and access
 
 - `Workspace`: ID, name, slug, settings, created time.
-- `WorkspaceMember`: workspace, user, role (`owner`, `editor`, `viewer`).
+- `WorkspaceMember`: workspace, user, role, for MVP there is only one role, that is user.
 - `Connection`: workspace, provider (`github`, `openai`), status, encrypted or
   external secret reference; never the displayed secret value.
 
@@ -35,18 +35,9 @@ never a prior snapshot.
 
 The first-release assertion union supports:
 
-```text
-contains_all[]
-contains_any[]
-not_contains[]
-matches_all[]
-matches_any[]
-not_matches[]
-exit_code = 0
-```
-
-Regular expressions use the syntax accepted by Skill-Up/Go and are validated
-before save and again before run.
+- RegEx Matching
+- Word Matching
+- Result Validation
 
 ### Runs
 
@@ -65,11 +56,13 @@ One logical execution exists for every enabled case × two variants × requested
 iterations. Cancelled unscheduled executions remain distinguishable from
 errors.
 
-### Audit
+### (Deferred as we can use Git to track this) Audit
 
-`AuditEvent` records workspace, actor, action, target type/ID, timestamp, and
+(Deferred) `AuditEvent` records workspace, actor, action, target type/ID, timestamp, and
 non-secret summary for imports, test changes, run creation/cancellation,
 connection changes, and later publications.
+
+**For now we simply use the test data stored in the DB corresponding to a skill.**
 
 ## Status contracts
 
@@ -91,44 +84,44 @@ Case execution status:
 - `error`: model, runtime, timeout, adapter, or report failure.
 - `cancelled`: execution was stopped or never scheduled after cancellation.
 
-## API groups
+## API groups 
 
 All endpoints are workspace-scoped, authorize before querying data, use JSON,
 and return stable error codes plus safe messages.
+All the APIs should be versioned (/api/v<version-number>/...), current version is `v1`
 
 ### Catalog
 
-- `POST /api/workspaces/:workspaceId/imports/github`
-- `POST /api/workspaces/:workspaceId/imports/upload`
-- `GET /api/workspaces/:workspaceId/imports/:importId`
-- `GET /api/workspaces/:workspaceId/skills`
-- `GET /api/workspaces/:workspaceId/skills/:skillId`
-- `GET /api/workspaces/:workspaceId/skills/:skillId/versions/:versionId`
-- `GET /api/workspaces/:workspaceId/skills/:skillId/versions/:versionId/files/*`
+- `POST /api/v1/workspaces/:workspaceId/imports/github`
+- `POST /api/v1/workspaces/:workspaceId/imports/upload`
+- `GET /api/v1/workspaces/:workspaceId/imports/:importId`
+- `GET /api/v1/workspaces/:workspaceId/skills`
+- `GET /api/v1/workspaces/:workspaceId/skills/:skillId`
+- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/versions/:versionId`
+- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/versions/:versionId/files/*`
 
-Imports are asynchronous for large repositories/archives. File preview serves
+All the imports are asynchronous from repositories/archives. File preview serves
 safe text or approved image types, applies byte limits, and never executes
 content.
 
 ### Test authoring
 
-- `GET/POST /api/workspaces/:workspaceId/skills/:skillId/suites`
-- `GET/PATCH /api/workspaces/:workspaceId/suites/:suiteId`
-- `POST /api/workspaces/:workspaceId/suites/:suiteId/cases`
-- `PATCH/DELETE /api/workspaces/:workspaceId/suites/:suiteId/cases/:caseId`
-- `POST /api/workspaces/:workspaceId/suites/:suiteId/snapshots`
-- `GET /api/workspaces/:workspaceId/suite-snapshots/:snapshotId/yaml`
+- `GET/POST /api/v1/workspaces/:workspaceId/skills/:skillId/suites`
+- `GET/PATCH /api/v1/workspaces/:workspaceId/suites/:suiteId`
+- `POST /api/v1/workspaces/:workspaceId/suites/:suiteId/cases`
+- `PATCH/DELETE /api/v1/workspaces/:workspaceId/suites/:suiteId/cases/:caseId`
+- `POST /api/v1/workspaces/:workspaceId/suites/:suiteId/snapshots`
+- `GET /api/v1/workspaces/:workspaceId/suite-snapshots/:snapshotId/yaml`
 
-Updates use optimistic revision checks. A revision conflict returns the current
-revision without overwriting either user’s work.
+Conflict detection among versions is not needed for now.
 
 ### Runs and statistics
 
-- `POST /api/workspaces/:workspaceId/runs`
-- `GET /api/workspaces/:workspaceId/runs/:runId`
-- `POST /api/workspaces/:workspaceId/runs/:runId/cancel`
-- `GET /api/workspaces/:workspaceId/runs/:runId/executions`
-- `GET /api/workspaces/:workspaceId/skills/:skillId/statistics`
+- `POST /api/v1/workspaces/:workspaceId/runs`
+- `GET /api/v1/workspaces/:workspaceId/runs/:runId`
+- `POST /api/v1/workspaces/:workspaceId/runs/:runId/cancel`
+- `GET /api/v1/workspaces/:workspaceId/runs/:runId/executions`
+- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/statistics`
 
 Run creation requires Skill version, suite or snapshot, allowed model, and
 iteration count. It returns the immutable snapshot IDs and estimated maximum
