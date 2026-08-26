@@ -10,11 +10,12 @@ list, and inspect immutable Skills without executing their contents.
 ### Foundation
 
 - Scaffold the web application, shared domain package, database migrations,
-  authentication, and workspace roles.
+  authentication, mandatory workspace isolation, and the single `user` role.
 - Configure a GitHub integration suitable for public and authorized private
   repositories.
 - Define package and artifact-store interfaces with local development
-  implementations. For local development keep the aritficat store in the file system itself.
+  implementations. For local development keep the artifact store on the local
+  filesystem.
 - Seed a development workspace and sample Skills; do not depend on production
   credentials for automated tests.
 
@@ -22,14 +23,14 @@ list, and inspect immutable Skills without executing their contents.
 
 - GitHub import accepts repository or a ref to it and resolves the
   ref to a commit, then downloads a bounded archive.
-- Upload import accepts ZIP/folder content through a staged object with file,
+- Upload import accepts ZIP/folder content through staged local storage with file,
   count, and uncompressed-size limits.
 - Extract into a temporary directory with traversal, symlink, device-file, and
   duplicate-path protections.
 - Recursively discover `SKILL.md`, parse packages, generate manifests, validate,
   and store immutable snapshots.
-- Create or reuse stable Skill identity and deduplicate versions by source
-  commit.
+- Create or reuse stable Skill identity. Deduplicate GitHub versions by resolved
+  commit and upload versions by package checksum.
 - Record an audit event and remove temporary extraction data.
 
 ### Catalog UI
@@ -48,7 +49,7 @@ list, and inspect immutable Skills without executing their contents.
 
 - For MVP a user is allowed to import.
 - Invalid Skills can be cataloged for repair but cannot run.
-- (Deferred) Search never exposes records outside the authorized workspace.
+- Every search, import, detail, and file request enforces workspace membership.
 - Import does not execute scripts, install dependencies, resolve external
   Markdown URLs, or render active HTML/JavaScript.
 - GitHub access tokens remain in the connection layer and never enter snapshots
@@ -74,7 +75,7 @@ and catalog APIs return stable fixtures.
 4. Import a new commit as a distinct immutable version.
 5. Display validation errors for malformed frontmatter.
 6. Reject traversal, escaping symlink, zip bomb, and oversized-file fixtures.
-7. Prevent a viewer from importing or reading another workspace’s data.
+7. Prevent a user from importing or reading another workspace’s data.
 8. Preview allowed text/images without executing HTML, scripts, or binaries.
 9. Record provenance, checksum, actor, and timestamp for every successful
    import.

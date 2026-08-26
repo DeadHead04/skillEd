@@ -1,0 +1,14 @@
+.git
+.github
+.next
+node_modules
+artifacts
+tmp
+test-results
+playwright-report
+coverage
+design
+docs
+skill-up
+*.log
+.env*

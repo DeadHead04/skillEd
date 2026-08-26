@@ -1,0 +1,24 @@
+{
+  "name": "@skilled/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --env-file-if-exists=../../.env --import tsx --watch src/index.ts",
+    "start": "node --env-file-if-exists=../../.env --import tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@skilled/artifact-store": "workspace:*",
+    "@skilled/db": "workspace:*",
+    "@skilled/github": "workspace:*",
+    "@skilled/skill-package": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/yazl": "^3.3.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "yazl": "^3.3.1"
+  }
+}

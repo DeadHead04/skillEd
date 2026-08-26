@@ -1,0 +1,12 @@
+node_modules
+.next
+coverage
+dist
+skill-up
+artifacts
+tmp
+pnpm-lock.yaml
+Dockerfile
+design/**/*.png
+design/skillup-design
+docs

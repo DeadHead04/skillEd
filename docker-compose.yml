@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: skilled
+      POSTGRES_USER: skilled
+      POSTGRES_PASSWORD: skilled
+    ports:
+      - "${POSTGRES_PORT:-54329}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skilled -d skilled"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - skilled-postgres:/var/lib/postgresql/data
+
+  web:
+    profiles: [app]
+    build:
+      context: .
+    command: sh -c "pnpm db:migrate && pnpm --filter @skilled/web start"
+    environment: &application-environment
+      APP_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET:-local-compose-auth-secret-change-me}
+      DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
+      ARTIFACT_ROOT: /runtime/artifacts
+      IMPORT_STAGING_ROOT: /runtime/imports
+      DEV_AUTH_BYPASS: ${DEV_AUTH_BYPASS:-true}
+      AUTH_GITHUB_ID: ${AUTH_GITHUB_ID:-}
+      AUTH_GITHUB_SECRET: ${AUTH_GITHUB_SECRET:-}
+      GITHUB_APP_ID: ${GITHUB_APP_ID:-}
+      GITHUB_APP_SLUG: ${GITHUB_APP_SLUG:-}
+      GITHUB_APP_PRIVATE_KEY: ${GITHUB_APP_PRIVATE_KEY:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/login >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - skilled-runtime:/runtime
+
+  worker:
+    profiles: [app]
+    build:
+      context: .
+    command: pnpm --filter @skilled/worker start
+    environment: *application-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    volumes:
+      - skilled-runtime:/runtime
+
+volumes:
+  skilled-postgres:
+  skilled-runtime:
