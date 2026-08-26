@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   testDir: "./apps/web/e2e",
   globalSetup: "./apps/web/e2e/global-setup.ts",
-  fullyParallel: true,
+  fullyParallel: false,
+  workers: 1,
   preserveOutput: "always",
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",

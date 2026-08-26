@@ -53,6 +53,15 @@ function githubHeaders(token: string): HeadersInit {
   };
 }
 
+function githubApiUrl(pathname: string): string {
+  const testBase =
+    process.env.NODE_ENV === "test"
+      ? process.env.SKILLED_TEST_GITHUB_API_BASE_URL
+      : undefined;
+  const base = (testBase ?? "https://api.github.com").trim().replace(/\/$/, "");
+  return `${base}${pathname}`;
+}
+
 async function appJwt(): Promise<string> {
   const appId = process.env.GITHUB_APP_ID;
   const rawKey = process.env.GITHUB_APP_PRIVATE_KEY;
@@ -90,7 +99,9 @@ export async function createInstallationToken(
   installationId: string,
 ): Promise<string> {
   const response = await githubJson<{ token: string }>(
-    `https://api.github.com/app/installations/${encodeURIComponent(installationId)}/access_tokens`,
+    githubApiUrl(
+      `/app/installations/${encodeURIComponent(installationId)}/access_tokens`,
+    ),
     await appJwt(),
     { method: "POST" },
   );
@@ -104,7 +115,7 @@ export async function getInstallationAccount(installationId: string): Promise<{
   const installation = await githubJson<{
     account: { id: number; login?: string; slug?: string };
   }>(
-    `https://api.github.com/app/installations/${encodeURIComponent(installationId)}`,
+    githubApiUrl(`/app/installations/${encodeURIComponent(installationId)}`),
     await appJwt(),
   );
   return {
@@ -126,7 +137,9 @@ export async function resolveRepository(input: {
   let repository: { id: number; default_branch: string };
   try {
     repository = await githubJson<{ id: number; default_branch: string }>(
-      `https://api.github.com/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}`,
+      githubApiUrl(
+        `/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}`,
+      ),
       token,
     );
   } catch (error) {
@@ -143,7 +156,9 @@ export async function resolveRepository(input: {
   let commit: { sha: string };
   try {
     commit = await githubJson<{ sha: string }>(
-      `https://api.github.com/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}/commits/${encodeURIComponent(reference)}`,
+      githubApiUrl(
+        `/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}/commits/${encodeURIComponent(reference)}`,
+      ),
       token,
     );
   } catch (error) {
@@ -168,7 +183,9 @@ export async function downloadRepositoryZip(input: {
   maxBytes: number;
 }): Promise<void> {
   const response = await fetch(
-    `https://api.github.com/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}/zipball/${encodeURIComponent(input.commit)}`,
+    githubApiUrl(
+      `/repos/${encodeURIComponent(input.owner)}/${encodeURIComponent(input.repository)}/zipball/${encodeURIComponent(input.commit)}`,
+    ),
     { headers: githubHeaders(input.token), redirect: "follow" },
   );
   if (!response.ok || !response.body) {

@@ -98,7 +98,9 @@ git diff --check
 
 Unit tests do not require PostgreSQL. Integration and browser tests use the
 Compose database and deterministic local/mock fixtures; they do not require
-GitHub credentials or internet access.
+GitHub credentials or internet access. The Playwright gate starts the real
+import worker: ZIP and folder cases traverse the complete application stack,
+while GitHub cases mock only the upstream GitHub API and archive responses.
 
 ## Upstream boundary
 
