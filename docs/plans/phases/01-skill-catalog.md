@@ -14,13 +14,13 @@ list, and inspect immutable Skills without executing their contents.
 - Configure a GitHub integration suitable for public and authorized private
   repositories.
 - Define package and artifact-store interfaces with local development
-  implementations.
+  implementations. For local development keep the aritficat store in the file system itself.
 - Seed a development workspace and sample Skills; do not depend on production
   credentials for automated tests.
 
 ### Import pipeline
 
-- GitHub import accepts repository, ref, and optional subdirectory, resolves the
+- GitHub import accepts repository or a ref to it and resolves the
   ref to a commit, then downloads a bounded archive.
 - Upload import accepts ZIP/folder content through a staged object with file,
   count, and uncompressed-size limits.
@@ -29,7 +29,7 @@ list, and inspect immutable Skills without executing their contents.
 - Recursively discover `SKILL.md`, parse packages, generate manifests, validate,
   and store immutable snapshots.
 - Create or reuse stable Skill identity and deduplicate versions by source
-  commit/checksum.
+  commit.
 - Record an audit event and remove temporary extraction data.
 
 ### Catalog UI
@@ -46,9 +46,9 @@ list, and inspect immutable Skills without executing their contents.
 
 ## Policy
 
-- Only workspace owners/editors may import.
+- For MVP a user is allowed to import.
 - Invalid Skills can be cataloged for repair but cannot run.
-- Search never exposes records outside the authorized workspace.
+- (Deferred) Search never exposes records outside the authorized workspace.
 - Import does not execute scripts, install dependencies, resolve external
   Markdown URLs, or render active HTML/JavaScript.
 - GitHub access tokens remain in the connection layer and never enter snapshots

@@ -7,7 +7,7 @@ The first release has four primary navigation areas:
 1. **Skills** — catalog, import, package inspection, and Skill-level status.
 2. **Tests** — suites and response-only cases belonging to a Skill.
 3. **Runs** — queued, running, completed, failed, and cancelled evaluations.
-4. **Settings** — workspace members, GitHub connection, model access, limits,
+4. **Settings** — GitHub connection, model access, limits,
    and retention.
 
 Statistics are accessed from a Skill or run rather than introduced as a
@@ -61,9 +61,8 @@ The Skills catalog displays:
 - Latest run status and pass rate.
 - Baseline uplift when a completed paired run exists.
 
-Search covers name, description, source, path, and tags. Filters cover
-valid/invalid, tested/untested, latest result, and source. Search respects
-workspace authorization before matching or returning data.
+Search covers name, description, and path for MVP (other search options can be introduced later).
+Filters cover valid/invalid, tested/untested, latest result, and source.
 
 Empty states distinguish:
 
@@ -83,8 +82,7 @@ The Skill detail screen has these tabs:
 - **Statistics:** pass/baseline trend, latency, tokens, cost, errors, and sample
   counts.
 
-The initial release does not edit Skill files. Source remains GitHub or the
-immutable uploaded snapshot.
+The initial release does not edit Skill files. Source remains local Git and GitHub for the MVP.
 
 ### 4. Create tests
 
@@ -101,11 +99,8 @@ The user creates or opens a suite, then adds a case using a form:
 The UI shows a human-readable assertion summary and generated YAML preview.
 Unknown YAML fields are not accepted through the first-release UI.
 
-Saving creates a draft. Running freezes the current draft as an immutable suite
-snapshot, so later edits cannot alter prior results. Publishing writes standard
-files under `evals/` through the GitHub branch-and-pull-request workflow when
-the source is Git-backed. Uploaded Skills retain tests as SkillEd-managed
-snapshots until exported or connected to GitHub.
+Saving creates a draft. Running does not freeze current draft. Only after user commits, it is saved as an immutable suite snapshot.
+Publishing writes standard files under `evals/` through the GitHub branch-and-pull-request workflow when the source is Git-backed. Uploaded Skills retain tests as SkillEd-managed snapshots until exported or connected to GitHub.
 
 ### 5. Run
 
@@ -115,7 +110,6 @@ The run dialog shows:
 - Suite snapshot and enabled case count.
 - Model selected from the workspace allowlist.
 - Iterations: 1, 3, or 5; default 1.
-- Estimated maximum model calls and a cost warning.
 - Fixed comparison: with Skill and without Skill.
 
 The user confirms before a paid run. The UI moves immediately to a run page
@@ -140,28 +134,17 @@ The summary displays:
 - With-Skill pass rate.
 - Without-Skill baseline pass rate.
 - Uplift in percentage points.
-- Latency, input/output tokens, estimated cost, and no-tool compliance.
+- Latency, input/output tokens, estimated cost.
 
 The case table pairs with-Skill and without-Skill executions. Opening a row
 shows prompts, outputs, assertions, evidence, duration, usage, error details,
 and the exact snapshots used.
 
-The UI never labels a response-only run as a trigger test. Routing appears as
-`Not measured` and supporting resources as `Not covered`.
+We do NOT need trigger of the Skill testing for now.
 
 ## Permissions
 
-Initial workspace roles:
-
-| Action | Owner | Editor | Viewer |
-| --- | --- | --- | --- |
-| View catalog, Skill files, tests, and results | Yes | Yes | Yes |
-| Import Skills and edit tests | Yes | Yes | No |
-| Start or cancel paid runs | Yes | Yes | No |
-| Configure GitHub/model credentials and members | Yes | No | No |
-
-Every mutation records workspace, actor, action, target, and timestamp in an
-audit record. Credential values are never included.
+Initial workspace roles, there is just a single role of user. RBAC can be added later on in the MVP.
 
 ## Human and system decisions
 
@@ -169,5 +152,5 @@ audit record. Credential values are never included.
   enough.
 - SkillEd: validates structure and policy, freezes snapshots, schedules work,
   calculates metrics, and preserves evidence.
-- Skill-Up: executes variants and grades outputs.
+- (deferred) Skill-Up: executes variants and grades outputs.
 - Model: produces only a response; it cannot call a tool.
