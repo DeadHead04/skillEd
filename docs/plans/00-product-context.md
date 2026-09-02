@@ -1,102 +1,81 @@
-# SkillEd V1 Product Context
+# V1 Product Contract
 
-## Outcome
+## User outcome
 
-V1 lets a trusted user upload one Agent Skill package and supporting task
-evidence, create sophisticated evals through a guided Codex conversation, run
-those evals through Skill-Up with Codex, understand failures, review proposed
-Skill changes, and download or activate a verified candidate without using a
-terminal.
+A user can upload a Skill package and real task material, create and approve a
+meaningful eval suite, run it with Codex, understand where the Skill fails,
+approve or reject a proposed improvement, compare the candidate with the
+current version, and download the chosen Skill entirely from the UI.
 
-## Authoritative lifecycle
+## The only lifecycle
 
 ```text
-upload → package version → task understanding → eval draft → approved snapshot
-       → run → evidence → upgrade proposal → approved candidate → verification
-       → active version or download
+Skill version
+→ eval draft
+→ approved eval version
+→ run and case results
+→ update proposal
+→ candidate Skill version
+→ verification run
+→ active/downloaded version
 ```
 
-Versions, approved eval snapshots, run specifications, and results are
-immutable. Conversations and drafts are mutable assistance surfaces and never
-silently alter an authoritative artifact.
-
-## Responsibility split
+## Responsibilities
 
 ### SkillEd
 
-- Owns the UI, package intake, compatibility analysis, versions, conversations,
-  approvals, queue, artifact storage, report ingestion, comparisons, and
-  downloads.
-- Materializes exact checksummed artifacts into temporary cloud workspaces.
-- Determines when paid or state-changing work may begin.
+- Stores packages, versions, task files, evals, results, proposals, and reports.
+- Controls every approval and state change.
+- Runs background work and renders progress/results in the UI.
 
 ### Codex with `skill-upper`
 
-- Inspects the selected package and uploaded task evidence.
-- Produces a structured task understanding and asks only material questions.
-- Proposes coverage plans, cases, fixtures, graders, and upgrade patches.
-- Diagnoses whether a failure belongs to the Skill, eval, judge, or environment.
-- Works only in an isolated draft copy; it cannot promote a version.
+- Reads the exact Skill version and supplied task files.
+- Summarizes the task and asks questions when required information is missing.
+- Creates Skill-Up eval files and proposes Skill changes.
+- Writes only to a temporary working copy.
 
 ### Skill-Up
 
-- Validates declarative eval files.
-- Installs the selected Skill into a real Codex execution workspace.
-- Runs cases, variants, and repeated trials.
-- Applies rule-based, script, and agent judges and emits structured reports.
+- Validates the generated evals.
+- Installs the selected Skill for the tested Codex agent.
+- Runs cases and judges and produces structured reports.
 
 ### User
 
-- Supplies the package and whatever task evidence is available.
-- Answers unresolved questions.
-- Approves eval snapshots, paid runs, proposed changes, and final activation.
+- Supplies the package and task evidence.
+- Answers material questions.
+- Approves evals, runs, proposed changes, and final activation.
 
-## Evidence-dependent sophistication
+## Eval quality follows available evidence
 
-The product must not claim equal confidence from unequal inputs.
-
-| Supplied evidence | What V1 can establish |
+| Input | Eval capability |
 | --- | --- |
-| Skill package only | Structural and instruction-derived provisional tests |
-| Package + task description | Behavioral and adversarial requirements |
-| Package + example inputs | Realistic fixtures and boundary cases |
-| Package + expected outputs | Stronger correctness or invariant checks |
-| Package + dataset | Stratified coverage and controlled perturbations |
-| Package + authority documents | Grounded semantic grading |
-| Package + past failures | High-value regression cases |
+| Skill only | Provisional instruction-derived cases |
+| Skill + task description | Behavioral and adversarial cases |
+| Skill + examples | Realistic fixtures and boundary cases |
+| Skill + expected outputs or rules | Grounded correctness checks |
+| Skill + dataset or past failures | Stratified and regression cases |
 
-The UI labels eval confidence as `provisional`, `behavioral`, `grounded`, or
-`strong`, explains missing evidence, and never presents an unsupported green
-result as proof of business correctness.
+The UI must show the evidence level. A package-only eval cannot be presented as
+proof of business correctness.
 
-## V1 scope
+## Required v1 features
 
-- ZIP upload and safe file inspection.
-- One stable Skill identity with multiple immutable versions.
-- Original, installable, development, and run-evidence downloads.
-- Codex App Server conversation for eval authoring and upgrade proposals.
-- Generated Skill-Up YAML, cases, fixtures, and supported judges.
-- Cloud Skill-Up runs using the Codex engine and the logged-in worker.
-- Isolated tested-agent and judge sessions.
-- Per-case evidence, artifact diffs, scope drift, stability, latency, and token
-  reporting.
-- Candidate creation, old-versus-new verification, activation, and rollback.
+- Safe ZIP upload and file inspection.
+- Immutable Skill versions and current/candidate comparison.
+- Task description and file upload.
+- Persisted Codex eval-authoring conversation.
+- Generated cases, fixtures, rule/script/agent judges, and Skill-Up validation.
+- User approval before running an eval version.
+- Sequential cloud execution using the logged-in Codex worker.
+- Case results, artifacts, transcript, grader evidence, drift, stability, time,
+  and tokens.
+- Codex-generated update proposal with approve/reject.
+- Candidate verification, activation, and Skill/report download.
 
-## Deferred
+## Explicit non-goals
 
-- Projects, multi-Skill graphs, marketplaces, organization RBAC, and billing.
-- GitHub synchronization, pull requests, and managed deployment.
-- Arbitrary public uploads or concurrent use of a shared Codex identity.
-- User-supplied live MCP servers, unrestricted setup commands, and unrestricted
-  network access.
-- Fully autonomous eval approval, Skill modification, promotion, or release.
-- Production traffic ingestion and drift alerting.
-
-## Product principles
-
-1. Top-level decisions stay simple; evidence remains available underneath.
-2. Original uploads are preserved byte-for-byte.
-3. Every test and update is pinned to exact checksums.
-4. The tested agent, semantic judge, and authoring agent never share context.
-5. Generated tests are reviewed; tests are never weakened merely to turn green.
-6. A successful target repair does not hide unrelated drift or regressions.
+Projects, multiple simultaneous Skills, GitHub sync, teams/RBAC, public uploads,
+billing, marketplace, production telemetry, live MCP, and automatic promotion
+are not part of v1 and require no v1 tables, APIs, screens, or placeholders.

@@ -1,106 +1,81 @@
-# V1 Data and API Contracts
+# V1 Data and API
 
-## Core records
+## Seven persisted entities
 
-### Package lifecycle
+### 1. `skills`
 
-- `Skill`: stable identity, active version, optional candidate version, name,
-  description, status, and timestamps.
-- `SkillVersion`: immutable version key, base version/proposal where applicable,
-  package checksums, manifests, compatibility, artifact keys, and provenance.
-- `TaskEvidence`: kind, filename, checksum, media type, artifact key, and safe
-  summary.
-- `EvidenceSnapshot`: immutable selected evidence IDs and checksum.
-- `ExportArtifact`: export kind, source version/run, checksum, storage key, and
-  creation time.
+Stable Skill identity: `id`, `name`, `active_version_id`, and timestamps.
 
-### Eval authoring
+### 2. `skill_versions`
 
-- `EvalSuite`: stable owner of the current mutable draft.
-- `EvalDraft`: revision, bound Skill version/evidence snapshot, structured task
-  understanding, questions/answers, coverage plan, generated files, validation,
-  and confidence level.
-- `EvalSnapshot`: immutable canonical Skill-Up files, fixtures, verifier files,
-  case manifest, policy result, checksum, and approval provenance.
+Immutable package: `id`, `skill_id`, `version_number`, `base_version_id`,
+`source` (`upload` or `proposal`), checksums, manifest JSON, readiness,
+`artifact_path`, and timestamp.
 
-### Conversations
+### 3. `eval_versions`
 
-- `AgentConversation`: purpose, Codex thread ID, bound artifacts, status, model,
-  and timestamps.
-- `ConversationTurn`: user/assistant content, Codex turn ID, structured payload,
-  usage, and status.
-- `ConversationHandoff`: latest decisions, unresolved questions, exact artifact
-  references, and summary needed to reconstruct a thread.
+Mutable while `draft`, immutable after `approved`: `id`, `skill_version_id`,
+status, revision, task understanding JSON, questions/answers JSON, coverage
+plan JSON, evidence level, bundle path/checksum, validation result, and approval
+time.
 
-### Runs
+### 4. `conversations`
 
-- `EvaluationRun`: pinned run specification, status, phases, requested
-  iterations, baseline flag, actor, and cancellation state.
-- `RunAttempt`: lease/worker identity, attempt number, timing, and outcome.
-- `CaseExecution`: case, variant, iteration, status, output, assertion evidence,
-  artifact pointers, timing, usage, and error category.
-- `RunArtifact`: type, checksum, size, storage key, and retention.
+User-facing Codex work: `id`, type (`eval_authoring` or `skill_update`),
+`codex_thread_id`, bound Skill/eval/run IDs, status, context summary JSON, and
+timestamps. Messages are stored as child rows.
 
-### Improvements
+### 5. `runs`
 
-- `UpgradeProposal`: base version, source run, conversation, summary, risk,
-  patch artifact, proposed eval changes, status, and decision provenance.
-- `ProposalChange`: file/hunk, rationale, expected impact, and selection status.
-- `VersionComparison`: old/new versions, common eval snapshot, run IDs, metric
-  deltas, fixed/regressed cases, and verification status.
+One Skill-Up invocation: `id`, Skill/eval version IDs, purpose (`evaluation` or
+`candidate_comparison`), model/settings JSON, iterations, baseline flag, status,
+progress JSON, raw-report path, error, and timestamps.
 
-## State machines
+### 6. `case_results`
+
+One case/variant/iteration result: run ID, case ID, status, grading JSON, output
+summary, artifact paths, transcript path, duration, tokens, and error.
+
+### 7. `update_proposals`
+
+Proposed change: `id`, source run ID, base Skill version ID, conversation ID,
+summary, patch path, proposed eval patch path, risk JSON, decision, candidate
+version ID, and timestamps.
+
+Artifacts and job events do not need separate domain models; they are storage
+paths and child rows attached to these entities.
+
+## State rules
 
 ```text
-Eval draft:
-analyzing → waiting_for_user → planning → generating → validating
-          → ready_for_review → approved | rejected | failed
-
-Run:
-queued → preparing → validating → running → judging → ingesting → completed
-                             ↘ failed
-queued|preparing|running → cancelling → cancelled
-
-Proposal:
-generating → ready_for_review → approved | rejected | revision_requested
-approved → applying → candidate_created → verifying → verified | failed
-verified → promoted | retained
+Eval: draft → validating → ready → approved | failed
+Run: queued → preparing → running → judging → completed | failed | cancelled
+Proposal: generating → review → approved | rejected | revision_requested
+Approved proposal: approved → candidate_created → verifying → verified | failed
 ```
 
-## API groups
+An approved eval version, existing Skill version, completed run, or decided
+proposal is never edited in place.
 
-All routes are versioned and authorized. IDs always resolve inside the current
-workspace; responses never expose server filesystem paths or secrets.
+## API surface
 
-### Package and versions
+### Skill
 
-- `POST /api/v1/skills/imports`
-- `GET /api/v1/skills/imports/:importId`
-- `GET /api/v1/skills/current`
-- `GET /api/v1/skills/:skillId/versions`
-- `GET /api/v1/skill-versions/:versionId`
-- `GET /api/v1/skill-versions/:versionId/files/*`
-- `POST /api/v1/skill-versions/:versionId/exports`
-- `GET /api/v1/exports/:exportId`
-- `POST /api/v1/skills/:skillId/activate/:versionId`
+- `POST /api/v1/skill/upload`
+- `GET /api/v1/skill`
+- `GET /api/v1/skill/versions/:versionId`
+- `GET /api/v1/skill/versions/:versionId/files/*`
+- `GET /api/v1/skill/versions/:versionId/download`
+- `POST /api/v1/skill/versions/:versionId/activate`
 
-### Task evidence
+### Eval creation
 
-- `POST /api/v1/skills/:skillId/evidence`
-- `GET /api/v1/skills/:skillId/evidence`
-- `POST /api/v1/skills/:skillId/evidence-snapshots`
-
-### Eval authoring
-
-- `POST /api/v1/skill-versions/:versionId/eval-drafts`
-- `GET /api/v1/eval-drafts/:draftId`
-- `POST /api/v1/eval-drafts/:draftId/turns`
-- `POST /api/v1/eval-drafts/:draftId/answers`
-- `PATCH /api/v1/eval-drafts/:draftId/cases/:caseId`
-- `POST /api/v1/eval-drafts/:draftId/validate`
-- `POST /api/v1/eval-drafts/:draftId/approve`
-- `GET /api/v1/eval-snapshots/:snapshotId`
-- `GET /api/v1/eval-snapshots/:snapshotId/files/*`
+- `POST /api/v1/evals`
+- `GET /api/v1/evals/:evalId`
+- `POST /api/v1/evals/:evalId/messages`
+- `PATCH /api/v1/evals/:evalId/cases/:caseId`
+- `POST /api/v1/evals/:evalId/validate`
+- `POST /api/v1/evals/:evalId/approve`
 
 ### Runs
 
@@ -108,41 +83,22 @@ workspace; responses never expose server filesystem paths or secrets.
 - `GET /api/v1/runs/:runId`
 - `GET /api/v1/runs/:runId/events`
 - `POST /api/v1/runs/:runId/cancel`
-- `GET /api/v1/runs/:runId/executions`
-- `GET /api/v1/runs/:runId/artifacts`
+- `GET /api/v1/runs/:runId/report/download`
 
-### Improvements and comparison
+### Updates
 
-- `POST /api/v1/runs/:runId/proposals`
-- `GET /api/v1/proposals/:proposalId`
-- `POST /api/v1/proposals/:proposalId/turns`
-- `POST /api/v1/proposals/:proposalId/approve`
-- `POST /api/v1/proposals/:proposalId/reject`
-- `POST /api/v1/proposals/:proposalId/request-revision`
-- `POST /api/v1/proposals/:proposalId/verify`
-- `GET /api/v1/comparisons/:comparisonId`
+- `POST /api/v1/runs/:runId/update-proposal`
+- `GET /api/v1/update-proposals/:proposalId`
+- `POST /api/v1/update-proposals/:proposalId/messages`
+- `POST /api/v1/update-proposals/:proposalId/decision`
+- `GET /api/v1/update-proposals/:proposalId/comparison`
 
-## Snapshot contract
+The decision endpoint accepts `approve`, `reject`, or `request_revision`.
+Approval queues candidate creation and verification.
 
-Every run pins IDs and checksums for the Skill version, normalized runtime
-package, eval snapshot, task-evidence snapshot, environment image, Codex model
-and settings, Skill-Up version, judge configuration, iterations, and baseline
-mode. Every proposal pins the base version and source run. Every candidate pins
-the exact approved patch and approval decision.
+## Run pinning
 
-## Result dimensions
-
-Store and display independent dimensions rather than one blended score:
-
-- target correctness;
-- semantic completeness;
-- unsupported claims;
-- source/invariant preservation;
-- unrelated drift;
-- artifact validity;
-- stability across trials;
-- latency, tokens, and errors;
-- optional with-Skill versus without-Skill uplift.
-
-Each metric response includes its numerator, denominator, unavailable count,
-case population, and run/version filters.
+Every run stores exact Skill/eval bundle checksums, model/settings, Skill-Up and
+Codex versions, iteration count, judge definitions, and baseline choice. The
+comparison endpoint computes its view from two pinned runs; it does not require
+a separate comparison table.

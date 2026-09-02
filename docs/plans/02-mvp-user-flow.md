@@ -1,109 +1,92 @@
-# V1 UI Journey
+# V1 UI Flow
 
-## Navigation
+## Screen 1 — Skill
 
-The UI has one current Skill workspace with five areas:
+The empty state contains **Upload Skill**. The upload form accepts the Skill ZIP,
+task description, and task files. After scanning, the page shows:
 
-1. **Package** — upload, validation, files, compatibility, and downloads.
-2. **Evals** — guided Codex conversation, coverage plan, cases, and snapshots.
-3. **Runs** — launch, progress, results, transcripts, and artifacts.
-4. **Improvements** — proposed patches, approval, and verification.
-5. **Versions** — active/candidate history, comparisons, activation, rollback,
-   and downloads.
+- selected Skill and files;
+- readiness and concrete problems;
+- current version;
+- task material;
+- **Create evals**;
+- **Download Skill**.
 
-## 1. Upload
+A later upload creates another version and shows a file diff.
 
-The user uploads a Skill ZIP and may add a task description, example inputs,
-expected outputs, a dataset, authority material, or previous failure examples.
-SkillEd scans asynchronously and shows the primary Skill candidates, package
-tree, findings, dependency hints, and compatibility status. Selecting a valid
-candidate creates immutable v1.
+## Screen 2 — Create evals
 
-Uploading changed contents later creates v2 and shows a package diff. It does
-not switch the active version automatically.
+Selecting **Create evals** starts a Codex App Server conversation with
+`skill-upper`. Codex receives the exact Skill version and task material.
 
-## 2. Understand and author evals
+The conversation follows three visible steps:
 
-The user selects **Create evals**. SkillEd starts an `eval_authoring` Codex
-thread bound to one Skill version and one mutable eval draft, explicitly loads
-`skill-upper`, and provides the selected task-evidence snapshot.
+1. **Understanding** — task, inputs, outputs, authorities, allowed changes,
+   invariants, dependencies, and likely failures.
+2. **Questions** — only missing information that changes test design.
+3. **Eval plan** — case groups, fixtures, grading method, count, and evidence
+   level.
 
-Codex first returns structured understanding:
+After the user accepts the plan, Codex generates the draft. SkillEd runs package
+policy checks and `skill-up validate`. The user sees each case in plain language
+and can disable, edit, regenerate, or inspect YAML. **Approve evals** freezes an
+immutable eval version.
 
-- intended outcome and output artifacts;
-- authoritative sources;
-- allowed and forbidden changes;
-- important rules and dependencies;
-- likely failure modes;
-- unknowns that affect grading.
+## Screen 3 — Run
 
-The UI renders material unknowns as questions. Once answered, Codex proposes a
-coverage plan before creating files. The plan shows categories, case counts,
-judge types, required fixtures, estimated runs, and confidence level.
-
-After approval, Codex writes a draft `eval.yaml`, case YAML, fixtures, and
-verifiers in an isolated draft workspace. Skill-Up validation and policy checks
-run automatically. The UI presents human-readable cases and an optional raw
-YAML/file view. Approving creates an immutable `EvalSnapshot`.
-
-## 3. Run
-
-The user chooses the Skill version, approved eval snapshot, model, iterations,
-and optional without-Skill baseline. The confirmation screen shows estimated
-case executions and warns that the shared Codex identity has serialized usage.
-
-Run states:
+The run dialog shows the Skill version, eval version, case count, iterations,
+and whether to include a without-Skill baseline. It estimates the number of
+agent and judge calls. **Start run** queues the work.
 
 ```text
-queued → preparing → validating → running → judging → ingesting → completed
-                             ↘ failed
-queued|preparing|running → cancelling → cancelled
+queued → preparing → running → judging → completed
+                                  ↘ failed
+queued|running → cancelling → cancelled
 ```
 
-Progress persists when the page is closed. Server-sent events provide live
-updates; polling remains authoritative.
+The run page receives persisted progress events, so closing the page does not
+stop work.
 
-## 4. Review
+## Screen 4 — Results
 
-The summary separates target correctness, semantic completeness, unsupported
-claims, scope preservation, artifact validity, stability, latency, and tokens.
-There is no opaque combined Skill score.
+The top section shows separate measures for:
 
-Each case exposes its input, output, files, transcript, grader assertions,
-evidence, unexpected changes, and trial history. A green target result cannot
-hide collateral drift.
+- intended task correctness;
+- semantic omissions or invented claims;
+- source and scope preservation;
+- artifact validity;
+- stability across iterations;
+- time, tokens, and errors;
+- with/without-Skill difference when requested.
 
-## 5. Improve
+The case table shows pass/fail/error and a short reason. Opening a case shows its
+input, output, produced files, transcript, grader evidence, and unexpected
+changes. No single green badge hides a failed scope or validity check.
 
-The user chooses **Generate improvement** from a completed run. SkillEd starts
-an `upgrade_proposal` Codex thread with `skill-upper`, bound to the exact base
-version, visible failure evidence, and approved user constraints. It works on a
-temporary copy and returns:
+## Screen 5 — Improve
 
-- top-level behavior summary;
-- exact file patch;
-- reason and expected impact per change;
-- risks and compatibility changes;
-- proposed regression cases;
-- tests that should be rerun.
+Selecting **Suggest update** starts a separate Codex + `skill-upper`
+conversation using the exact failed run and base Skill version. It produces:
 
-The top-level actions are **Apply and verify**, **Review details**, and
-**Reject**. Approval creates a candidate version, never an in-place edit.
-Rejection preserves the proposal and optional reason. Partial approval creates
-a revised proposal before a version is created.
+- a short explanation of the failure;
+- proposed file changes;
+- expected improvement and risks;
+- proposed regression-case changes.
 
-## 6. Verify and activate
+The user sees **Approve and test**, **Review diff**, and **Reject**. Skill and
+eval changes are approved separately. Approval creates a candidate version and
+starts verification; rejection changes nothing.
 
-SkillEd runs affected cases, the full visible regression suite, and reserved
-holdout cases against the candidate. The comparison shows file changes,
-fixed/unchanged/regressed cases, metric deltas, compatibility, and artifacts.
-The user may activate, keep the current version, request another proposal, or
-download the candidate. Activation is a pointer update and rollback remains
-available.
+## Screen 6 — Compare
 
-## Conversation behavior
+The comparison runs current and candidate versions against the same eval
+version and settings. It shows changed files, fixed cases, regressions, metric
+changes, and artifacts. The user can activate the candidate, keep the current
+version, request another update, or download either version.
 
-Authoring and improvement are separate persisted threads. Test-agent and judge
-sessions are isolated per execution and are never resumed. SkillEd stores a
-structured handoff summary so a lost Codex thread can be recreated from exact
-artifact IDs, decisions, unresolved questions, and relevant run evidence.
+## Conversation rule
+
+Eval authoring and update suggestion use separate persisted Codex threads. Each
+test case and each agent judge uses a fresh isolated execution. Test executions
+never inherit authoring messages, previous cases, expected answers, or update
+discussions.

@@ -1,60 +1,50 @@
 # SkillEd
 
-SkillEd is a UI-only workspace for evaluating and improving one Agent Skill
-package at a time. A user uploads a Skill ZIP plus optional task descriptions,
-sample inputs, expected outputs, datasets, or prior failures. SkillEd uses
-Codex with the bundled `skill-upper` Skill to understand the package, ask
-questions, and author an evaluation suite. It then uses the pinned Skill-Up CLI
-with the Codex engine to run the suite in a cloud worker, ingest evidence, and
-propose reviewable upgrades.
+SkillEd is a UI-only tool for testing and improving one Agent Skill package at
+a time.
 
-The v1 loop is:
+The v1 flow is:
 
-> Upload package and task evidence → understand → generate evals → approve →
-> run Codex through Skill-Up → inspect failures → propose update → approve →
-> verify candidate → activate or download
+```text
+Upload Skill ZIP and task files
+→ Codex + skill-upper understands the task and creates evals
+→ user reviews and approves the evals
+→ Skill-Up runs the evals with Codex in the cloud
+→ user reviews results and failure evidence
+→ Codex + skill-upper proposes a Skill update
+→ user approves or rejects it
+→ Skill-Up verifies the candidate against the same evals
+→ user downloads or activates the improved Skill
+```
 
-Everything is available from the web UI. Users do not edit YAML, invoke a CLI,
-or access the worker directly.
+Users never need a terminal or edit Skill-Up YAML directly.
 
-## V1 boundaries
+## V1 constraints
 
-- One active Skill package at a time; immutable versions remain available for
-  comparison and download.
-- ZIP upload is the required source. GitHub synchronization is deferred.
-- A private, trusted-user deployment uses one already-authenticated Codex
-  worker with serialized jobs.
-- Package references, assets, fixtures, and supported Python/Node scripts may
-  be exercised in an isolated workspace.
-- Arbitrary live MCP servers, unrestricted internet access, public multi-tenant
-  uploads, autonomous promotion, and billing are deferred.
-- Every generated eval suite and every candidate Skill update requires explicit
-  user approval before it becomes authoritative.
+- ZIP upload only.
+- One Skill is selected from each upload.
+- One private Codex account is already logged in on the worker.
+- Jobs run sequentially.
+- The uploaded package, generated evals, results, and Skill versions are stored.
+- Live MCP servers, arbitrary internet access, and arbitrary dependency
+  installation are not supported.
 
-## Repository contents
+## Plans
 
-- [`docs/plans/`](docs/plans/00-product-context.md) contains the v1 product,
-  architecture, data, phase, and acceptance contracts.
-- [`design/`](design/skillup-design/index.html) contains exploratory visual
-  references, not implementation requirements.
-- [`skill-up/`](skill-up/README.md) is the pinned upstream evaluation engine.
-- [`THIRD_PARTY.md`](THIRD_PARTY.md) records attribution and licensing.
+- [Product contract](docs/plans/00-product-context.md)
+- [Package contract](docs/plans/01-skill-structure.md)
+- [UI flow](docs/plans/02-mvp-user-flow.md)
+- [Architecture](docs/plans/03-technical-architecture.md)
+- [Data and API](docs/plans/04-data-and-api-contracts.md)
+- [Acceptance](docs/plans/acceptance/end-to-end-scenarios.md)
 
-## Planning index
+Build order:
 
-- [Product context](docs/plans/00-product-context.md)
-- [Skill package and compatibility](docs/plans/01-skill-structure.md)
-- [V1 UI journey](docs/plans/02-mvp-user-flow.md)
-- [Technical architecture](docs/plans/03-technical-architecture.md)
-- [Data and API contracts](docs/plans/04-data-and-api-contracts.md)
-- [End-to-end acceptance](docs/plans/acceptance/end-to-end-scenarios.md)
+1. [Package intake](docs/plans/phases/01-package-intake.md)
+2. [Eval creation](docs/plans/phases/02-eval-authoring.md)
+3. [Cloud evaluation](docs/plans/phases/03-cloud-evaluation.md)
+4. [Skill improvement](docs/plans/phases/04-upgrade-and-versioning.md)
 
-Implementation follows the numbered documents under
-[`docs/plans/phases/`](docs/plans/phases/01-package-intake.md).
-
-## Upstream boundary
-
-SkillEd invokes Skill-Up only through its supported CLI, YAML, engine, judge,
-runtime, and structured-report contracts. Product code must not import
-`skill-up/internal/*`. The upstream copy must remain attributable and easy to
-update.
+The repository contains a pinned copy of Alibaba Skill-Up. SkillEd uses its CLI,
+YAML, judge, engine, and report interfaces; product code must not import
+`skill-up/internal/*`.
