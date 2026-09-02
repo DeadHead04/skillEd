@@ -1,0 +1,39 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 11.19.0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Start deterministic full system
+        run: |
+          mkdir -p "$HOME/.codex"
+          printf '{}\n' > "$HOME/.codex/auth.json"
+          SKILLED_ADAPTER_MODE=fake docker compose up --build -d
+      - name: Wait for healthy system
+        run: |
+          for attempt in $(seq 1 30); do
+            curl -fsS http://127.0.0.1:3000/api/v1/health && exit 0
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+      - name: Browser journey
+        run: PLAYWRIGHT_TEST_BASE_URL=http://127.0.0.1:3000 pnpm test:e2e
+      - name: Check committed source for obvious credentials
+        run: |
+          if grep -R -n -E 'access_token|refresh_token|BEGIN (RSA |OPENSSH )?PRIVATE KEY' apps packages docs README.md; then
+            exit 1
+          fi
+      - if: always()
+        run: docker compose down -v

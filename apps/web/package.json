@@ -1,0 +1,27 @@
+{
+  "name": "@skilled/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint || tsc --noEmit"
+  },
+  "dependencies": {
+    "@skilled/core": "workspace:*",
+    "busboy": "1.6.0",
+    "next": "16.3.2",
+    "postgres": "3.4.9",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/busboy": "1.5.4",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}

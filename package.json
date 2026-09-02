@@ -1,0 +1,28 @@
+{
+  "name": "skilled",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @skilled/web --filter @skilled/worker dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format:check": "prettier --check .",
+    "test": "node --import tsx --test packages/core/src/*.test.ts",
+    "test:e2e": "playwright test",
+    "test:real:smoke": "SKILLED_REAL_MODE=smoke pnpm --filter @skilled/worker real-test",
+    "test:real:jiomart": "SKILLED_REAL_MODE=jiomart pnpm --filter @skilled/worker real-test",
+    "test:real:full": "SKILLED_REAL_MODE=full pnpm --filter @skilled/worker real-test",
+    "db:migrate": "pnpm --filter @skilled/core db:migrate"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1",
+    "@types/node": "24.10.0",
+    "prettier": "3.6.2",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

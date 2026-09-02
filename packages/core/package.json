@@ -1,0 +1,27 @@
+{
+  "name": "@skilled/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "db:migrate": "tsx src/migrate.ts"
+  },
+  "dependencies": {
+    "postgres": "3.4.9",
+    "yauzl": "3.4.0",
+    "yazl": "3.3.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/yauzl": "2.10.3",
+    "@types/yazl": "3.3.0",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

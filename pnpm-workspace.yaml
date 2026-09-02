@@ -1,0 +1,18 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - sharp
+
+supportedArchitectures:
+  os:
+    - current
+  cpu:
+    - arm64
+    - x64

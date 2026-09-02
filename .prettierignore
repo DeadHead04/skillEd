@@ -1,0 +1,11 @@
+.auth/
+.next/
+node_modules/
+outputs/
+test/
+test-results/
+skill-up/
+apps/worker/src/generated/
+docs/screenshots/
+docs/plans/
+pnpm-lock.yaml

@@ -1,0 +1,57 @@
+name: skilled
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: skilled
+      POSTGRES_PASSWORD: skilled
+      POSTGRES_DB: skilled
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skilled -d skilled"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
+      ARTIFACT_ROOT: /data/artifacts
+      WORKER_STALE_AFTER_SECONDS: "30"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - artifacts:/data/artifacts
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
+      ARTIFACT_ROOT: /data/artifacts
+      WORK_ROOT: /data/work
+      CODEX_HOME: /home/skilled/.codex
+      SKILLED_ADAPTER_MODE: ${SKILLED_ADAPTER_MODE:-real}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - artifacts:/data/artifacts
+      - work:/data/work
+      - type: bind
+        source: ${CODEX_AUTH_FILE:-${HOME}/.codex/auth.json}
+        target: /home/skilled/.codex/auth.json
+        read_only: false
+
+volumes:
+  postgres-data:
+  artifacts:
+  work:

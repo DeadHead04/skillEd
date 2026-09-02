@@ -1,7 +1,8 @@
 # SkillEd
 
-SkillEd is a UI-only tool for testing and improving one Agent Skill package at
-a time.
+SkillEd is a private local workbench for testing and improving one Agent Skill
+package at a time. The browser is the entire product surface; Codex App Server
+and Skill-Up run behind a sequential worker.
 
 The v1 flow is:
 
@@ -9,7 +10,7 @@ The v1 flow is:
 Upload Skill ZIP and task files
 → Codex + skill-upper understands the task and creates evals
 → user reviews and approves the evals
-→ Skill-Up runs the evals with Codex in the cloud
+→ Skill-Up runs the evals with Codex in an isolated worker operation directory
 → user reviews results and failure evidence
 → Codex + skill-upper proposes a Skill update
 → user approves or rejects it
@@ -18,6 +19,57 @@ Upload Skill ZIP and task files
 ```
 
 Users never need a terminal or edit Skill-Up YAML directly.
+
+## Run it
+
+Requirements: Docker Desktop and an existing ChatGPT login in Codex CLI.
+
+```bash
+codex login status
+docker compose up --build
+```
+
+Open `http://127.0.0.1:3000`. Compose starts only `web`, `worker`, and
+`postgres`; PostgreSQL is not published to the host. The worker receives only
+the existing `~/.codex/auth.json` mount, not the rest of `~/.codex`. If Codex
+uses Keychain storage instead, set `CODEX_AUTH_FILE` to a SkillEd-specific
+Codex home after completing one browser login.
+
+For a deterministic walkthrough without model calls:
+
+```bash
+SKILLED_ADAPTER_MODE=fake docker compose up --build
+```
+
+This credential arrangement is for one trusted local user. Do not expose this
+Compose stack as a public arbitrary-code service.
+
+## Verification
+
+```bash
+pnpm install
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm test:e2e
+```
+
+Normal CI uses deterministic adapters and never receives personal Codex
+credentials. Real evidence runs are explicit: `pnpm test:real:smoke`,
+`pnpm test:real:jiomart`, and `pnpm test:real:full`.
+
+The result model keeps correctness, semantics, grounding, scope, artifact
+validity, stability, duration, and token use separate. A correction that adds
+unrelated drift is `PARTIAL`, and an unclassified assertion is `ERROR`; neither
+can become a green pass.
+
+## Source layout
+
+- `apps/web`: Next.js route handlers, SSE, and Precision Workbench UI.
+- `apps/worker`: leased sequential jobs, Codex App Server, and Skill-Up.
+- `packages/core`: PostgreSQL schema, shared Zod contracts, ZIP safety,
+  artifacts, state machines, and result normalization.
+- `skill-up`: pinned vendored CLI source, built with Go 1.25 in the worker.
 
 ## V1 constraints
 

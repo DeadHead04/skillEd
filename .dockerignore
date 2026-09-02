@@ -1,0 +1,12 @@
+.git
+.auth
+.env
+node_modules
+**/node_modules
+**/.next
+test
+test-results
+outputs
+artifacts
+tmp
+skill-up/.git
