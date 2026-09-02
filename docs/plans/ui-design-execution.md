@@ -28,7 +28,7 @@ The implementing Codex task must read:
 1. [`00-product-context.md`](00-product-context.md)
 2. the relevant phase plan under [`phases/`](phases/)
 3. [`04-data-and-api-contracts.md`](04-data-and-api-contracts.md)
-4. [`../../skills/skilled-ui-designer/SKILL.md`](../../skills/skilled-ui-designer/SKILL.md)
+4. [`../../.agents/skills/skilled-ui-designer/SKILL.md`](../../.agents/skills/skilled-ui-designer/SKILL.md)
 
 Do not load every visual reference at once. The skill routes the task to the
 smallest relevant reference set.
@@ -43,10 +43,10 @@ provisional or incomplete evidence.
 
 The generated references are directional:
 
-- [direction exploration](../../skills/skilled-ui-designer/assets/direction-board.png)
-- [eval authoring](../../skills/skilled-ui-designer/assets/eval-authoring.png)
-- [failure analysis](../../skills/skilled-ui-designer/assets/results-failure-analysis.png)
-- [candidate comparison](../../skills/skilled-ui-designer/assets/candidate-comparison.png)
+- [direction exploration](../../.agents/skills/skilled-ui-designer/assets/direction-board.png)
+- [eval authoring](../../.agents/skills/skilled-ui-designer/assets/eval-authoring.png)
+- [failure analysis](../../.agents/skills/skilled-ui-designer/assets/results-failure-analysis.png)
+- [candidate comparison](../../.agents/skills/skilled-ui-designer/assets/candidate-comparison.png)
 
 Use CSS and code-native controls for the product. None of these PNGs ship in
 the rendered interface.
@@ -149,7 +149,7 @@ Acceptance evidence:
 **User decision:** Do these cases represent the task and its dangerous failure
 modes well enough to approve?
 
-Use the [eval-authoring reference](../../skills/skilled-ui-designer/assets/eval-authoring.png).
+Use the [eval-authoring reference](../../.agents/skills/skilled-ui-designer/assets/eval-authoring.png).
 Show `Understand`, `Questions`, `Eval plan`, and `Review` as visible steps. Put
 Codex explanation and replies in the conversation column, durable task facts,
 coverage groups, and cases in the main work area, and source/YAML/fixtures in
@@ -203,7 +203,7 @@ Acceptance evidence:
 **User decision:** Where did the Skill help, fail, drift, or behave
 inconsistently?
 
-Use the [failure-analysis reference](../../skills/skilled-ui-designer/assets/results-failure-analysis.png).
+Use the [failure-analysis reference](../../.agents/skills/skilled-ui-designer/assets/results-failure-analysis.png).
 Lead with separate metric cells for target correctness, semantic quality, source
 preservation, scope preservation, artifact validity, stability, and operational
 cost. Include the without-Skill delta only when that baseline ran. Do not
@@ -253,7 +253,7 @@ Acceptance evidence:
 
 **User decision:** Is the candidate better without unacceptable regression?
 
-Use the [candidate-comparison reference](../../skills/skilled-ui-designer/assets/candidate-comparison.png).
+Use the [candidate-comparison reference](../../.agents/skills/skilled-ui-designer/assets/candidate-comparison.png).
 Compare the current and candidate versions under identical eval version,
 settings, and iterations. Put regression alerts before improvements. Separate
 fixed, unchanged, flaky, and regressed cases; show per-dimension deltas and exact
@@ -280,7 +280,7 @@ For each vertical slice:
    whose risk cannot be assessed from the decision state.
 3. Start a fresh critic context with only the screenshots, screen purpose,
    selected direction, and
-   [`critic-rubric.md`](../../skills/skilled-ui-designer/references/critic-rubric.md).
+   [`critic-rubric.md`](../../.agents/skills/skilled-ui-designer/references/critic-rubric.md).
 4. Fix the highest-impact hierarchy, truthfulness, interaction, responsive, or
    accessibility issues—not superficial variation.
 5. Repeat once only if the second review is still likely to change a user
