@@ -1,4 +1,4 @@
-import { chmod, cp, mkdir, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { join } from "node:path";
@@ -209,127 +209,134 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
 export async function generateEval(sql: Db, job: Record<string, any>) {
   const id = String(job.resource_id);
   const root = join(process.env.WORK_ROOT ?? "/tmp/skilled", `eval-${id}`);
-  const evalDir = join(root, "evals/cases");
-  await mkdir(evalDir, { recursive: true });
-  await sql`UPDATE eval_versions SET status='generating' WHERE id=${id}`;
-  await emit(sql, job.id, "stage_changed", { stage: "generating" });
-  const manifest: any = { schemaVersion: 1, cases: {} };
-  for (const [caseId, title, group, judge, dimensions] of cases) {
-    const assertions = dimensions.map((dimension) => ({
-      id: `${caseId}-${dimension}`,
-      text: `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
-      dimension,
-      required: true,
-    }));
-    const prompt = `Perform the uploaded task for adversarial case ${caseId}. Return grounded evidence and do not change unrelated content.`;
-    const judgeConfig =
-      judge === "agent"
-        ? {
-            type: "agent_judge",
-            model: "gpt-5.4",
-            criteria: assertions.map((item) => item.text),
-            pass_threshold: 1,
-            timeout_seconds: 180,
-          }
-        : {
-            type: "script",
-            script_path: `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
-            timeout_seconds: 30,
-          };
-    const spec = {
-      id: caseId,
-      title,
-      description: `Regression coverage for ${group}`,
-      input: { prompt },
-      constraints: { timeout_seconds: 900, max_turns: 8 },
-      judge: judgeConfig,
+  try {
+    const evalDir = join(root, "evals/cases");
+    await mkdir(evalDir, { recursive: true });
+    await sql`UPDATE eval_versions SET status='generating' WHERE id=${id}`;
+    await emit(sql, job.id, "stage_changed", { stage: "generating" });
+    const manifest: any = { schemaVersion: 1, cases: {} };
+    for (const [caseId, title, group, judge, dimensions] of cases) {
+      const assertions = dimensions.map((dimension) => ({
+        id: `${caseId}-${dimension}`,
+        text: `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
+        dimension,
+        required: true,
+      }));
+      const prompt = `Perform the uploaded task for adversarial case ${caseId}. Return grounded evidence and do not change unrelated content.`;
+      const judgeConfig =
+        judge === "agent"
+          ? {
+              type: "agent_judge",
+              model: "gpt-5.4",
+              criteria: assertions.map((item) => item.text),
+              pass_threshold: 1,
+              timeout_seconds: 180,
+            }
+          : {
+              type: "script",
+              script_path: `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
+              timeout_seconds: 30,
+            };
+      const spec = {
+        id: caseId,
+        title,
+        description: `Regression coverage for ${group}`,
+        input: { prompt },
+        constraints: { timeout_seconds: 900, max_turns: 8 },
+        judge: judgeConfig,
+      };
+      await writeFile(
+        join(evalDir, `${caseId.toLowerCase()}.yaml`),
+        JSON.stringify(spec, null, 2),
+      );
+      manifest.cases[caseId] = {
+        title,
+        coverageGroup: group,
+        judge,
+        evidenceProvenance: group.startsWith("False")
+          ? ["recorded failure patterns"]
+          : ["task invariants"],
+        assertions: Object.fromEntries(
+          assertions.map((a) => [
+            a.text,
+            { dimension: a.dimension, required: true },
+          ]),
+        ),
+      };
+      await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${id},${caseId},${title},${group},${judge},${sql.json(manifest.cases[caseId].evidenceProvenance)},${sql.json([...dimensions])},${`evals/cases/${caseId.toLowerCase()}.yaml`},${sql.json(manifest.cases[caseId].assertions)},${sql.json({ prompt })}) ON CONFLICT(eval_version_id,case_id) DO UPDATE SET source=excluded.source`;
+      if (judge === "script") {
+        const scriptDir = join(root, "evals/fixtures/scripts");
+        await mkdir(scriptDir, { recursive: true });
+        const script = join(scriptDir, `${caseId.toLowerCase()}.sh`);
+        await writeFile(
+          script,
+          '#!/bin/sh\n# Deterministic artifact judge: the real generated suite replaces this contract with task-specific checks.\ntest -n "$EVAL_FINAL_MESSAGE"\n',
+        );
+        await chmod(script, 0o755);
+      }
+    }
+    await writeFile(
+      join(root, "evals/skilled.manifest.json"),
+      JSON.stringify(manifest, null, 2),
+    );
+    const evaluation = {
+      schema_version: "v1alpha1",
+      environment: {
+        type: "none",
+        workspace_mount: "/workspace",
+        env: { TZ: "UTC" },
+      },
+      mcp: { servers: [] },
+      skills: [{ source: "local_path", path: "." }],
+      engine: { name: "codex", model: { name: "gpt-5.4" } },
+      cases: {
+        files: cases.map(
+          ([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`,
+        ),
+        defaults: { timeout_seconds: 900, max_turns: 8 },
+        parallelism: 1,
+        retry_policy: { max_retries: 1, retry_on: ["error"] },
+      },
+      benchmark: { enabled: false },
+      report: { formats: ["json", "html"], artifacts: ["transcript"] },
     };
     await writeFile(
-      join(evalDir, `${caseId.toLowerCase()}.yaml`),
-      JSON.stringify(spec, null, 2),
+      join(root, "evals/eval.yaml"),
+      JSON.stringify(evaluation, null, 2),
     );
-    manifest.cases[caseId] = {
-      title,
-      coverageGroup: group,
-      judge,
-      evidenceProvenance: group.startsWith("False")
-        ? ["recorded failure patterns"]
-        : ["task invariants"],
-      assertions: Object.fromEntries(
-        assertions.map((a) => [
-          a.text,
-          { dimension: a.dimension, required: true },
-        ]),
-      ),
-    };
-    await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${id},${caseId},${title},${group},${judge},${sql.json(manifest.cases[caseId].evidenceProvenance)},${sql.json([...dimensions])},${`evals/cases/${caseId.toLowerCase()}.yaml`},${sql.json(manifest.cases[caseId].assertions)},${sql.json({ prompt })}) ON CONFLICT(eval_version_id,case_id) DO UPDATE SET source=excluded.source`;
-    if (judge === "script") {
-      const scriptDir = join(root, "evals/fixtures/scripts");
-      await mkdir(scriptDir, { recursive: true });
-      const script = join(scriptDir, `${caseId.toLowerCase()}.sh`);
-      await writeFile(
-        script,
-        '#!/bin/sh\n# Deterministic artifact judge: the real generated suite replaces this contract with task-specific checks.\ntest -n "$EVAL_FINAL_MESSAGE"\n',
+    const validation = await execute(
+      process.env.SKILL_UP_BIN ?? "skill-up",
+      ["validate", join(root, "evals/eval.yaml")],
+      { cwd: root, timeout: 60_000 },
+    ).catch((error) => {
+      throw new Error(
+        `Skill-Up validation failed: ${error.stderr ?? error.message}`,
       );
-      await chmod(script, 0o755);
-    }
-  }
-  await writeFile(
-    join(root, "evals/skilled.manifest.json"),
-    JSON.stringify(manifest, null, 2),
-  );
-  const evaluation = {
-    schema_version: "v1alpha1",
-    environment: {
-      type: "none",
-      workspace_mount: "/workspace",
-      env: { TZ: "UTC" },
-    },
-    mcp: { servers: [] },
-    skills: [{ source: "local_path", path: "." }],
-    engine: { name: "codex", model: { name: "gpt-5.4" } },
-    cases: {
-      files: cases.map(
-        ([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`,
-      ),
-      defaults: { timeout_seconds: 900, max_turns: 8 },
-      parallelism: 1,
-      retry_policy: { max_retries: 1, retry_on: ["error"] },
-    },
-    benchmark: { enabled: false },
-    report: { formats: ["json", "html"], artifacts: ["transcript"] },
-  };
-  await writeFile(
-    join(root, "evals/eval.yaml"),
-    JSON.stringify(evaluation, null, 2),
-  );
-  const validation = await execute(
-    process.env.SKILL_UP_BIN ?? "skill-up",
-    ["validate", join(root, "evals/eval.yaml")],
-    { cwd: root, timeout: 60_000 },
-  ).catch((error) => {
-    throw new Error(
-      `Skill-Up validation failed: ${error.stderr ?? error.message}`,
+    });
+    const bundleEntries = [
+      "evals/eval.yaml",
+      "evals/skilled.manifest.json",
+      ...cases.map(([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`),
+      ...cases
+        .filter(([, , , judge]) => judge === "script")
+        .map(([caseId]) => `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`),
+    ];
+    const bundle = join(root, "bundle.zip");
+    await createZip(root, bundleEntries, bundle);
+    const store = new ArtifactStore();
+    const bytes = await import("node:fs/promises").then((fs) =>
+      fs.readFile(bundle),
     );
-  });
-  const bundleEntries = [
-    "evals/eval.yaml",
-    "evals/skilled.manifest.json",
-    ...cases.map(([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`),
-    ...cases
-      .filter(([, , , judge]) => judge === "script")
-      .map(([caseId]) => `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`),
-  ];
-  const bundle = join(root, "bundle.zip");
-  await createZip(root, bundleEntries, bundle);
-  const store = new ArtifactStore();
-  const bytes = await import("node:fs/promises").then((fs) =>
-    fs.readFile(bundle),
-  );
-  const key = `eval-versions/${id}/bundle.zip`;
-  await store.put(key, bytes);
-  const checksum = sha256(bytes);
-  await sql`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},validation=${sql.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: cases.length })} WHERE id=${id}`;
-  await emit(sql, job.id, "artifact_created", { kind: "eval_bundle" });
-  await emit(sql, job.id, "completed", { resourceId: id, cases: cases.length });
+    const key = `eval-versions/${id}/bundle.zip`;
+    await store.put(key, bytes);
+    const checksum = sha256(bytes);
+    await sql`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},validation=${sql.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: cases.length })} WHERE id=${id}`;
+    await emit(sql, job.id, "artifact_created", { kind: "eval_bundle" });
+    await emit(sql, job.id, "completed", {
+      resourceId: id,
+      cases: cases.length,
+    });
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 }
