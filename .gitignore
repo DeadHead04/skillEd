@@ -36,9 +36,3 @@ reports/
 artifacts/
 tmp/
 *.log
-
-# Phase 1 application state
-playwright-report/
-test-results/
-.auth/
-*.sqlite
