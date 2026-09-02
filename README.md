@@ -36,6 +36,7 @@ Users never need a terminal or edit Skill-Up YAML directly.
 - [UI flow](docs/plans/02-mvp-user-flow.md)
 - [Architecture](docs/plans/03-technical-architecture.md)
 - [Data and API](docs/plans/04-data-and-api-contracts.md)
+- [UI design and build execution](docs/plans/ui-design-execution.md)
 - [Acceptance](docs/plans/acceptance/end-to-end-scenarios.md)
 
 Build order:

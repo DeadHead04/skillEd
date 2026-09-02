@@ -1,0 +1,4 @@
+interface:
+  display_name: "SkillEd UI Designer"
+  short_description: "Design and critique the SkillEd product UI"
+  default_prompt: "Use $skilled-ui-designer to design the next SkillEd screen and validate it against the product workflow."
