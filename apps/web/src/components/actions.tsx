@@ -180,3 +180,132 @@ export function UploadForm() {
     </form>
   );
 }
+
+export function EvalQuestionsForm({
+  evalId,
+  questions,
+}: {
+  evalId: string;
+  questions: Array<{
+    id: string;
+    prompt: string;
+    whyItMatters: string;
+    required: boolean;
+    answerType: "text" | "choice";
+    choices: string[];
+  }>;
+}) {
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [job, setJob] = useState<string>();
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const form = new FormData(event.currentTarget);
+    const answers = Object.fromEntries(
+      questions.map((question) => [
+        question.id,
+        String(form.get(question.id) ?? "").trim(),
+      ]),
+    );
+    const response = await fetch(`/api/v1/evals/${evalId}/answers`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ answers }),
+    });
+    const data = await response.json();
+    if (!response.ok) setError(data.detail ?? "Answers could not be saved");
+    else setJob(data.jobId);
+    setBusy(false);
+  }
+  return (
+    <form className="question-form" onSubmit={submit}>
+      {questions.map((question, index) => (
+        <fieldset key={question.id}>
+          <legend>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {question.prompt}
+          </legend>
+          <p>{question.whyItMatters}</p>
+          {question.answerType === "choice" && question.choices.length ? (
+            <select name={question.id} required={question.required}>
+              <option value="">Select an answer</option>
+              {question.choices.map((choice) => (
+                <option key={choice}>{choice}</option>
+              ))}
+            </select>
+          ) : (
+            <textarea
+              name={question.id}
+              required={question.required}
+              placeholder="Give the rule Codex should use when designing the evals."
+            />
+          )}
+        </fieldset>
+      ))}
+      {error && (
+        <div className="error-box" role="alert">
+          {error}
+        </div>
+      )}
+      <button className="btn" disabled={busy}>
+        {busy ? "Saving answers…" : "Save answers and build plan"}
+      </button>
+      <JobStream jobId={job} />
+    </form>
+  );
+}
+
+export function ConversationForm({
+  url,
+  placeholder = "Ask Codex to explain or revise this work…",
+}: {
+  url: string;
+  placeholder?: string;
+}) {
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState(""),
+    [job, setJob] = useState<string>();
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const message = String(new FormData(form).get("message") ?? "").trim();
+    if (!message) return;
+    setBusy(true);
+    setError("");
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ message }),
+    });
+    const data = await response.json();
+    if (!response.ok) setError(data.detail ?? "Message failed");
+    else {
+      form.reset();
+      setJob(data.jobId);
+    }
+    setBusy(false);
+  }
+  return (
+    <form className="conversation-form" onSubmit={submit}>
+      <label className="sr-only" htmlFor={`message-${url}`}>
+        Message Codex
+      </label>
+      <textarea
+        id={`message-${url}`}
+        name="message"
+        placeholder={placeholder}
+      />
+      {error && (
+        <div className="error-box" role="alert">
+          {error}
+        </div>
+      )}
+      <button className="btn secondary" disabled={busy}>
+        {busy ? "Sending…" : "Send to Codex"}
+      </button>
+      <JobStream jobId={job} />
+    </form>
+  );
+}

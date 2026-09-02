@@ -36,3 +36,7 @@ reports/
 artifacts/
 tmp/
 *.log
+.auth/
+outputs/
+test-results/
+test/

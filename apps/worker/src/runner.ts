@@ -19,6 +19,7 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
     await finalizeVerification(sql, run.id);
     return;
   }
+  await sql`UPDATE runs SET engine_versions=${sql.json({ adapter: "demo", engine: "deterministic-fake" })} WHERE id=${run.id}`;
   await sql`UPDATE runs SET status='preparing',started_at=now() WHERE id=${run.id}`;
   await emit(sql, job.id, "stage_changed", { stage: "preparing" });
   const cases =
@@ -194,6 +195,7 @@ async function runRealEvaluation(
   job: Record<string, any>,
   run: Record<string, any>,
 ) {
+  await sql`UPDATE runs SET engine_versions=${sql.json({ adapter: "real", engine: "codex", skillUp: "vendored" })} WHERE id=${run.id}`;
   const [inputs] =
     await sql`SELECT sv.installable_key,sv.selected_root,ev.bundle_key FROM skill_versions sv JOIN eval_versions ev ON ev.id=${run.eval_version_id} WHERE sv.id=${run.skill_version_id}`;
   if (!inputs?.installable_key || !inputs?.bundle_key)

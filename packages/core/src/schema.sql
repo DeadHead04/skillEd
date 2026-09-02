@@ -50,6 +50,8 @@ CREATE TABLE IF NOT EXISTS eval_versions (
   created_at timestamptz NOT NULL DEFAULT now(),
   approved_at timestamptz
 );
+ALTER TABLE eval_versions ADD COLUMN IF NOT EXISTS questions jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE eval_versions ADD COLUMN IF NOT EXISTS generation_notes jsonb NOT NULL DEFAULT '[]';
 
 CREATE TABLE IF NOT EXISTS eval_files (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), eval_version_id uuid NOT NULL REFERENCES eval_versions(id) ON DELETE CASCADE,
@@ -109,3 +111,6 @@ CREATE TABLE IF NOT EXISTS update_proposals (
   current_verification_run_id uuid REFERENCES runs(id), candidate_verification_run_id uuid REFERENCES runs(id), comparison jsonb,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
+ALTER TABLE update_proposals ADD COLUMN IF NOT EXISTS skill_changes jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE update_proposals ADD COLUMN IF NOT EXISTS eval_changes jsonb NOT NULL DEFAULT '[]';
+ALTER TABLE update_proposals ADD COLUMN IF NOT EXISTS activated_at timestamptz;

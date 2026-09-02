@@ -690,6 +690,82 @@ input[type="file"]::file-selector-button {
   color: var(--ink);
   border-bottom: 2px solid var(--cyan);
 }
+.mode-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 18px;
+  padding: 12px 15px;
+  border: 1px solid #d7b978;
+  border-left: 4px solid var(--amber);
+  background: #fff7e6;
+  color: #55451f;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.mode-banner b {
+  flex: 0 0 auto;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+.question-panel {
+  margin-bottom: 18px;
+  border-top: 3px solid var(--amber);
+}
+.question-form {
+  display: grid;
+  gap: 18px;
+}
+.question-form fieldset {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #faf8f2;
+}
+.question-form legend {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 0 6px;
+  font-weight: 680;
+}
+.question-form legend span {
+  color: var(--amber);
+  font:
+    700 11px ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+.question-form p {
+  margin: 4px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.question-form textarea,
+.question-form select,
+.conversation-form textarea {
+  width: 100%;
+  border: 1px solid #bcb7ad;
+  background: var(--surface);
+  padding: 11px 12px;
+  color: var(--ink);
+}
+.question-form textarea,
+.conversation-form textarea {
+  min-height: 92px;
+  resize: vertical;
+}
+.conversation-form {
+  display: grid;
+  gap: 9px;
+  padding-top: 14px;
+}
+.conversation-form .btn,
+.question-form .btn {
+  justify-self: start;
+}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -821,6 +897,15 @@ input[type="file"]::file-selector-button {
   }
   .decision-bar {
     margin: 0;
+  }
+  .decision-bar > div {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .mode-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
   }
   .run-row {
     display: grid;

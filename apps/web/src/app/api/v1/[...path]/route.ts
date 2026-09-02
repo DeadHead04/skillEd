@@ -1,5 +1,7 @@
 import {
   ArtifactStore,
+  ConversationMessageSchema,
+  EvalAnswersSchema,
   RunLaunchSchema,
   ProposalDecisionSchema,
   db,
@@ -15,7 +17,7 @@ import Busboy from "busboy";
 import { createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join, relative, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve } from "node:path";
 import { Readable } from "node:stream";
 
 export const runtime = "nodejs";
@@ -422,13 +424,75 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "evals" && path[1] && path[2] === "author") {
       const evalId = path[1];
-      const conversationId = crypto.randomUUID();
-      await sql`INSERT INTO conversations(id,kind,resource_id) VALUES(${conversationId},'eval_authoring',${evalId})`;
+      const [existing] =
+        await sql`SELECT id FROM conversations WHERE kind='eval_authoring' AND resource_id=${evalId} ORDER BY created_at DESC LIMIT 1`;
+      const conversationId = existing?.id ?? crypto.randomUUID();
+      if (!existing)
+        await sql`INSERT INTO conversations(id,kind,resource_id) VALUES(${conversationId},'eval_authoring',${evalId})`;
       const [file] =
         await sql`SELECT metadata FROM eval_files WHERE eval_version_id=${evalId} AND kind='task' LIMIT 1`;
-      await sql`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversationId},'user',${file?.metadata?.text ?? "Understand this Skill and create a rigorous eval plan."})`;
-      const jobId = await enqueue(sql, "eval_author", evalId, {});
+      if (!existing)
+        await sql`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversationId},'user',${file?.metadata?.text ?? "Understand this Skill and create a rigorous eval plan."})`;
+      const jobId = await enqueue(sql, "eval_author", evalId, {
+        phase: "initial",
+      });
       return json({ jobId, resourceId: evalId }, 202);
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "answers") {
+      const input = EvalAnswersSchema.parse(await request.json());
+      const [evaluation] =
+        await sql`SELECT questions FROM eval_versions WHERE id=${path[1]} AND status='awaiting_answers'`;
+      if (!evaluation)
+        return fail(
+          "INVALID_TRANSITION",
+          "Answers are not expected",
+          "The eval must be waiting for material answers.",
+          409,
+        );
+      const missing = (evaluation.questions as Array<any>)
+        .filter(
+          (question) =>
+            question.required && !input.answers[question.id]?.trim(),
+        )
+        .map((question) => question.id);
+      if (missing.length)
+        return fail(
+          "MISSING_ANSWERS",
+          "Required answers are missing",
+          `Answer: ${missing.join(", ")}`,
+          400,
+          false,
+          "answers",
+        );
+      const [conversation] =
+        await sql`SELECT id FROM conversations WHERE resource_id=${path[1]} AND kind='eval_authoring' ORDER BY created_at DESC LIMIT 1`;
+      if (!conversation)
+        return fail("NOT_FOUND", "Conversation not found", "", 404);
+      await sql.begin(async (tx) => {
+        await tx`UPDATE eval_versions SET answers=${tx.json(input.answers)},status='planning' WHERE id=${path[1]!}`;
+        await tx`INSERT INTO conversation_messages(conversation_id,role,content,structured) VALUES(${conversation.id},'user',${Object.entries(
+          input.answers,
+        )
+          .map(([id, answer]) => `${id}: ${answer}`)
+          .join("\n")},${tx.json(input.answers)})`;
+      });
+      const jobId = await enqueue(sql, "eval_author", path[1], {
+        phase: "answers",
+      });
+      return json({ jobId, resourceId: path[1] }, 202);
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "messages") {
+      const input = ConversationMessageSchema.parse(await request.json());
+      const [conversation] =
+        await sql`SELECT id FROM conversations WHERE resource_id=${path[1]} AND kind='eval_authoring' ORDER BY created_at DESC LIMIT 1`;
+      if (!conversation)
+        return fail("NOT_FOUND", "Conversation not found", "", 404);
+      await sql`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversation.id},'user',${input.message})`;
+      const jobId = await enqueue(sql, "eval_author", path[1], {
+        phase: "message",
+        message: input.message,
+      });
+      return json({ jobId, resourceId: path[1] }, 202);
     }
     if (path[0] === "evals" && path[1] && path[2] === "approve-plan") {
       const [id] =
@@ -503,14 +567,40 @@ export async function POST(request: Request, context: Context) {
       if (!run) return fail("NOT_READY", "Completed run required", "", 409);
       const proposalId = crypto.randomUUID();
       await sql`INSERT INTO update_proposals(id,source_run_id,base_version_id,eval_version_id) VALUES(${proposalId},${run.id},${run.skill_version_id},${run.eval_version_id})`;
-      await sql`INSERT INTO conversations(kind,resource_id) VALUES('skill_update',${proposalId})`;
+      const conversationId = crypto.randomUUID();
+      await sql`INSERT INTO conversations(id,kind,resource_id) VALUES(${conversationId},'skill_update',${proposalId})`;
+      await sql`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversationId},'user','Diagnose the selected failures and propose the smallest safe Skill improvement.')`;
       const jobId = await enqueue(sql, "proposal", proposalId, {});
       return json({ jobId, resourceId: proposalId }, 202);
+    }
+    if (path[0] === "updates" && path[1] && path[2] === "messages") {
+      const input = ConversationMessageSchema.parse(await request.json());
+      const [proposal] =
+        await sql`SELECT id FROM update_proposals WHERE id=${path[1]} AND status='review'`;
+      if (!proposal)
+        return fail(
+          "NOT_READY",
+          "Proposal cannot be revised",
+          "Only a proposal under review accepts revision requests.",
+          409,
+        );
+      const [conversation] =
+        await sql`SELECT id FROM conversations WHERE resource_id=${path[1]} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
+      if (!conversation)
+        return fail("NOT_FOUND", "Conversation not found", "", 404);
+      await sql.begin(async (tx) => {
+        await tx`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversation.id},'user',${input.message})`;
+        await tx`UPDATE update_proposals SET status='generating',updated_at=now() WHERE id=${path[1]!}`;
+      });
+      const jobId = await enqueue(sql, "proposal", path[1], {
+        message: input.message,
+      });
+      return json({ jobId, resourceId: path[1] }, 202);
     }
     if (path[0] === "updates" && path[1] && path[2] === "decide") {
       const input = ProposalDecisionSchema.parse(await request.json());
       const [p] =
-        await sql`SELECT p.id proposal_id,p.base_version_id,p.skill_patch_key,sv.skill_id,sv.name,sv.description,sv.selected_root,sv.root_candidates,sv.manifest,sv.readiness,sv.installable_key FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE p.id=${path[1]} AND p.status='review'`;
+        await sql`SELECT p.id proposal_id,p.base_version_id,p.eval_version_id,p.skill_patch_key,p.skill_changes,p.eval_changes,sv.skill_id,sv.name,sv.description,sv.selected_root,sv.root_candidates,sv.manifest,sv.readiness,sv.installable_key FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE p.id=${path[1]} AND p.status='review'`;
       if (!p) return fail("NOT_READY", "Proposal is not reviewable", "", 409);
       if (input.skillDecision === "rejected") {
         await sql`UPDATE update_proposals SET status='rejected',skill_decision='rejected',eval_decision=${input.evalDecision},updated_at=now() WHERE id=${p.proposal_id}`;
@@ -521,40 +611,181 @@ export async function POST(request: Request, context: Context) {
       const next = versionRows[0]?.next;
       if (!next) throw new Error("Could not allocate candidate version");
       const candidate = crypto.randomUUID();
-      if (!p.skill_patch_key)
+      if (!p.skill_patch_key || !Array.isArray(p.skill_changes))
         throw new Error("Approved proposal has no Skill patch");
       const candidateWork = await mkdtemp(join(tmpdir(), "skilled-candidate-"));
-      let candidateChecksum: string, candidateKey: string;
+      let candidateChecksum: string,
+        candidateKey: string,
+        candidateManifest: any;
       try {
         const inspected = await extractZip(
           store.path(p.installable_key),
           candidateWork,
         );
-        const skillFile = join(candidateWork, p.selected_root, "SKILL.md");
-        const patchText = await readFile(store.path(p.skill_patch_key), "utf8");
-        const additions = patchText
-          .split("\n")
-          .filter((line) => line.startsWith("+") && !line.startsWith("+++"))
-          .map((line) => line.slice(1))
-          .join("\n");
-        if (!additions || /(^|\/)\.\.(\/|$)/.test(p.selected_root))
-          throw new Error("Unsafe or empty Skill patch");
-        const baseText = await readFile(skillFile, "utf8");
-        await writeFile(skillFile, `${baseText.trimEnd()}\n\n${additions}\n`);
+        const skillRoot = resolve(candidateWork, p.selected_root);
+        if (
+          relative(candidateWork, skillRoot).startsWith("..") ||
+          /(^|\/)\.\.(\/|$)/.test(p.selected_root)
+        )
+          throw new Error("Unsafe Skill root");
+        for (const change of p.skill_changes as Array<Record<string, any>>) {
+          const changePath = String(change.path ?? "");
+          const target = resolve(skillRoot, changePath);
+          const rel = relative(skillRoot, target);
+          if (
+            !changePath ||
+            rel.startsWith("..") ||
+            resolve(target) === resolve(skillRoot) ||
+            typeof change.content !== "string" ||
+            Buffer.byteLength(change.content) > 1_000_000
+          )
+            throw new Error(`Unsafe Skill change path: ${changePath}`);
+          if (change.action !== "replace" && change.action !== "create")
+            throw new Error(
+              `Unsupported Skill change action: ${change.action}`,
+            );
+          if (change.action === "replace") await readFile(target);
+          await mkdir(dirname(target), { recursive: true });
+          await writeFile(target, change.content);
+        }
         const output = join(candidateWork, "candidate.zip");
-        const entries = inspected.entries
-          .filter((entry) => !entry.directory && entry.path !== "candidate.zip")
-          .map((entry) => entry.path);
+        const entries = [
+          ...inspected.entries
+            .filter(
+              (entry) => !entry.directory && entry.path !== "candidate.zip",
+            )
+            .map((entry) => entry.path),
+          ...(p.skill_changes as Array<Record<string, any>>)
+            .filter((change) => change.action === "create")
+            .map((change) =>
+              p.selected_root
+                ? `${p.selected_root}/${change.path}`
+                : String(change.path),
+            ),
+        ].filter((value, index, all) => all.indexOf(value) === index);
         await createZip(candidateWork, entries, output);
         const bytes = await readFile(output);
         candidateChecksum = sha256(bytes);
+        const candidateInspection = await inspectZip(output);
+        candidateManifest = {
+          entries: candidateInspection.entries
+            .filter((entry) => !entry.directory)
+            .map((entry) => ({
+              path: p.selected_root
+                ? relative(p.selected_root, entry.path)
+                : entry.path,
+              size: entry.size,
+            })),
+          excluded: [],
+        };
         candidateKey = `skill-versions/${candidate}/installable.zip`;
         await store.put(candidateKey, bytes);
       } finally {
         await rm(candidateWork, { recursive: true, force: true });
       }
-      await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key,base_version_id) VALUES(${candidate},${p.skill_id},${Number(next)},${p.name},${p.description},${p.selected_root},${sql.json(p.root_candidates)},${sql.json(p.manifest)},${sql.json(p.readiness)},'candidate',${candidateChecksum!},${candidateKey!},${candidateKey!},${p.base_version_id})`;
-      await sql`UPDATE update_proposals SET status='candidate_created',skill_decision='approved',eval_decision=${input.evalDecision},candidate_version_id=${candidate},updated_at=now() WHERE id=${p.proposal_id}`;
+      await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key,base_version_id) VALUES(${candidate},${p.skill_id},${Number(next)},${p.name},${p.description},${p.selected_root},${sql.json(p.root_candidates)},${sql.json(candidateManifest!)},${sql.json(p.readiness)},'candidate',${candidateChecksum!},${candidateKey!},${candidateKey!},${p.base_version_id})`;
+      let verificationEvalId = p.eval_version_id;
+      if (
+        input.evalDecision === "approved" &&
+        Array.isArray(p.eval_changes) &&
+        p.eval_changes.length
+      ) {
+        const [sourceEval] =
+          await sql`SELECT * FROM eval_versions WHERE id=${p.eval_version_id} AND status='approved'`;
+        if (!sourceEval?.bundle_key)
+          throw new Error("Approved source eval bundle is missing");
+        const nextEvalRows =
+          await sql`SELECT COALESCE(max(ev.version),0)+1 next FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${p.skill_id}`;
+        verificationEvalId = crypto.randomUUID();
+        const evalWork = await mkdtemp(
+          join(tmpdir(), "skilled-eval-candidate-"),
+        );
+        try {
+          const inspectedEval = await extractZip(
+            store.path(sourceEval.bundle_key),
+            evalWork,
+            { requireSkill: false },
+          );
+          const sourceCases =
+            await sql`SELECT * FROM eval_cases WHERE eval_version_id=${p.eval_version_id} ORDER BY case_id`;
+          const changes = new Map(
+            (p.eval_changes as Array<Record<string, any>>).map((change) => [
+              change.caseId,
+              change,
+            ]),
+          );
+          const manifestPath = resolve(evalWork, "evals/skilled.manifest.json");
+          const derivedManifest = JSON.parse(
+            await readFile(manifestPath, "utf8"),
+          );
+          for (const sourceCase of sourceCases) {
+            const change = changes.get(sourceCase.case_id);
+            if (!change) continue;
+            const yamlFile = resolve(evalWork, sourceCase.yaml_path);
+            if (relative(evalWork, yamlFile).startsWith(".."))
+              throw new Error("Unsafe eval case path");
+            const spec = JSON.parse(await readFile(yamlFile, "utf8"));
+            if (change.prompt) spec.input.prompt = String(change.prompt);
+            if (change.criteria) {
+              spec.judge.criteria = change.criteria;
+              derivedManifest.cases[sourceCase.case_id].assertions =
+                Object.fromEntries(
+                  (change.criteria as string[]).map((criterion, index) => [
+                    criterion,
+                    {
+                      dimension:
+                        sourceCase.required_dimensions[index] ??
+                        sourceCase.required_dimensions[0],
+                      required: true,
+                    },
+                  ]),
+                );
+            }
+            await writeFile(yamlFile, JSON.stringify(spec, null, 2));
+          }
+          await writeFile(
+            manifestPath,
+            JSON.stringify(derivedManifest, null, 2),
+          );
+          const bundle = join(evalWork, "derived-bundle.zip");
+          await createZip(
+            evalWork,
+            inspectedEval.entries
+              .filter((entry) => !entry.directory)
+              .map((entry) => entry.path),
+            bundle,
+          );
+          const bytes = await readFile(bundle);
+          const bundleKey = `eval-versions/${verificationEvalId}/bundle.zip`;
+          await store.put(bundleKey, bytes);
+          await sql`INSERT INTO eval_versions(id,skill_version_id,version,revision,status,evidence_level,task_understanding,coverage_plan,answers,questions,generation_notes,bundle_key,checksum,validation,approved_at) VALUES(${verificationEvalId},${p.base_version_id},${Number(nextEvalRows[0]?.next ?? 1)},1,'approved',${sourceEval.evidence_level},${sql.json(sourceEval.task_understanding)},${sql.json(sourceEval.coverage_plan)},${sql.json(sourceEval.answers)},${sql.json(sourceEval.questions)},${sql.json(sourceEval.generation_notes)},${bundleKey},${sha256(bytes)},${sql.json({ valid: true, derivedFrom: p.eval_version_id, proposalId: p.proposal_id })},now())`;
+          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) SELECT ${verificationEvalId},kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${p.eval_version_id}`;
+          for (const sourceCase of sourceCases) {
+            const change = changes.get(sourceCase.case_id);
+            const source = { ...sourceCase.source };
+            let mapping = sourceCase.assertion_mapping;
+            if (change?.prompt) source.prompt = String(change.prompt);
+            if (change?.criteria) {
+              source.criteria = change.criteria;
+              mapping = Object.fromEntries(
+                (change.criteria as string[]).map((criterion, index) => [
+                  criterion,
+                  {
+                    dimension:
+                      sourceCase.required_dimensions[index] ??
+                      sourceCase.required_dimensions[0],
+                    required: true,
+                  },
+                ]),
+              );
+            }
+            await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,enabled,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${verificationEvalId},${sourceCase.case_id},${sourceCase.title},${sourceCase.coverage_group},${sourceCase.enabled},${sourceCase.judge_type},${sql.json(sourceCase.evidence_provenance)},${sql.json(sourceCase.required_dimensions)},${sourceCase.yaml_path},${sql.json(mapping)},${sql.json(source)})`;
+          }
+        } finally {
+          await rm(evalWork, { recursive: true, force: true });
+        }
+      }
+      await sql`UPDATE update_proposals SET status='candidate_created',skill_decision='approved',eval_decision=${input.evalDecision},candidate_version_id=${candidate},eval_version_id=${verificationEvalId},updated_at=now() WHERE id=${p.proposal_id}`;
       return json(
         {
           resourceId: p.proposal_id,
@@ -627,6 +858,7 @@ export async function POST(request: Request, context: Context) {
       await sql.begin(async (tx) => {
         await tx`UPDATE skills SET active_version_id=${p.candidate_version_id},updated_at=now() WHERE id=${p.skill_id}`;
         await tx`UPDATE skill_versions SET status='ready' WHERE id=${p.candidate_version_id}`;
+        await tx`UPDATE update_proposals SET activated_at=now(),updated_at=now() WHERE id=${p.id}`;
       });
       return json({ resourceId: p.candidate_version_id, status: "active" });
     }

@@ -1,5 +1,9 @@
 import { currentEval } from "../../../lib/data";
-import { ApiAction } from "../../../components/actions";
+import {
+  ApiAction,
+  ConversationForm,
+  EvalQuestionsForm,
+} from "../../../components/actions";
 export const dynamic = "force-dynamic";
 export default async function EvalPage({
   params,
@@ -33,7 +37,12 @@ export default async function EvalPage({
       <div className="page-head">
         <div>
           <div className="eyebrow">
-            Eval authoring · revision {evaluation.revision}
+            Eval authoring · revision {evaluation.revision} ·{" "}
+            {evaluation.evidenceMode === "real"
+              ? "Real Codex"
+              : evaluation.evidenceMode === "demo"
+                ? "Demo adapter"
+                : "Unverified legacy"}
           </div>
           <h1>Turn task knowledge into evidence</h1>
           <p className="lede">
@@ -49,11 +58,27 @@ export default async function EvalPage({
         </span>
       </div>
       <div className="tabs">
-        <a className="active">Understand</a>
-        <a>Questions</a>
+        <a className={evaluation.status === "understanding" ? "active" : ""}>
+          Understand
+        </a>
+        <a className={evaluation.status === "awaiting_answers" ? "active" : ""}>
+          Questions
+        </a>
         <a>Eval plan</a>
         <a>Review</a>
       </div>
+      {evaluation.evidenceMode !== "real" && (
+        <div className="mode-banner demo" role="status">
+          <b>
+            {evaluation.evidenceMode === "demo"
+              ? "Demo evidence"
+              : "Unverified legacy evidence"}
+          </b>
+          {evaluation.evidenceMode === "demo"
+            ? "This workflow is deterministic and makes no model calls. Switch the worker to real mode before treating results as Codex evidence."
+            : "This eval predates evidence-mode recording, so SkillEd will not label it as a real Codex result."}
+        </div>
+      )}
       {evaluation.status === "collecting" && (
         <div className="panel">
           <div className="empty">
@@ -68,6 +93,23 @@ export default async function EvalPage({
       {evaluation.status !== "collecting" && (
         <div className="grid">
           <section>
+            {evaluation.status === "awaiting_answers" && (
+              <div className="panel question-panel">
+                <div className="panel-head">
+                  <div>
+                    <div className="eyebrow">Blocking material questions</div>
+                    <h2>Resolve the source of truth</h2>
+                  </div>
+                  <span>{evaluation.questions.length} required</span>
+                </div>
+                <div className="panel-body">
+                  <EvalQuestionsForm
+                    evalId={evaluation.id}
+                    questions={evaluation.questions}
+                  />
+                </div>
+              </div>
+            )}
             <div className="panel">
               <div className="panel-head">
                 <h2>Durable task understanding</h2>
@@ -212,6 +254,11 @@ export default async function EvalPage({
                   ))
                 ) : (
                   <p>No completed messages yet.</p>
+                )}
+                {evaluation.conversation && (
+                  <ConversationForm
+                    url={`/api/v1/evals/${evaluation.id}/messages`}
+                  />
                 )}
               </div>
             </section>

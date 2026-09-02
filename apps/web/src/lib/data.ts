@@ -36,7 +36,7 @@ export async function listSkills(): Promise<any[]> {
   return Promise.all(
     skills.map(async (skill) => {
       const [run] =
-        await sql`SELECT r.id,r.status,r.created_at FROM runs r JOIN skill_versions sv ON sv.id=r.skill_version_id WHERE sv.skill_id=${skill.id} ORDER BY r.created_at DESC LIMIT 1`;
+        await sql`SELECT r.id,r.status,r.created_at FROM runs r WHERE r.skill_version_id=${skill.active_version_id} ORDER BY r.created_at DESC LIMIT 1`;
       const results = run
         ? await sql`SELECT case_id,result FROM case_results WHERE run_id=${run.id}`
         : [];
@@ -68,7 +68,20 @@ export async function currentEval(id?: string, skillId?: string): Promise<any> {
     await sql`SELECT * FROM eval_cases WHERE eval_version_id=${evaluation.id} ORDER BY case_id`;
   const messages =
     await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${evaluation.id} ORDER BY m.created_at`;
-  return { ...evaluation, cases, messages };
+  const [conversation] =
+    await sql`SELECT id,codex_thread_id FROM conversations WHERE resource_id=${evaluation.id} AND kind='eval_authoring' ORDER BY created_at DESC LIMIT 1`;
+  return {
+    ...evaluation,
+    cases,
+    messages,
+    conversation,
+    evidenceMode:
+      evaluation.validation?.adapter === "codex"
+        ? "real"
+        : evaluation.validation?.adapter === "fake"
+          ? "demo"
+          : "unknown",
+  };
 }
 export async function currentRun(id?: string, skillId?: string): Promise<any> {
   await ready;
@@ -81,7 +94,11 @@ export async function currentRun(id?: string, skillId?: string): Promise<any> {
   if (!run) return null;
   const results =
     await sql`SELECT cr.*,ec.title,ec.coverage_group FROM case_results cr LEFT JOIN eval_cases ec ON ec.eval_version_id=${run.eval_version_id} AND ec.case_id=cr.case_id WHERE cr.run_id=${run.id} ORDER BY CASE cr.result WHEN 'ERROR' THEN 0 WHEN 'FAIL' THEN 1 WHEN 'PARTIAL' THEN 2 ELSE 3 END,cr.case_id,cr.iteration`;
-  return { ...run, results };
+  return {
+    ...run,
+    results,
+    evidenceMode: run.engine_versions?.adapter ?? "unknown",
+  };
 }
 export async function currentProposal(
   id?: string,
@@ -106,7 +123,32 @@ export async function currentProposal(
       skillPatch = "Patch artifact could not be read.";
     }
   }
-  return { ...p, skillPatch };
+  let evalPatch = "";
+  if (p.eval_patch_key) {
+    try {
+      evalPatch = await readFile(
+        new ArtifactStore().path(p.eval_patch_key),
+        "utf8",
+      );
+    } catch {
+      evalPatch = "Eval patch artifact could not be read.";
+    }
+  }
+  const messages =
+    await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${p.id} AND c.kind='skill_update' ORDER BY m.created_at`;
+  const [conversation] =
+    await sql`SELECT codex_thread_id FROM conversations WHERE resource_id=${p.id} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
+  return {
+    ...p,
+    skillPatch,
+    evalPatch,
+    messages,
+    evidenceMode: conversation?.codex_thread_id
+      ? "real"
+      : p.skill_changes?.length
+        ? "demo"
+        : "unknown",
+  };
 }
 
 export async function skillRuns(skillId: string): Promise<any[]> {

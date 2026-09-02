@@ -1,5 +1,5 @@
 import { currentProposal, currentRun } from "../../../lib/data";
-import { ApiAction } from "../../../components/actions";
+import { ApiAction, ConversationForm } from "../../../components/actions";
 export const dynamic = "force-dynamic";
 export default async function ImprovePage({
   params,
@@ -30,7 +30,12 @@ export default async function ImprovePage({
       <div className="page-head">
         <div>
           <div className="eyebrow">
-            Improvement proposal · base v{proposal.base_version}
+            Improvement proposal · base v{proposal.base_version} ·{" "}
+            {proposal.evidenceMode === "real"
+              ? "Real Codex"
+              : proposal.evidenceMode === "demo"
+                ? "Demo adapter"
+                : "Unverified legacy"}
           </div>
           <h1>Change the Skill, keep the evidence fixed</h1>
           <p className="lede">
@@ -45,6 +50,18 @@ export default async function ImprovePage({
           {String(proposal.status).replaceAll("_", " ")}
         </span>
       </div>
+      {proposal.evidenceMode !== "real" && (
+        <div className="mode-banner demo" role="status">
+          <b>
+            {proposal.evidenceMode === "demo"
+              ? "Demo proposal"
+              : "Unverified legacy proposal"}
+          </b>
+          {proposal.evidenceMode === "demo"
+            ? "The worker generated this deterministically. It is useful for testing approvals, not evidence that Codex diagnosed the failure."
+            : "This proposal predates conversation provenance and cannot be represented as a real Codex diagnosis."}
+        </div>
+      )}
       {proposal.status === "generating" ? (
         <div className="panel">
           <div className="empty">
@@ -86,6 +103,12 @@ export default async function ImprovePage({
                 <pre className="diff">
                   <span className="add">{proposal.skillPatch}</span>
                 </pre>
+                {proposal.evalPatch && (
+                  <>
+                    <h2 style={{ marginTop: 24 }}>Eval patch</h2>
+                    <pre className="diff">{proposal.evalPatch}</pre>
+                  </>
+                )}
               </div>
               {proposal.status === "review" && (
                 <div className="decision-bar">
@@ -108,6 +131,16 @@ export default async function ImprovePage({
                       }}
                       label="Approve Skill only"
                     />
+                    {proposal.evalPatch && (
+                      <ApiAction
+                        url={`/api/v1/updates/${proposal.id}/decide`}
+                        body={{
+                          skillDecision: "approved",
+                          evalDecision: "approved",
+                        }}
+                        label="Approve Skill + eval"
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -120,7 +153,7 @@ export default async function ImprovePage({
                   />
                 </div>
               )}
-              {proposal.status === "verified" && (
+              {proposal.status === "verified" && !proposal.activated_at && (
                 <div className="decision-bar">
                   <span>No new required-dimension regression.</span>
                   <ApiAction
@@ -129,6 +162,32 @@ export default async function ImprovePage({
                   />
                 </div>
               )}
+              {proposal.activated_at && (
+                <div className="decision-bar">
+                  <span>Candidate is the active Skill version.</span>
+                  <span className="badge pass">Activated</span>
+                </div>
+              )}
+            </div>
+            <div className="panel" style={{ marginTop: 18 }}>
+              <div className="panel-head">
+                <h2>Update conversation</h2>
+                <span className="badge info">Separate Codex thread</span>
+              </div>
+              <div className="panel-body conversation">
+                {proposal.messages?.map((message: any) => (
+                  <div className="message" key={message.id}>
+                    <strong>{message.role}</strong>
+                    {message.content}
+                  </div>
+                ))}
+                {proposal.status === "review" && (
+                  <ConversationForm
+                    url={`/api/v1/updates/${proposal.id}/messages`}
+                    placeholder="Ask Codex to narrow, explain, or revise this proposal…"
+                  />
+                )}
+              </div>
             </div>
             {comparison && (
               <div className="panel" style={{ marginTop: 18 }}>
@@ -201,9 +260,11 @@ export default async function ImprovePage({
                   <b>Activation</b>
                   <br />
                   <small>
-                    {proposal.status === "verified"
-                      ? "Available explicitly"
-                      : "Blocked until verified"}
+                    {proposal.activated_at
+                      ? "Candidate is active"
+                      : proposal.status === "verified"
+                        ? "Available explicitly"
+                        : "Blocked until verified"}
                   </small>
                 </div>
               </div>
