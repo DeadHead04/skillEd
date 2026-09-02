@@ -126,14 +126,20 @@ export default async function EvalPage({
                       <tbody>
                         {(items as any[]).map((item) => (
                           <tr key={item.case_id}>
-                            <td>
-                              <b>{item.case_id}</b>
-                              <br />
-                              {item.title}
+                            <td data-label="Case">
+                              <div>
+                                <b>{item.case_id}</b>
+                                <br />
+                                {item.title}
+                              </div>
                             </td>
-                            <td>{item.judge_type}</td>
-                            <td>{item.required_dimensions.join(" · ")}</td>
-                            <td>{item.evidence_provenance.join(" · ")}</td>
+                            <td data-label="Judge">{item.judge_type}</td>
+                            <td data-label="Required dimensions">
+                              {item.required_dimensions.join(" · ")}
+                            </td>
+                            <td data-label="Evidence">
+                              {item.evidence_provenance.join(" · ")}
+                            </td>
                           </tr>
                         ))}
                       </tbody>

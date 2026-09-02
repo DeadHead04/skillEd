@@ -155,10 +155,10 @@ export default async function ImprovePage({
                             item.category === "Regressed" ? "failure" : ""
                           }
                         >
-                          <td>{item.caseId}</td>
-                          <td>{item.current}</td>
-                          <td>{item.candidate}</td>
-                          <td>
+                          <td data-label="Case">{item.caseId}</td>
+                          <td data-label="Current">{item.current}</td>
+                          <td data-label="Candidate">{item.candidate}</td>
+                          <td data-label="Change">
                             <b>{item.category}</b>
                           </td>
                         </tr>

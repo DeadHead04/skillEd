@@ -237,27 +237,33 @@ export default async function RunPage({
                         key={result.id}
                         className={result.result !== "PASS" ? "failure" : ""}
                       >
-                        <td>
+                        <td data-label="Result">
                           <span
                             className={`badge ${String(result.result).toLowerCase()}`}
                           >
                             {result.result}
                           </span>
                         </td>
-                        <td>
-                          <b>{result.case_id}</b>
-                          <br />
-                          {result.title} · {result.sampleCount} samples
-                          {!result.stable && (
-                            <>
-                              <br />
-                              <b>Flaky</b>
-                            </>
-                          )}
+                        <td data-label="Case">
+                          <div>
+                            <b>{result.case_id}</b>
+                            <br />
+                            {result.title} · {result.sampleCount} samples
+                            {!result.stable && (
+                              <>
+                                <br />
+                                <b>Flaky</b>
+                              </>
+                            )}
+                          </div>
                         </td>
-                        <td>{result.coverage_group}</td>
-                        <td>{failed.length ? failed.join(" · ") : "—"}</td>
-                        <td>
+                        <td data-label="Coverage group">
+                          {result.coverage_group}
+                        </td>
+                        <td data-label="Failed dimensions">
+                          {failed.length ? failed.join(" · ") : "—"}
+                        </td>
+                        <td data-label="Evidence">
                           {result.result === "PARTIAL" ? (
                             <b>Target passed; scope failed</b>
                           ) : (

@@ -31,6 +31,15 @@ body {
   margin: 0;
   min-height: 100vh;
 }
+form,
+fieldset,
+input,
+textarea,
+select,
+pre {
+  min-width: 0;
+  max-width: 100%;
+}
 button,
 input,
 textarea,
@@ -126,7 +135,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: 0 34px;
-  background: rgba(244, 241, 233, 0.95);
+  background: var(--paper);
   position: sticky;
   top: 0;
   z-index: 5;
@@ -187,8 +196,15 @@ h3 {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(280px, 0.8fr);
   gap: 18px;
+  align-items: start;
+}
+.grid > *,
+.grid aside,
+.grid section {
+  min-width: 0;
 }
 .panel {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -202,27 +218,56 @@ h3 {
   align-items: center;
 }
 .panel-body {
+  min-width: 0;
   padding: 19px;
 }
 .upload {
+  min-width: 0;
+  max-width: 100%;
   border: 1px dashed #8e9699;
-  padding: 42px 24px;
+  padding: 32px 18px;
   text-align: center;
   background: #fbfaf5;
 }
 .upload input {
   display: block;
   margin: 18px auto 10px;
+  width: 100%;
+  min-width: 0;
   max-width: 100%;
+}
+.upload > input[type="file"],
+.field input[type="file"] {
+  overflow: hidden;
+  border: 1px solid #bfc1bd;
+  border-radius: 3px;
+  background: white;
+  padding: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+input[type="file"]::file-selector-button {
+  margin-right: 8px;
+  border: 0;
+  border-right: 1px solid #bfc1bd;
+  background: #eeebe3;
+  color: var(--ink);
+  padding: 7px 10px;
+  font-weight: 680;
+  cursor: pointer;
 }
 .field {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   gap: 7px;
   margin: 14px 0;
 }
 .field label {
   font-size: 12px;
   font-weight: 700;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .field input,
 .field textarea,
@@ -232,6 +277,7 @@ h3 {
   border-radius: 3px;
   padding: 10px 11px;
   color: var(--ink);
+  width: 100%;
 }
 .field textarea {
   min-height: 92px;
@@ -263,16 +309,20 @@ h3 {
   cursor: not-allowed;
 }
 .decision-bar {
-  position: sticky;
-  bottom: 0;
+  position: static;
   background: #eeebe3;
   border: 1px solid var(--line);
   padding: 13px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
   z-index: 4;
+}
+.decision-bar > div {
+  max-width: 100%;
+  flex-wrap: wrap;
 }
 .badge {
   display: inline-flex;
@@ -347,6 +397,9 @@ h3 {
   font-size: 12px;
   line-height: 1.85;
   color: #4d5356;
+}
+.tree > div {
+  overflow-wrap: anywhere;
 }
 .facts {
   display: grid;
@@ -501,6 +554,12 @@ h3 {
   outline: 3px solid var(--cyan);
   outline-offset: 2px;
 }
+@media (max-width: 1150px) {
+  .grid,
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 850px) {
   .app {
     display: block;
@@ -528,7 +587,7 @@ h3 {
     padding: 0 17px;
   }
   .content {
-    padding: 22px 16px 90px;
+    padding: 22px 16px 32px;
   }
   .page-head {
     display: block;
@@ -549,13 +608,50 @@ h3 {
   .facts {
     grid-template-columns: 1fr;
   }
-  .case-table {
+  .case-table,
+  .case-table tbody,
+  .case-table tr,
+  .case-table td {
     display: block;
-    overflow-x: auto;
+    width: 100%;
+  }
+  .case-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .case-table tr {
+    padding: 11px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .case-table tr:last-child {
+    border-bottom: 0;
+  }
+  .case-table td,
+  .case-table tr:last-child td {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.42fr) 1fr;
+    gap: 12px;
+    padding: 4px 0;
+    border: 0;
+    overflow-wrap: anywhere;
+  }
+  .case-table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+  .case-table td > .badge {
+    justify-self: start;
   }
   .decision-bar {
-    margin: 0 -16px;
-    bottom: 0;
+    margin: 0;
   }
   .hide-mobile {
     display: none;
