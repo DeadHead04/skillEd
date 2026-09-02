@@ -1,8 +1,9 @@
 # SkillEd
 
-SkillEd is a private local workbench for testing and improving one Agent Skill
-package at a time. The browser is the entire product surface; Codex App Server
-and Skill-Up run behind a sequential worker.
+SkillEd is a private local workbench for testing and improving multiple Agent
+Skill packages. Each package keeps its own immutable versions, evals, runs,
+reports, and improvement proposals. The browser is the entire product surface;
+Codex App Server and Skill-Up run behind a sequential worker.
 
 The v1 flow is:
 
@@ -29,7 +30,11 @@ codex login status
 docker compose up --build
 ```
 
-Open `http://127.0.0.1:3000`. Compose starts only `web`, `worker`, and
+Copy `.env.example` to `.env` and replace the local password and session secret.
+For an immediate local-only walkthrough, Compose defaults to password
+`skilled-local`; change it before sharing access to the machine.
+
+Open `http://127.0.0.1:3000` and sign in. Compose starts only `web`, `worker`, and
 `postgres`; PostgreSQL is not published to the host. The worker receives only
 the existing `~/.codex/auth.json` mount, not the rest of `~/.codex`. If Codex
 uses Keychain storage instead, set `CODEX_AUTH_FILE` to a SkillEd-specific
@@ -41,8 +46,10 @@ For a deterministic walkthrough without model calls:
 SKILLED_ADAPTER_MODE=fake docker compose up --build
 ```
 
-This credential arrangement is for one trusted local user. Do not expose this
-Compose stack as a public arbitrary-code service.
+The browser session uses a signed, HTTP-only, same-site cookie that expires
+after 24 hours. This credential arrangement is for one trusted local
+administrator. It is not multi-user identity or public-cloud authentication.
+Do not expose this Compose stack as a public arbitrary-code service.
 
 ## Verification
 
@@ -75,6 +82,8 @@ can become a green pass.
 
 - ZIP upload only.
 - One Skill is selected from each upload.
+- Multiple Skill packages can be retained and switched from the sidebar.
+- Evals, runs, reports, proposals, and active versions remain package-scoped.
 - One private Codex account is already logged in on the worker.
 - Jobs run sequentially.
 - The uploaded package, generated evals, results, and Skill versions are stored.

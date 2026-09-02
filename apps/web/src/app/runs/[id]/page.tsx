@@ -4,14 +4,18 @@ export const dynamic = "force-dynamic";
 
 export default async function RunPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ skill?: string }>;
 }) {
-  const id = (await params).id;
-  const [run, evaluation, skill] = await Promise.all([
-    currentRun(id),
-    currentEval(),
-    currentSkill(),
+  const [route, query] = await Promise.all([params, searchParams]);
+  const id = route.id;
+  const run = await currentRun(id, query.skill);
+  const skillId = run?.skill_id ?? query.skill;
+  const [evaluation, skill] = await Promise.all([
+    currentEval(undefined, skillId),
+    currentSkill(skillId),
   ]);
   if (!run) {
     const ready = evaluation?.status === "approved" && skill?.version;
@@ -88,7 +92,7 @@ export default async function RunPage({
                     baseline: false,
                   }}
                   label="Launch evaluation"
-                  navigateTo="/runs/:resourceId"
+                  navigateTo={`/runs/:resourceId?skill=${skill?.id}`}
                 />
               )}
             </div>
@@ -294,7 +298,7 @@ export default async function RunPage({
                     url="/api/v1/updates/generate"
                     body={{ runId: run.id }}
                     label="Suggest update"
-                    navigateTo="/improve/:resourceId"
+                    navigateTo={`/improve/:resourceId?skill=${run.skill_id}`}
                   />
                 )}
               </div>

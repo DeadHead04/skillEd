@@ -3,11 +3,14 @@ import { ApiAction } from "../../../components/actions";
 export const dynamic = "force-dynamic";
 export default async function ImprovePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ skill?: string }>;
 }) {
-  const proposal = await currentProposal((await params).id),
-    run = await currentRun();
+  const [route, query] = await Promise.all([params, searchParams]);
+  const proposal = await currentProposal(route.id, query.skill),
+    run = await currentRun(undefined, proposal?.skill_id ?? query.skill);
   if (!proposal)
     return (
       <div className="content">

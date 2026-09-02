@@ -59,7 +59,7 @@ button {
 }
 .app {
   display: grid;
-  grid-template-columns: 236px 1fr;
+  grid-template-columns: 272px 1fr;
   min-height: 100vh;
 }
 .sidebar {
@@ -69,6 +69,9 @@ button {
   position: sticky;
   top: 0;
   height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .brand {
   display: flex;
@@ -92,6 +95,76 @@ button {
   display: grid;
   gap: 5px;
 }
+.side-label {
+  margin: 0 10px 9px;
+  color: #727d82;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.workflow-label {
+  margin-top: 23px;
+}
+.skill-list {
+  display: grid;
+  gap: 5px;
+  max-height: min(38vh, 330px);
+  overflow-y: auto;
+  padding-right: 3px;
+}
+.skill-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 10px;
+  border: 1px solid transparent;
+  color: #aeb6ba;
+}
+.skill-switch > span:first-child {
+  min-width: 0;
+}
+.skill-switch b,
+.skill-switch small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.skill-switch b {
+  font-size: 13px;
+  color: #e4e8e9;
+}
+.skill-switch small {
+  margin-top: 3px;
+  color: #7f898e;
+  font-size: 10px;
+}
+.skill-switch:hover,
+.skill-switch:focus-visible,
+.skill-switch.active {
+  background: var(--nav2);
+  border-color: #303a3f;
+}
+.skill-switch.active {
+  box-shadow: inset 2px 0 var(--cyan);
+}
+.skill-score {
+  flex: 0 0 auto;
+  border: 1px solid #3b464b;
+  border-radius: 20px;
+  padding: 4px 6px;
+  color: #dce1e3;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.add-skill {
+  padding: 9px 11px;
+  color: var(--cyan);
+  font-size: 12px;
+}
 .nav a {
   padding: 11px 12px;
   border-left: 2px solid transparent;
@@ -108,14 +181,22 @@ button {
   color: white;
 }
 .local-note {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 22px;
+  margin: auto 4px 0;
   padding-top: 15px;
   border-top: 1px solid #30363b;
   font-size: 12px;
   color: #879095;
+}
+.text-button {
+  display: block;
+  margin: 7px 0 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b9c1c4;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .dot {
   width: 7px;
@@ -155,6 +236,41 @@ button {
   max-width: 1320px;
   margin: auto;
   padding: 34px;
+}
+.login-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  background:
+    linear-gradient(90deg, rgba(23, 26, 29, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(23, 26, 29, 0.04) 1px, transparent 1px), var(--paper);
+  background-size: 28px 28px;
+}
+.login-panel {
+  width: min(100%, 480px);
+  padding: 38px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--cyan);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.login-brand {
+  color: var(--ink);
+  margin: 0 0 42px;
+}
+.login-form {
+  margin-top: 28px;
+}
+.login-form .btn {
+  width: 100%;
+  justify-content: center;
+}
+.login-note {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: center;
 }
 .eyebrow {
   text-transform: uppercase;
@@ -323,6 +439,41 @@ input[type="file"]::file-selector-button {
 .decision-bar > div {
   max-width: 100%;
   flex-wrap: wrap;
+}
+.run-history {
+  grid-column: 1 / -1;
+}
+.run-list {
+  display: grid;
+}
+.run-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 15px 19px;
+  border-bottom: 1px solid var(--line);
+}
+.run-row:last-child {
+  border-bottom: 0;
+}
+.run-row:hover,
+.run-row:focus-visible {
+  background: #f7f4ed;
+}
+.run-row b,
+.run-row small {
+  display: block;
+}
+.run-row small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.outcome-summary {
+  min-width: 220px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 .badge {
   display: inline-flex;
@@ -568,6 +719,7 @@ input[type="file"]::file-selector-button {
     height: auto;
     position: static;
     padding: 14px 16px;
+    overflow: visible;
   }
   .brand {
     margin: 0 0 12px;
@@ -575,12 +727,29 @@ input[type="file"]::file-selector-button {
   .nav {
     display: flex;
     overflow: auto;
+    order: 4;
   }
   .nav a {
     white-space: nowrap;
   }
   .local-note {
     display: none;
+  }
+  .side-label {
+    display: none;
+  }
+  .skill-list {
+    display: flex;
+    max-height: none;
+    overflow-x: auto;
+    margin-bottom: 10px;
+  }
+  .skill-switch {
+    min-width: 168px;
+  }
+  .add-skill {
+    min-width: max-content;
+    align-self: center;
   }
   .topbar {
     height: 54px;
@@ -652,6 +821,20 @@ input[type="file"]::file-selector-button {
   }
   .decision-bar {
     margin: 0;
+  }
+  .run-row {
+    display: grid;
+    gap: 10px;
+  }
+  .outcome-summary {
+    min-width: 0;
+    text-align: left;
+  }
+  .login-shell {
+    padding: 16px;
+  }
+  .login-panel {
+    padding: 28px 22px;
   }
   .hide-mobile {
     display: none;

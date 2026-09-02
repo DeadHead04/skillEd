@@ -115,10 +115,17 @@ export async function GET(request: Request, context: Context) {
       });
     }
     if (path[0] === "skill" && path[1] === "current") {
-      const [skill] =
-        await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id LIMIT 1`;
+      const skillId = new URL(request.url).searchParams.get("skill");
+      const [skill] = skillId
+        ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id WHERE s.id=${skillId}`
+        : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC LIMIT 1`;
       if (!skill) return json(null);
       return json(skill);
+    }
+    if (path[0] === "skills" && path.length === 1) {
+      const skills =
+        await sql`SELECT s.*,v.version active_version,v.description FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC,s.name`;
+      return json(skills);
     }
     if (path[0] === "skill" && path[1] === "versions" && path[2]) {
       const [version] =
@@ -150,8 +157,10 @@ export async function GET(request: Request, context: Context) {
     if (path[0] === "evals" && path[1]) {
       let id = path[1];
       if (id === "current") {
-        const [row] =
-          await sql`SELECT id FROM eval_versions ORDER BY created_at DESC LIMIT 1`;
+        const skillId = new URL(request.url).searchParams.get("skill");
+        const [row] = skillId
+          ? await sql`SELECT ev.id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${skillId} ORDER BY ev.created_at DESC LIMIT 1`
+          : await sql`SELECT id FROM eval_versions ORDER BY created_at DESC LIMIT 1`;
         if (!row) return json(null);
         id = row.id;
       }
@@ -185,8 +194,10 @@ export async function GET(request: Request, context: Context) {
     if (path[0] === "runs" && path[1]) {
       let id = path[1];
       if (id === "current") {
-        const [row] =
-          await sql`SELECT id FROM runs ORDER BY created_at DESC LIMIT 1`;
+        const skillId = new URL(request.url).searchParams.get("skill");
+        const [row] = skillId
+          ? await sql`SELECT r.id FROM runs r JOIN skill_versions sv ON sv.id=r.skill_version_id WHERE sv.skill_id=${skillId} ORDER BY r.created_at DESC LIMIT 1`
+          : await sql`SELECT id FROM runs ORDER BY created_at DESC LIMIT 1`;
         if (!row) return json(null);
         id = row.id;
       }
@@ -200,8 +211,10 @@ export async function GET(request: Request, context: Context) {
     if (path[0] === "improve" && path[1]) {
       let id = path[1];
       if (id === "current") {
-        const [row] =
-          await sql`SELECT id FROM update_proposals ORDER BY created_at DESC LIMIT 1`;
+        const skillId = new URL(request.url).searchParams.get("skill");
+        const [row] = skillId
+          ? await sql`SELECT p.id FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE sv.skill_id=${skillId} ORDER BY p.created_at DESC LIMIT 1`
+          : await sql`SELECT id FROM update_proposals ORDER BY created_at DESC LIMIT 1`;
         if (!row) return json(null);
         id = row.id;
       }
@@ -327,21 +340,24 @@ export async function POST(request: Request, context: Context) {
         const metadata = parseFrontmatter(
           await readFile(join(extracted, root, "SKILL.md"), "utf8"),
         );
-        const [existingSkill] = await sql`SELECT * FROM skills LIMIT 1`;
-        if (existingSkill && existingSkill.name !== metadata.name)
-          return fail(
-            "SINGLE_LINEAGE",
-            "A different Skill is already managed",
-            `This installation manages ${existingSkill.name}.`,
-            409,
-          );
+        const [existingSkill] =
+          await sql`SELECT * FROM skills WHERE name=${metadata.name}`;
         const [duplicate] =
           await sql`SELECT * FROM skill_versions WHERE checksum=${inspected.checksum}`;
-        if (duplicate)
+        if (duplicate) {
+          const [existingEval] =
+            await sql`SELECT id FROM eval_versions WHERE skill_version_id=${duplicate.id} ORDER BY created_at DESC LIMIT 1`;
           return json(
-            { jobId: null, resourceId: duplicate.id, identical: true },
+            {
+              jobId: null,
+              resourceId: duplicate.id,
+              skillId: duplicate.skill_id,
+              evalId: existingEval?.id,
+              identical: true,
+            },
             200,
           );
+        }
         const skillId = existingSkill?.id ?? crypto.randomUUID();
         if (!existingSkill)
           await sql`INSERT INTO skills(id,name) VALUES(${skillId},${metadata.name})`;
@@ -374,7 +390,7 @@ export async function POST(request: Request, context: Context) {
             .map((e) => e.path),
         };
         await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key) VALUES(${versionId},${skillId},${Number(next)},${metadata.name},${metadata.description},${root},${sql.json(inspected.roots)},${sql.json(manifest)},${sql.json({ ready: true, findings: [], runtimes: ["node24", "python3.12", "go1.25"] })},'ready',${inspected.checksum},${originalKey},${installableKey})`;
-        await sql`UPDATE skills SET active_version_id=COALESCE(active_version_id,${versionId}),updated_at=now() WHERE id=${skillId}`;
+        await sql`UPDATE skills SET active_version_id=${versionId},updated_at=now() WHERE id=${skillId}`;
         const evalId = crypto.randomUUID();
         const kinds = [
           "task",
@@ -391,7 +407,13 @@ export async function POST(request: Request, context: Context) {
           await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) VALUES(${evalId},${upload.fields[`kind:${file.filename}`] ?? "dataset"},${file.filename},${key},${sql.json({ mime: file.mime })})`;
         }
         return json(
-          { jobId: null, resourceId: versionId, evalId, identical: false },
+          {
+            jobId: null,
+            resourceId: versionId,
+            skillId,
+            evalId,
+            identical: false,
+          },
           201,
         );
       } finally {
@@ -438,7 +460,7 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "evals" && path[1] && path[2] === "approve") {
       const [row] =
-        await sql`UPDATE eval_versions SET status='approved',version=(SELECT COALESCE(max(version),0)+1 FROM eval_versions WHERE version IS NOT NULL),approved_at=now() WHERE id=${path[1]} AND status='ready' AND (validation->>'valid')::boolean=true RETURNING id`;
+        await sql`UPDATE eval_versions target SET status='approved',version=(SELECT COALESCE(max(other.version),0)+1 FROM eval_versions other JOIN skill_versions other_sv ON other_sv.id=other.skill_version_id WHERE other.version IS NOT NULL AND other_sv.skill_id=(SELECT target_sv.skill_id FROM skill_versions target_sv WHERE target_sv.id=target.skill_version_id)),approved_at=now() WHERE target.id=${path[1]} AND target.status='ready' AND (target.validation->>'valid')::boolean=true RETURNING target.id`;
       return row
         ? json({ resourceId: row.id, status: "approved" })
         : fail(

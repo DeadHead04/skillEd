@@ -22,6 +22,8 @@ services:
       DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
       ARTIFACT_ROOT: /data/artifacts
       WORKER_STALE_AFTER_SECONDS: "30"
+      SKILLED_ADMIN_PASSWORD: ${SKILLED_ADMIN_PASSWORD:-skilled-local}
+      SKILLED_SESSION_SECRET: ${SKILLED_SESSION_SECRET:-local-development-session-secret-change-me}
     depends_on:
       postgres:
         condition: service_healthy

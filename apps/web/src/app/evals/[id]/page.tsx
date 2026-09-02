@@ -3,10 +3,13 @@ import { ApiAction } from "../../../components/actions";
 export const dynamic = "force-dynamic";
 export default async function EvalPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ skill?: string }>;
 }) {
-  const evaluation = await currentEval((await params).id);
+  const [route, query] = await Promise.all([params, searchParams]);
+  const evaluation = await currentEval(route.id, query.skill);
   if (!evaluation)
     return (
       <div className="content">
@@ -183,7 +186,10 @@ export default async function EvalPage({
                   />
                 )}
                 {evaluation.status === "approved" && (
-                  <a className="btn" href="/runs/current">
+                  <a
+                    className="btn"
+                    href={`/runs/current?skill=${evaluation.skill_id}`}
+                  >
                     Configure run
                   </a>
                 )}

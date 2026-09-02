@@ -150,15 +150,121 @@ const cases = [
   ],
 ] as const;
 
+const productCases = [
+  [
+    "CORE-001",
+    "Fully supported product card",
+    "Core correctness",
+    "agent",
+    ["correctness", "semantic", "source"],
+  ],
+  [
+    "CORE-002",
+    "Material warning omitted",
+    "Core correctness",
+    "agent",
+    ["correctness", "semantic"],
+  ],
+  [
+    "CORE-003",
+    "Unsupported benefit claim",
+    "Core correctness",
+    "agent",
+    ["correctness", "source"],
+  ],
+  [
+    "CORE-004",
+    "Insufficient evidence rejected",
+    "Core correctness",
+    "agent",
+    ["correctness", "source"],
+  ],
+  [
+    "FG-001",
+    "Fabricated source citation",
+    "False green / adversarial",
+    "agent",
+    ["correctness", "source"],
+  ],
+  [
+    "FG-002",
+    "Omitted allergen warning",
+    "False green / adversarial",
+    "agent",
+    ["correctness", "semantic"],
+  ],
+  [
+    "FG-003",
+    "Invented clinical claim",
+    "False green / adversarial",
+    "agent",
+    ["correctness", "source"],
+  ],
+  [
+    "FG-004",
+    "Protected SKU changed",
+    "False green / adversarial",
+    "agent",
+    ["correctness", "scope"],
+  ],
+  [
+    "CTRL-001",
+    "Protected field locks",
+    "Hard locks & artifacts",
+    "script",
+    ["scope", "artifact"],
+  ],
+  [
+    "CTRL-002",
+    "Decision and citations agree",
+    "Hard locks & artifacts",
+    "script",
+    ["semantic", "artifact"],
+  ],
+] as const;
+
+const PRODUCT_UNDERSTANDING = TaskUnderstandingSchema.parse({
+  inputs: ["Product card", "authoritative source facts"],
+  outputs: ["PASS or FAIL", "cited findings", "protected-field drift"],
+  authorities: ["Uploaded source rules and recorded failures"],
+  invariants: [
+    "Never fabricate or infer evidence",
+    "Do not approve material omissions",
+    "Preserve SKU, seller, price, quantity, and address",
+  ],
+  allowedChanges: ["QC decision and evidence findings only"],
+  dependencies: ["Skill instructions", "uploaded authority material"],
+  ambiguity: ["Whether a missing fact is material to the decision"],
+  likelyHallucinations: [
+    "Invented citations",
+    "Unsupported benefits",
+    "Unstated clinical claims",
+  ],
+  failureModes: [
+    "False PASS without traceable evidence",
+    "material omission",
+    "protected-field drift",
+    "unsupported claim",
+    "decision-evidence contradiction",
+  ],
+});
+
+function isProductQcTask(value: unknown) {
+  const text = String(value ?? "").toLowerCase();
+  return text.includes("product card") || text.includes("source fact");
+}
+
 export async function authorEval(sql: Db, job: Record<string, any>) {
   await emit(sql, job.id, "stage_changed", { stage: "understanding" });
-  let understanding = DEFAULT_UNDERSTANDING,
+  const [context] =
+    await sql`SELECT ev.id,sv.original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${job.resource_id} LIMIT 1`;
+  if (!context) throw new Error("Eval context not found");
+  let understanding = isProductQcTask(context.metadata?.text)
+      ? PRODUCT_UNDERSTANDING
+      : DEFAULT_UNDERSTANDING,
     plan = DEFAULT_PLAN,
     codexThreadId: string | undefined;
   if (process.env.SKILLED_ADAPTER_MODE !== "fake") {
-    const [context] =
-      await sql`SELECT ev.id,sv.original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${job.resource_id} LIMIT 1`;
-    if (!context) throw new Error("Eval context not found");
     const cwd = join(
       process.env.WORK_ROOT ?? "/data/work",
       `author-${job.resource_id}`,
@@ -208,6 +314,11 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
 
 export async function generateEval(sql: Db, job: Record<string, any>) {
   const id = String(job.resource_id);
+  const [context] =
+    await sql`SELECT ef.metadata FROM eval_files ef WHERE ef.eval_version_id=${id} AND ef.kind='task' LIMIT 1`;
+  const caseSet = isProductQcTask(context?.metadata?.text)
+    ? productCases
+    : cases;
   const root = join(process.env.WORK_ROOT ?? "/tmp/skilled", `eval-${id}`);
   try {
     const evalDir = join(root, "evals/cases");
@@ -215,7 +326,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     await sql`UPDATE eval_versions SET status='generating' WHERE id=${id}`;
     await emit(sql, job.id, "stage_changed", { stage: "generating" });
     const manifest: any = { schemaVersion: 1, cases: {} };
-    for (const [caseId, title, group, judge, dimensions] of cases) {
+    for (const [caseId, title, group, judge, dimensions] of caseSet) {
       const assertions = dimensions.map((dimension) => ({
         id: `${caseId}-${dimension}`,
         text: `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
@@ -290,7 +401,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       skills: [{ source: "local_path", path: "." }],
       engine: { name: "codex", model: { name: "gpt-5.4" } },
       cases: {
-        files: cases.map(
+        files: caseSet.map(
           ([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`,
         ),
         defaults: { timeout_seconds: 900, max_turns: 8 },
@@ -316,8 +427,8 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     const bundleEntries = [
       "evals/eval.yaml",
       "evals/skilled.manifest.json",
-      ...cases.map(([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`),
-      ...cases
+      ...caseSet.map(([caseId]) => `evals/cases/${caseId.toLowerCase()}.yaml`),
+      ...caseSet
         .filter(([, , , judge]) => judge === "script")
         .map(([caseId]) => `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`),
     ];
@@ -330,11 +441,11 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     const key = `eval-versions/${id}/bundle.zip`;
     await store.put(key, bytes);
     const checksum = sha256(bytes);
-    await sql`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},validation=${sql.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: cases.length })} WHERE id=${id}`;
+    await sql`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},validation=${sql.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: caseSet.length })} WHERE id=${id}`;
     await emit(sql, job.id, "artifact_created", { kind: "eval_bundle" });
     await emit(sql, job.id, "completed", {
       resourceId: id,
-      cases: cases.length,
+      cases: caseSet.length,
     });
   } finally {
     await rm(root, { recursive: true, force: true });

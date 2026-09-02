@@ -1,20 +1,27 @@
 import Link from "next/link";
-import { currentSkill, currentEval } from "../../lib/data";
+import { currentSkill, currentEval, skillRuns } from "../../lib/data";
 import { UploadForm, ApiAction } from "../../components/actions";
 export const dynamic = "force-dynamic";
-export default async function SkillPage() {
-  const skill = await currentSkill(),
-    evaluation = await currentEval();
+export default async function SkillPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ skill?: string; new?: string }>;
+}) {
+  const query = await searchParams;
+  const skill = query.new ? null : await currentSkill(query.skill);
+  const evaluation = skill ? await currentEval(undefined, skill.id) : null;
+  const runs = skill ? await skillRuns(skill.id) : [];
   const version = skill?.version as any;
   return (
     <div className="content">
       <div className="page-head">
         <div>
           <div className="eyebrow">Package intake</div>
-          <h1>{skill ? skill.name : "Bring one Skill into focus"}</h1>
+          <h1>{skill ? skill.name : "Add a Skill package"}</h1>
           <p className="lede">
             Inspect an uploaded Skill, bind task evidence, then create a
-            rigorous eval suite before any improvement is suggested.
+            rigorous eval suite, then keep its evidence and versions isolated
+            from every other package.
           </p>
         </div>
         {version && (
@@ -76,7 +83,7 @@ export default async function SkillPage() {
               ) : (
                 <Link
                   className="btn"
-                  href={`/evals/${evaluation?.id ?? "current"}`}
+                  href={`/evals/${evaluation?.id ?? "current"}?skill=${skill.id}`}
                 >
                   Open evals
                 </Link>
@@ -120,6 +127,40 @@ export default async function SkillPage() {
               </div>
             </section>
           </aside>
+          {runs.length > 0 && (
+            <section className="panel run-history">
+              <div className="panel-head">
+                <h2>Recent evidence runs</h2>
+                <span>{runs.length} retained</span>
+              </div>
+              <div className="run-list">
+                {runs.map((run) => (
+                  <Link
+                    className="run-row"
+                    href={`/runs/${run.id}?skill=${skill.id}`}
+                    key={run.id}
+                  >
+                    <span>
+                      <b>Run {String(run.id).slice(0, 8)}</b>
+                      <small>
+                        Skill v{run.skill_version} · eval v{run.eval_version} ·{" "}
+                        {run.status}
+                      </small>
+                    </span>
+                    <span className="outcome-summary">
+                      <b>
+                        {run.summary.pass}/{run.summary.total} passing
+                      </b>
+                      <small>
+                        {run.summary.fail} failed · {run.summary.partial}{" "}
+                        partial · {run.summary.error} errors
+                      </small>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>

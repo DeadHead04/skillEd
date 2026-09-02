@@ -87,7 +87,11 @@ export function UploadForm() {
       setBusy(false);
       return;
     }
-    router.push(`/evals/${data.evalId}`);
+    router.push(
+      data.evalId
+        ? `/evals/${data.evalId}?skill=${data.skillId}`
+        : `/skill?skill=${data.skillId}`,
+    );
     router.refresh();
   }
   return (
