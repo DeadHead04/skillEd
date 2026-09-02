@@ -1,120 +1,101 @@
-# Skill Package Structure and Validation
+# Skill Package, Versions, and Compatibility
 
-## Canonical package
+## Accepted input
 
-SkillEd follows the [Agent Skills specification](https://agentskills.io/specification)
-and recognizes this portable layout:
+V1 accepts a bounded ZIP and optional task attachments. The ZIP may contain a
+Skill at its root or nested inside a wrapper directory. The scanner recursively
+finds `SKILL.md`; when it finds multiple candidates the user selects one and V1
+continues with only that primary Skill.
 
 ```text
 skill-name/
-├── SKILL.md                     required metadata and instructions
-├── scripts/                     optional executable helpers
-├── references/                  optional on-demand documentation
-├── assets/                      optional templates and static resources
-├── evals/                       Skill-Up tests; NEVER installed with the Skill
-│   ├── eval.yaml
-│   └── cases/
-│       ├── primary-workflow.yaml
-│       ├── edge-case.yaml
-│       └── regression-case.yaml
-└── LICENSE                      optional
+├── SKILL.md
+├── scripts/          optional
+├── references/       optional
+├── assets/           optional
+├── authorities/      optional domain material
+├── evals/            optional existing Skill-Up suite
+└── other files       preserved and classified
 ```
 
-Additional files are permitted, but SkillEd classifies ONLY known directories in the
-package viewer. The initial evaluator loads only `SKILL.md`; it does not execute
-or inject supporting resources.
+The original archive is never mutated or executed during import.
 
-## Progressive disclosure and coverage
+## Safe ingestion
 
-Agent platforms normally load Skill metadata for discovery, `SKILL.md` when a
-Skill activates, and referenced resources only when needed. The first SkillEd
-engine deliberately injects the selected `SKILL.md` instructions for the
-with-Skill arm. Therefore:
+Reject traversal paths, escaping symlinks, devices, duplicate normalized paths,
+encrypted archives, excessive nesting, excessive file count, oversized files,
+and excessive expanded size. Preview only safe text and approved image types;
+serve active HTML, scripts, binaries, and unknown formats as downloads.
 
-- It measures instruction effectiveness once the Skill is applied.
-- It does not measure agent-native discovery or routing.
-- References, scripts, and assets are visible but marked `Not covered`.
-- A Skill depending on supporting files may still run, but results must display
-  `SKILL.md-only coverage`.
+## Manifest and immutable versions
 
-This avoids presenting a response-only pass as proof that the complete package
-works in a tool-capable agent.
-
-## Import and discovery
-
-Supported sources:
-
-1. GitHub repository plus optional branch/ref and subdirectory.
-2. Uploaded ZIP or folder.
-
-The scanner recursively finds `SKILL.md`. A repository containing multiple
-Skills creates multiple catalog entries sharing the same source repository but
-with different source paths and stable Skill IDs.
-
-Every import records:
-
-- Source type and source URL or upload identity.
-- Repository owner/name and Skill subdirectory where applicable.
-- Immutable Git commit or SHA-256 upload checksum.
-- Importing actor and timestamp.
-- Parsed metadata and package manifest.
-- Validation status and findings.
-
-Reimporting the same stable Skill at a new commit creates a version. The system
-must not silently replace the files associated with an existing version.
-
-## Package manifest
-
-SkillEd generates a normalized manifest for indexing and integrity checks:
+Each accepted import produces:
 
 ```text
-SkillPackageManifest
-  source_checksum
-  skill_root
+SkillVersion
+  package_checksum
   skill_md_checksum
-  files[]
-    relative_path
-    checksum
-    byte_size
-    category: instructions | reference | script | asset | eval | other
-  validation_findings[]
+  original_artifact
+  normalized_runtime_artifact
+  parsed_metadata
+  files[] { path, checksum, bytes, category, executable }
+  references[] { source, target, status }
+  dependency_hints[]
+  compatibility_findings[]
 ```
 
-The manifest is application metadata, not a required file added to imported
-Skills. Paths are normalized to forward slashes and must stay within the Skill
-root.
+The same package checksum is idempotent. Changed contents create a new version;
+they never overwrite the current version. `active_version_id` and optional
+`candidate_version_id` are pointers on the stable Skill record.
 
-## Validation levels
+## Compatibility contract
 
-| Level | Effect | Examples |
-| --- | --- | --- |
-| Error | Import cannot become runnable | Missing `SKILL.md`, invalid YAML, unsafe path, unreadable archive. |
-| Warning | Import succeeds but needs attention | Tool-dependent compatibility, broken relative reference, oversized instruction file. |
-| Information | Context only | Scripts or assets exist but are not covered by response-only tests. |
+SkillEd can preserve and re-download any safe bounded archive. Executability is
+reported separately:
 
-The scanner must never execute package contents.
+- `ready`: runnable in the standard worker image.
+- `ready_with_warnings`: runnable with known coverage or dependency limits.
+- `needs_configuration`: requires a user decision or supported dependency.
+- `unsupported`: requires a capability V1 does not provide.
+- `blocked`: unsafe package or prohibited behavior.
 
-## Evaluation files
+V1's standard image includes Codex, Skill-Up, Python, Node.js, Git, common
+document/spreadsheet libraries, and basic archive/file tools. It may exercise
+package files and supported scripts inside the job workspace. It does not run
+arbitrary setup scripts or install arbitrary network dependencies. Codex may
+propose missing setup, but policy and user approval decide whether it is added
+to a future image.
 
-UI-authored tests materialize as standard Skill-Up files:
+## Runtime views
 
-```text
-evals/eval.yaml
-evals/cases/<case-id>.yaml
-```
+SkillEd derives checksummed views without changing the original:
 
-SkillEd manages runtime-specific configuration as an ephemeral overlay. Model
-gateway URLs, access tokens, container paths, and provider credentials are
-never written into the repository.
+- `original`: exact upload.
+- `installable`: Skill files with evals, outputs, and secrets excluded.
+- `development`: Skill plus approved eval snapshot and fixtures.
+- `runtime`: exact files and overlay needed for one run.
 
-Published evaluation files are versioned with the Skill source. Draft cases
-are stored by SkillEd and frozen into an immutable suite snapshot for each run.
-Skill-Up automatically excludes `evals/` when installing the Skill into the
-with-Skill workspace, and release packages must preserve that behavior.
+The runtime view installs the Skill only in the job-local
+`.codex/skills/<normalized-name>` directory.
 
-## Export rule
+## Task evidence
 
-A future installation export contains the exact released Skill files, license,
-attribution, checksum, and dependency metadata. It excludes `evals/`, test
-fixtures, run outputs, local configuration, and secrets by default. Export is
-deferred, but the package manifest and version model must not prevent it.
+Task uploads are stored separately from the Skill version so the same version
+can be evaluated against different evidence. Supported V1 evidence categories
+are task description, input example, expected output, dataset, authority,
+historical failure, and free-form note. Every attachment is checksummed and
+included explicitly in an eval-authoring or run snapshot.
+
+## Downloads
+
+V1 exposes:
+
+1. Original upload.
+2. Installable Skill ZIP.
+3. Full development bundle with an approved eval snapshot.
+4. Candidate/version diff.
+5. Run-evidence bundle containing reports and produced artifacts.
+
+Every export includes a non-secret manifest and checksums. No export includes
+Codex credentials, worker configuration, temporary files, or unrelated task
+attachments.

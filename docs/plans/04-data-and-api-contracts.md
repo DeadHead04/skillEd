@@ -1,178 +1,148 @@
-# Data and API Contracts
+# V1 Data and API Contracts
 
-## Domain records
+## Core records
 
-### Workspace and access
+### Package lifecycle
 
-- `Workspace`: ID, name, slug, settings, created time.
-- `WorkspaceMember`: workspace, user, role, for MVP there is only one role, that is user.
-- `Connection`: workspace, provider (`github`, `openai`), status, encrypted or
-  external secret reference; never the displayed secret value.
+- `Skill`: stable identity, active version, optional candidate version, name,
+  description, status, and timestamps.
+- `SkillVersion`: immutable version key, base version/proposal where applicable,
+  package checksums, manifests, compatibility, artifact keys, and provenance.
+- `TaskEvidence`: kind, filename, checksum, media type, artifact key, and safe
+  summary.
+- `EvidenceSnapshot`: immutable selected evidence IDs and checksum.
+- `ExportArtifact`: export kind, source version/run, checksum, storage key, and
+  creation time.
 
-### Skills
+### Eval authoring
 
-- `Skill`: stable ID, workspace, canonical name, description, tags, source
-  identity, source path, visibility, latest-version ID.
-- `SkillVersion`: Skill ID, immutable commit/checksum, parsed metadata, package
-  manifest, validation status, artifact pointer, imported actor/time.
-- `ValidationFinding`: version, severity, code, message, relative path, optional
-  line.
+- `EvalSuite`: stable owner of the current mutable draft.
+- `EvalDraft`: revision, bound Skill version/evidence snapshot, structured task
+  understanding, questions/answers, coverage plan, generated files, validation,
+  and confidence level.
+- `EvalSnapshot`: immutable canonical Skill-Up files, fixtures, verifier files,
+  case manifest, policy result, checksum, and approval provenance.
 
-Stable Skill identity is independent of repository path. A version is immutable;
-rescanning the same commit/checksum is idempotent.
+### Conversations
 
-### Tests
-
-- `TestSuite`: Skill, name, description, draft revision, published source
-  reference where available.
-- `TestCase`: suite, stable case ID, title, description, prompt, tags,
-  assertions, timeout, enabled flag, ordering.
-- `SuiteSnapshot`: immutable checksum, canonical serialized suite, generated
-  Skill-Up files, creator/time.
-
-Case IDs are unique within a suite. Editing a draft changes its revision but
-never a prior snapshot.
-
-The first-release assertion union supports:
-
-- RegEx Matching
-- Word Matching
-- Result Validation
+- `AgentConversation`: purpose, Codex thread ID, bound artifacts, status, model,
+  and timestamps.
+- `ConversationTurn`: user/assistant content, Codex turn ID, structured payload,
+  usage, and status.
+- `ConversationHandoff`: latest decisions, unresolved questions, exact artifact
+  references, and summary needed to reconstruct a thread.
 
 ### Runs
 
-- `EvaluationRun`: workspace, Skill version, suite snapshot, engine version,
-  model/settings snapshot, requested iterations, status, phase timestamps,
-  actor, cancellation state, pricing snapshot.
-- `RunAttempt`: run, attempt number, worker/container identity, timestamps,
-  outcome and retry reason.
-- `CaseExecution`: run, case, variant (`with_skill`, `without_skill`), iteration,
-  status, final output, assertion evidence, error category, latency, tokens,
-  estimated cost, no-tool status.
-- `RunArtifact`: run/attempt, type, checksum, byte size, storage pointer,
-  retention expiry.
+- `EvaluationRun`: pinned run specification, status, phases, requested
+  iterations, baseline flag, actor, and cancellation state.
+- `RunAttempt`: lease/worker identity, attempt number, timing, and outcome.
+- `CaseExecution`: case, variant, iteration, status, output, assertion evidence,
+  artifact pointers, timing, usage, and error category.
+- `RunArtifact`: type, checksum, size, storage key, and retention.
 
-One logical execution exists for every enabled case × two variants × requested
-iterations. Cancelled unscheduled executions remain distinguishable from
-errors.
+### Improvements
 
-### (Deferred as we can use Git to track this) Audit
+- `UpgradeProposal`: base version, source run, conversation, summary, risk,
+  patch artifact, proposed eval changes, status, and decision provenance.
+- `ProposalChange`: file/hunk, rationale, expected impact, and selection status.
+- `VersionComparison`: old/new versions, common eval snapshot, run IDs, metric
+  deltas, fixed/regressed cases, and verification status.
 
-(Deferred) `AuditEvent` records workspace, actor, action, target type/ID, timestamp, and
-non-secret summary for imports, test changes, run creation/cancellation,
-connection changes, and later publications.
-
-**For now we simply use the test data stored in the DB corresponding to a skill.**
-
-## Status contracts
-
-Run status transitions:
+## State machines
 
 ```text
-queued → preparing → running → ingesting → completed
-                         ↘ failed
+Eval draft:
+analyzing → waiting_for_user → planning → generating → validating
+          → ready_for_review → approved | rejected | failed
+
+Run:
+queued → preparing → validating → running → judging → ingesting → completed
+                             ↘ failed
 queued|preparing|running → cancelling → cancelled
+
+Proposal:
+generating → ready_for_review → approved | rejected | revision_requested
+approved → applying → candidate_created → verifying → verified | failed
+verified → promoted | retained
 ```
 
-Terminal status never moves backward. Retrying infrastructure work creates a
-new attempt under the same logical run.
+## API groups
 
-Case execution status:
+All routes are versioned and authorized. IDs always resolve inside the current
+workspace; responses never expose server filesystem paths or secrets.
 
-- `pass`: output produced and every assertion passed.
-- `fail`: output produced but an expectation or no-tool policy failed.
-- `error`: model, runtime, timeout, adapter, or report failure.
-- `cancelled`: execution was stopped or never scheduled after cancellation.
+### Package and versions
 
-## API groups 
+- `POST /api/v1/skills/imports`
+- `GET /api/v1/skills/imports/:importId`
+- `GET /api/v1/skills/current`
+- `GET /api/v1/skills/:skillId/versions`
+- `GET /api/v1/skill-versions/:versionId`
+- `GET /api/v1/skill-versions/:versionId/files/*`
+- `POST /api/v1/skill-versions/:versionId/exports`
+- `GET /api/v1/exports/:exportId`
+- `POST /api/v1/skills/:skillId/activate/:versionId`
 
-All endpoints are workspace-scoped, authorize before querying data, use JSON,
-and return stable error codes plus safe messages.
-All the APIs should be versioned (/api/v<version-number>/...), current version is `v1`
+### Task evidence
 
-### Catalog
+- `POST /api/v1/skills/:skillId/evidence`
+- `GET /api/v1/skills/:skillId/evidence`
+- `POST /api/v1/skills/:skillId/evidence-snapshots`
 
-- `POST /api/v1/workspaces/:workspaceId/imports/github`
-- `POST /api/v1/workspaces/:workspaceId/imports/upload`
-- `GET /api/v1/workspaces/:workspaceId/imports/:importId`
-- `GET /api/v1/workspaces/:workspaceId/skills`
-- `GET /api/v1/workspaces/:workspaceId/skills/:skillId`
-- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/versions/:versionId`
-- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/versions/:versionId/files/*`
+### Eval authoring
 
-All the imports are asynchronous from repositories/archives. File preview serves
-safe text or approved image types, applies byte limits, and never executes
-content.
+- `POST /api/v1/skill-versions/:versionId/eval-drafts`
+- `GET /api/v1/eval-drafts/:draftId`
+- `POST /api/v1/eval-drafts/:draftId/turns`
+- `POST /api/v1/eval-drafts/:draftId/answers`
+- `PATCH /api/v1/eval-drafts/:draftId/cases/:caseId`
+- `POST /api/v1/eval-drafts/:draftId/validate`
+- `POST /api/v1/eval-drafts/:draftId/approve`
+- `GET /api/v1/eval-snapshots/:snapshotId`
+- `GET /api/v1/eval-snapshots/:snapshotId/files/*`
 
-### Test authoring
+### Runs
 
-- `GET/POST /api/v1/workspaces/:workspaceId/skills/:skillId/suites`
-- `GET/PATCH /api/v1/workspaces/:workspaceId/suites/:suiteId`
-- `POST /api/v1/workspaces/:workspaceId/suites/:suiteId/cases`
-- `PATCH/DELETE /api/v1/workspaces/:workspaceId/suites/:suiteId/cases/:caseId`
-- `POST /api/v1/workspaces/:workspaceId/suites/:suiteId/snapshots`
-- `GET /api/v1/workspaces/:workspaceId/suite-snapshots/:snapshotId/yaml`
+- `POST /api/v1/runs`
+- `GET /api/v1/runs/:runId`
+- `GET /api/v1/runs/:runId/events`
+- `POST /api/v1/runs/:runId/cancel`
+- `GET /api/v1/runs/:runId/executions`
+- `GET /api/v1/runs/:runId/artifacts`
 
-Conflict detection among versions is not needed for now.
+### Improvements and comparison
 
-### Runs and statistics
-
-- `POST /api/v1/workspaces/:workspaceId/runs`
-- `GET /api/v1/workspaces/:workspaceId/runs/:runId`
-- `POST /api/v1/workspaces/:workspaceId/runs/:runId/cancel`
-- `GET /api/v1/workspaces/:workspaceId/runs/:runId/executions`
-- `GET /api/v1/workspaces/:workspaceId/skills/:skillId/statistics`
-
-Run creation requires Skill version, suite or snapshot, allowed model, and
-iteration count. It returns the immutable snapshot IDs and estimated maximum
-execution count. Reusing an idempotency key returns the existing run.
-
-Progress can use server-sent events backed by persisted job events; polling the
-run endpoint remains authoritative.
-
-## Metrics
-
-For a selected filtered population:
-
-- `scheduled`: all case/variant/iteration executions excluding executions
-  removed before the run was accepted.
-- `pass_rate = pass / scheduled_non_cancelled`.
-- `error_rate = error / scheduled_non_cancelled`.
-- `no_tool_compliance = executions_with_zero_tool_calls / completed_outputs`.
-- `with_skill_pass_rate` and `without_skill_pass_rate` use their respective
-  variants.
-- `uplift_pp = 100 × (with_skill_pass_rate - without_skill_pass_rate)`.
-- Token totals are reported separately for input and output.
-- Estimated cost is the sum of usage multiplied by the immutable provider/model
-  price effective for that run.
-- Latency reports average and median; p95 appears only with at least 20 samples.
-
-Every metric response includes numerator, denominator, filters, time range, and
-unknown/unavailable counts. Currency cost is labelled `estimated` unless the
-provider supplies authoritative billed cost.
+- `POST /api/v1/runs/:runId/proposals`
+- `GET /api/v1/proposals/:proposalId`
+- `POST /api/v1/proposals/:proposalId/turns`
+- `POST /api/v1/proposals/:proposalId/approve`
+- `POST /api/v1/proposals/:proposalId/reject`
+- `POST /api/v1/proposals/:proposalId/request-revision`
+- `POST /api/v1/proposals/:proposalId/verify`
+- `GET /api/v1/comparisons/:comparisonId`
 
 ## Snapshot contract
 
-Every run pins:
+Every run pins IDs and checksums for the Skill version, normalized runtime
+package, eval snapshot, task-evidence snapshot, environment image, Codex model
+and settings, Skill-Up version, judge configuration, iterations, and baseline
+mode. Every proposal pins the base version and source run. Every candidate pins
+the exact approved patch and approval decision.
 
-- Skill ID, version ID, commit/checksum, and package checksum.
-- Suite snapshot ID and checksum.
-- Model provider/name and supported parameters.
-- Skill-Up commit/version.
-- Response-runner and container-image digest.
-- Iteration count, timeout policy, and pricing snapshot.
+## Result dimensions
 
-These values are displayed on the run detail page and included in exported run
-metadata. A run can be reproduced only when all referenced artifacts remain
-available; otherwise it is historical evidence, not marked reproducible.
+Store and display independent dimensions rather than one blended score:
 
-## Security and retention
+- target correctness;
+- semantic completeness;
+- unsupported claims;
+- source/invariant preservation;
+- unrelated drift;
+- artifact validity;
+- stability across trials;
+- latency, tokens, and errors;
+- optional with-Skill versus without-Skill uplift.
 
-- Raw prompts and outputs are workspace-private and inherit configurable
-  retention.
-- Normalized aggregate metrics may outlive raw artifacts but continue pointing
-  to the original immutable run metadata.
-- API responses never include provider credentials, gateway tokens, container
-  environment dumps, or arbitrary host paths.
-- Deletion is workspace-authorized, audited, and removes artifact objects while
-  retaining the minimum tombstone needed for referential integrity and audit.
+Each metric response includes its numerator, denominator, unavailable count,
+case population, and run/version filters.

@@ -1,98 +1,102 @@
-# SkillEd Product Context
+# SkillEd V1 Product Context
 
-## Purpose
+## Outcome
 
-SkillEd is a lifecycle workspace for Agent Skills. It combines a Skill editor
-and catalog with Skill-Up-backed evaluation and Langfuse-like run analytics.
-It is not a general LLM observability platform in the first release.
+V1 lets a trusted user upload one Agent Skill package and supporting task
+evidence, create sophisticated evals through a guided Codex conversation, run
+those evals through Skill-Up with Codex, understand failures, review proposed
+Skill changes, and download or activate a verified candidate without using a
+terminal.
 
-The immediate product loop is:
+## Authoritative lifecycle
 
-> Import → discover → inspect → author tests → run with/without Skill → compare
-> evidence → improve
+```text
+upload → package version → task understanding → eval draft → approved snapshot
+       → run → evidence → upgrade proposal → approved candidate → verification
+       → active version or download
+```
 
-## First-release outcome
+Versions, approved eval snapshots, run specifications, and results are
+immutable. Conversations and drafts are mutable assistance surfaces and never
+silently alter an authoritative artifact.
 
-A user can:
+## Responsibility split
 
-1. Import or create one or multiple Skills from GitHub or an uploaded archive.
-2. Search and list imported Skills.
-3. Inspect `SKILL.md`, supporting files, source provenance, and validation
-   findings.
-4. Create response-only tests without writing YAML.
-5. Run the tests with and without the selected Skill against the same model.
-6. Inspect every output and assertion result.
-7. Review pass rate, baseline uplift, errors, latency, tokens, estimated cost,
-   and historical runs.
+### SkillEd
 
-The release is successful when this flow works without a terminal or manual
-Skill-Up configuration.
+- Owns the UI, package intake, compatibility analysis, versions, conversations,
+  approvals, queue, artifact storage, report ingestion, comparisons, and
+  downloads.
+- Materializes exact checksummed artifacts into temporary cloud workspaces.
+- Determines when paid or state-changing work may begin.
 
-## Product boundary
+### Codex with `skill-upper`
 
-Skill-Up already supplies declarative suites and cases, with-Skill versus
-without-Skill variants, agent/custom engines, judges, runtimes, and structured
-reports. SkillEd will reuse those capabilities rather than reimplement the
-evaluator.
+- Inspects the selected package and uploaded task evidence.
+- Produces a structured task understanding and asks only material questions.
+- Proposes coverage plans, cases, fixtures, graders, and upgrade patches.
+- Diagnoses whether a failure belongs to the Skill, eval, judge, or environment.
+- Works only in an isolated draft copy; it cannot promote a version.
 
-SkillEd owns:
+### Skill-Up
 
-- Workspaces
-- Import, catalog, search, and stable Skill identity.
-- Immutable Skill and suite snapshots.
-- UI-based test authoring and policy validation.
-- Job scheduling and secure container orchestration.
-- Model-gateway policy and credential isolation.
-- Report ingestion, normalized results, cost calculation, and statistics.
-- GitHub synchronization
-  - And later in the project release/package workflows.
+- Validates declarative eval files.
+- Installs the selected Skill into a real Codex execution workspace.
+- Runs cases, variants, and repeated trials.
+- Applies rule-based, script, and agent judges and emits structured reports.
 
-Skill-Up owns:
+### User
 
-- Evaluation configuration loading and validation.
-- Installing the selected Skill into a run workspace.
-- Running with-Skill and without-Skill configurations.
-- Assertion execution, grading, benchmark generation, and reports.
-- Standard `SessionInput` and `SessionResult` contracts for custom engines.
+- Supplies the package and whatever task evidence is available.
+- Answers unresolved questions.
+- Approves eval snapshots, paid runs, proposed changes, and final activation.
 
-Product code must NOT import `skill-up/internal/*`. Integration is through the
-supported CLI/config/report boundary so the upstream copy can be updated.
+## Evidence-dependent sophistication
 
-## Locked MVP decisions
+The product must not claim equal confidence from unequal inputs.
 
-- UI-first; no user-facing CLI is required.
-- Tests are single-turn and response-only initially.
-- Only the main `SKILL.md` instructions are evaluated. Scripts are not run and
-  references/assets are not automatically injected.
-- Deterministic text, regular-expression and tests assertions are supported first.
-- Each run pairs the with-Skill and without-Skill variants.
-- Model providers are reached only through an internal gateway; evaluation containers do
-  not receive provider keys or general internet access.
-- Skills are versioned by Git commit hashes; run inputs are immutable.
+| Supplied evidence | What V1 can establish |
+| --- | --- |
+| Skill package only | Structural and instruction-derived provisional tests |
+| Package + task description | Behavioral and adversarial requirements |
+| Package + example inputs | Realistic fixtures and boundary cases |
+| Package + expected outputs | Stronger correctness or invariant checks |
+| Package + dataset | Stratified coverage and controlled perturbations |
+| Package + authority documents | Grounded semantic grading |
+| Package + past failures | High-value regression cases |
 
-## Explicitly deferred
+The UI labels eval confidence as `provisional`, `behavioral`, `grounded`, or
+`strong`, explains missing evidence, and never presents an unsupported green
+result as proof of business correctness.
 
-- MCP and other live external tools.
-- Shell, filesystem, or repository tool scenarios.
-- Mocked tools and synthetic repositories.
-- Script and agent judges.
-- Multi-turn evaluation.
-- Skill Upper chat and automated Skill/test patches.
-- Relationship graphs and Skill sets.
-- Deployment to managed agents.
-- Production routing telemetry and drift alerts.
-- Public marketplace, billing, ratings, and autonomous releases.
+## V1 scope
 
-Deferred capabilities remain described in
-[`phases/05-future-features.md`](phases/05-future-features.md), but they must not
-expand the first-release schemas or screens prematurely.
+- ZIP upload and safe file inspection.
+- One stable Skill identity with multiple immutable versions.
+- Original, installable, development, and run-evidence downloads.
+- Codex App Server conversation for eval authoring and upgrade proposals.
+- Generated Skill-Up YAML, cases, fixtures, and supported judges.
+- Cloud Skill-Up runs using the Codex engine and the logged-in worker.
+- Isolated tested-agent and judge sessions.
+- Per-case evidence, artifact diffs, scope drift, stability, latency, and token
+  reporting.
+- Candidate creation, old-versus-new verification, activation, and rollback.
+
+## Deferred
+
+- Projects, multi-Skill graphs, marketplaces, organization RBAC, and billing.
+- GitHub synchronization, pull requests, and managed deployment.
+- Arbitrary public uploads or concurrent use of a shared Codex identity.
+- User-supplied live MCP servers, unrestricted setup commands, and unrestricted
+  network access.
+- Fully autonomous eval approval, Skill modification, promotion, or release.
+- Production traffic ingestion and drift alerting.
 
 ## Product principles
 
-1. **UI First Skill Management**: The user must be easily able to see and manage the skills
-that they have in their system.
-2. **Easy Evaluation Bench**: The user must be able to easily evaluate their skill against
-parameters set by them.
-3. **Versioned Skills**: The skill files are immutable, every iteration is a new version.
-4. **Skill observability**: Only the evealuations run on the skill should be considered for
-calculating skill metrics like average cost, latency, token usage and drift.
+1. Top-level decisions stay simple; evidence remains available underneath.
+2. Original uploads are preserved byte-for-byte.
+3. Every test and update is pinned to exact checksums.
+4. The tested agent, semantic judge, and authoring agent never share context.
+5. Generated tests are reviewed; tests are never weakened merely to turn green.
+6. A successful target repair does not hide unrelated drift or regressions.

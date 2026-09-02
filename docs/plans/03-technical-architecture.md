@@ -1,173 +1,122 @@
-# Technical Architecture and Security
+# V1 Technical Architecture and Security
 
 ## System shape
 
-SkillEd starts as a modular application with a separate evaluation worker, not
-a collection of feature microservices.
-
 ```mermaid
 flowchart LR
-    Browser["SkillEd web UI"] --> Web["Next.js application and API"]
-    Web --> DB["PostgreSQL"]
-    Web --> Store["Artifact storage"]
-    Web --> Queue["PostgreSQL-backed job queue"]
-    Queue --> Worker["Evaluation worker"]
-    Worker --> Docker["Fresh evaluation container"]
-    Docker --> SkillUp["Pinned Skill-Up"]
-    SkillUp --> Adapter["skilled-response Custom Engine"]
-    Adapter --> Gateway["Internal model gateway"]
-    Gateway --> Model Factory["OpenAI/Anthropic/Other Models API"]
-    SkillUp --> Reports["Skill-Up structured reports"]
-    Reports --> Worker
-    Worker --> DB
-    Worker --> Store
+    UI[Web UI] --> API[Application API]
+    API --> DB[(PostgreSQL)]
+    API --> Store[Artifact storage]
+    API --> Queue[Durable job queue]
+    Queue --> Agent[Codex conversation worker]
+    Queue --> Eval[Evaluation worker]
+    Agent --> AppServer[Codex App Server + skill-upper]
+    Eval --> Workspace[Fresh isolated workspace]
+    Workspace --> SkillUp[Pinned Skill-Up CLI]
+    SkillUp --> Codex[Codex engine]
+    SkillUp --> Judges[Rules / scripts / isolated Codex judge]
+    SkillUp --> Reports[Structured reports]
+    Reports --> Store
+    Reports --> DB
 ```
 
-## Intended application layout
+V1 is a modular application, not a fleet of feature microservices. Web/API,
+worker processes, PostgreSQL, and an S3-compatible artifact interface are
+separate responsibilities but may live in one private environment.
 
-```text
-apps/
-├── web/                         Next.js UI, API, auth, and GitHub workflows
-└── worker/                      durable jobs and container orchestration
-packages/
-├── domain/                      shared types, policies, and metric formulas
-├── skill-package/               scanning, parsing, validation, and manifests
-├── skillup-adapter/             YAML materialization and report ingestion
-└── response-runner/             no-tool Custom Engine executable
-services/
-└── model-gateway/               allowlisted model proxy and usage capture
-skill-up/                        pinned internal upstream copy
-```
+## Codex authentication
 
-Suggested implementation defaults are TypeScript, Next.js, PostgreSQL, a
-PostgreSQL-backed durable queue, an S3-compatible artifact-store interface, and
-Docker-compatible evaluation workers. Local development can use filesystem
-artifacts while production uses object storage.
+The private MVP uses one Codex CLI/App Server identity authenticated once on a
+persistent worker. Its credential directory is encrypted, excluded from job
+workspaces and artifacts, and treated as a secret. Jobs are serialized at
+concurrency one. This is acceptable only for trusted users; per-user identity,
+quota attribution, and public multi-tenancy are deferred.
 
-## Component responsibilities
+## Conversation coordinator
 
-### Web application
+The coordinator owns two durable user-facing purposes:
 
-- GitHub login and SkillEd workspace authorization.
-- Catalog, import, package inspection, test builder, run, and statistics UI.
-- Typed API endpoints and input validation.
-- GitHub App/API interaction for imports and later branch/PR publication.
-- Enqueueing jobs; never running Skill-Up or Docker inside a request handler.
+- `eval_authoring`: one thread per Skill version and eval draft.
+- `upgrade_proposal`: one thread per base version and source run/proposal.
 
-### Package service
+It starts/resumes Codex App Server threads, explicitly supplies the
+`skill-upper` Skill, streams bounded events to persisted job events, handles
+user-question pauses, and records structured outputs. It never treats Codex's
+local thread store as the only source of truth; the database stores messages,
+decisions, artifact references, and a reconstructable handoff summary.
 
-- Safely unpack uploaded archives.
-- Discover and parse `SKILL.md` files.
-- Build checksummed package manifests.
-- Apply Agent Skills structural validation and response-only warnings.
-- Materialize an immutable run snapshot into the worker staging area.
+## Context isolation
 
-### Worker
+Four contexts must remain distinct:
 
-- Claim a queued job exactly once with retry-safe ownership.
-- Verify referenced Skill and suite snapshot checksums.
-- Create ephemeral working files and a fresh hardened container.
-- Invoke the pinned Skill-Up binary using generated standard YAML plus an
-  ephemeral runtime overlay.
-- Stream bounded progress events.
-- Ingest reports transactionally and upload raw artifacts.
-- Guarantee container and staging cleanup on completion, error, timeout,
-  cancellation, and worker restart recovery.
+1. Product conversation and user decisions.
+2. Eval-authoring Codex thread.
+3. Per-case tested Codex execution and separate semantic judge execution.
+4. Upgrade-proposal Codex thread.
 
-### Skill-Up adapter
+Test executions receive only the pinned case/runtime inputs. Judges receive the
+rubric, allowed evidence, and produced result, not the tested agent's private
+reasoning or authoring history. Upgrade agents see visible failure evidence but
+not reserved holdout answers.
 
-- Translate supported test-domain objects to `eval.yaml` and case YAML.
-- Select the `skilled-response` Custom Engine at runtime.
-- Invoke Skill-Up as a process and capture exit status.
-- Parse `result.json` and related benchmark artifacts into normalized results.
-- Preserve unknown upstream fields in raw artifacts without making application
-  logic depend on them.
+## Worker lifecycle
 
-It must not import `skill-up/internal/*`.
+For every authoring, run, or proposal job the worker:
 
-### Response runner
+1. Claims a durable lease.
+2. Fetches exact artifacts and verifies checksums.
+3. Creates a fresh bounded workspace.
+4. Materializes a normalized package and task/eval snapshot.
+5. Executes the permitted Codex/Skill-Up operation.
+6. Streams safe progress events.
+7. Uploads outputs and raw structured reports.
+8. Commits normalized records transactionally.
+9. Cleans the workspace on every terminal path.
 
-The local Custom Engine receives Skill-Up `SessionInput` and returns
-`SessionResult`:
+Skill-Up is invoked through its CLI. Product code does not import upstream
+internal Go packages.
 
-1. Validate the input and variant.
-2. For `with_skill`, read the installed root `SKILL.md`, parse frontmatter, and
-   construct the developer instruction from its metadata and Markdown body.
-3. For `without_skill`, omit all Skill content.
-4. Add the user test prompt unchanged.
-5. Call the configured model with no tools.
-6. Return final message, minimal transcript, token counts, duration, model, and
-   exit code.
-7. Ensure no PII is logged in the final response.
+## Standard execution environment
 
-The runner cannot execute Skill scripts, follow file links, perform shell
-commands, or accept arbitrary provider URLs.
+The prebuilt pinned image contains Codex, Skill-Up, Python, Node.js, Git, and
+approved libraries. It runs non-root with CPU, memory, process, file-size,
+output, and wall-clock limits. Job data has one writable root; no Docker socket,
+host filesystem, device, or sibling workspace is available. Codex itself may
+read its protected credential store, but agent-executed tools must run inside a
+process/filesystem sandbox that cannot read or copy that store.
 
-### Model gateway
+Network is denied by default except the access required for Codex itself. User
+packages cannot choose images, commands, environment variable names, secrets,
+or network destinations. Live MCP and arbitrary dependency installation remain
+disabled in V1.
 
-- Exposes only the model operation required by the response runner.
-- Validates a short-lived signed run token bound to workspace, run ID, model,
-  and expiry.
-- Resolves the platform or encrypted workspace provider credential.
-- Enforces model allowlist, token limit, timeout, and request-size limits.
-- Rejects tool definitions and unsupported request fields.
-- Records usage metadata and maps provider errors to stable categories.
-- Does not log credential values; prompt/output logging follows workspace
-  retention and redaction policy.
+Because V1 uses a shared logged-in Codex worker, it must initially remain a
+private trusted-user system. Before public uploads, execution credentials must
+be removed from the untrusted agent boundary using a supported per-user or
+brokered authentication design.
 
-## Container boundary
+## Eval authoring controls
 
-The outer worker starts one fresh container per suite run. Skill-Up uses its
-`none` runtime inside that container, avoiding nested Docker while still
-providing per-run isolation.
+Codex writes only to a draft workspace. The coordinator requires structured
+artifacts for task understanding, questions, coverage plan, case manifest, and
+proposal metadata. Generated YAML must pass `skill-up validate`; referenced
+fixtures and scripts must remain within the snapshot and pass policy scanning.
+Creating a snapshot or paid run requires an explicit API action by the user.
 
-Required controls:
+## Evaluation controls
 
-- Image pinned by digest and prebuilt with Skill-Up and response runner.
-- Non-root UID/GID.
-- Read-only root filesystem.
-- Dedicated writable workspace and bounded temporary filesystem.
-- CPU, memory, process, file-size, and wall-clock limits.
-- Dropped Linux capabilities and `no-new-privileges`.
-- No privileged mode, host PID namespace, host filesystem bind, or Docker
-  socket.
-- Evaluation network is an internal bridge containing only the evaluation
-  container and model gateway.
-- The gateway has a separate outbound network; the evaluation container has no
-  direct internet route.
-- Run token rather than provider API key is injected into the container.
-- Full cleanup is attempted and orphan containers are reconciled by a periodic
-  worker task.
+Every run pins package, eval, task evidence, environment, Codex model/settings,
+Skill-Up version, judge definitions, and iteration count. Retry transient
+infrastructure failures only; assertion failures do not retry. Repeated trials
+remain separate observations so flaky behavior is visible.
 
-User content is data copied into the workspace, never a command line, image
-name, setup step, environment-variable name, or network destination.
+## Reliability and observability
 
-## Persistence
-
-- PostgreSQL stores workspaces, authorization, catalog indexes, metadata,
-  immutable snapshot identifiers, test definitions, normalized results,
-  aggregates, job state, and audit records.
-- Artifact storage holds immutable package snapshots and raw Skill-Up reports.
-- Provider credentials are encrypted or stored in an external secret manager;
-  only opaque references appear in application records.
-- Search initially uses PostgreSQL full-text and trigram indexes; a separate
-  search service is unnecessary.
-
-## Reliability
-
-- All run creation uses an idempotency key.
-- A job lease heartbeat allows recovery after worker loss.
-- Case result ingestion is upserted by run, case, variant, and iteration.
-- Completion is published only after normalized results and artifact pointers
-  commit successfully.
-- Provider 429/5xx responses use bounded exponential retry; deterministic
-  validation and assertion failures do not retry.
-- A worker crash may retry a run attempt, but duplicate attempts remain visible
-  and do not double-count final statistics.
-
-## Observability
-
-Application telemetry includes request and job IDs, run phase durations,
-container startup/cleanup status, Skill-Up exit codes, ingestion failures,
-model error categories, and queue depth. Prompts, outputs, Skill files, and
-credentials are excluded from infrastructure logs by default.
+- Idempotency keys protect mutations and run creation.
+- Lease heartbeats recover abandoned jobs without double-counting attempts.
+- Persisted events power SSE and post-restart status reconstruction.
+- Raw `result.json` and related reports are the evidence source; normalized
+  database rows are query projections.
+- Logs include IDs, phases, durations, exit codes, and safe error categories,
+  but exclude Skill contents, prompts, outputs, credentials, and environment
+  dumps by default.

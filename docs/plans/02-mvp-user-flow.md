@@ -1,156 +1,109 @@
-# MVP User Flow and Screens
+# V1 UI Journey
 
-## Information architecture
+## Navigation
 
-The first release has four primary navigation areas:
+The UI has one current Skill workspace with five areas:
 
-1. **Skills** — catalog, import, package inspection, and Skill-level status.
-2. **Tests** — suites and response-only cases belonging to a Skill.
-3. **Runs** — queued, running, completed, failed, and cancelled evaluations.
-4. **Settings** — GitHub connection, model access, limits,
-   and retention.
+1. **Package** — upload, validation, files, compatibility, and downloads.
+2. **Evals** — guided Codex conversation, coverage plan, cases, and snapshots.
+3. **Runs** — launch, progress, results, transcripts, and artifacts.
+4. **Improvements** — proposed patches, approval, and verification.
+5. **Versions** — active/candidate history, comparisons, activation, rollback,
+   and downloads.
 
-Statistics are accessed from a Skill or run rather than introduced as a
-separate generic observability product.
+## 1. Upload
 
-Use consistent terminology throughout the UI:
+The user uploads a Skill ZIP and may add a task description, example inputs,
+expected outputs, a dataset, authority material, or previous failure examples.
+SkillEd scans asynchronously and shows the primary Skill candidates, package
+tree, findings, dependency hints, and compatibility status. Selecting a valid
+candidate creates immutable v1.
 
-- `Skill`, not alternating `Skill Registry` and `Capability`.
-- `Test suite` and `test case`, not alternating `eval`, `scenario`, and `test`.
-- `Run`, not alternating `execution`, `experiment`, and `session`.
-- `Result`, not alternating `evidence`, `trace`, and `report`.
+Uploading changed contents later creates v2 and shows a package diff. It does
+not switch the active version automatically.
 
-## Primary journey
+## 2. Understand and author evals
 
-### 1. Import
+The user selects **Create evals**. SkillEd starts an `eval_authoring` Codex
+thread bound to one Skill version and one mutable eval draft, explicitly loads
+`skill-upper`, and provides the selected task-evidence snapshot.
 
-The user selects **Import Skill** and chooses:
+Codex first returns structured understanding:
 
-- GitHub repository URL, optional ref, and optional subdirectory; or
-- ZIP/folder upload.
+- intended outcome and output artifacts;
+- authoritative sources;
+- allowed and forbidden changes;
+- important rules and dependencies;
+- likely failure modes;
+- unknowns that affect grading.
 
-SkillEd scans without executing files and displays:
+The UI renders material unknowns as questions. Once answered, Codex proposes a
+coverage plan before creating files. The plan shows categories, case counts,
+judge types, required fixtures, estimated runs, and confidence level.
 
-- Skills found and their paths.
-- Parsed name and description.
-- Commit/checksum and source provenance.
-- Errors, warnings, and informational findings.
-- Counts of instructions, references, scripts, assets, other files, and tests.
+After approval, Codex writes a draft `eval.yaml`, case YAML, fixtures, and
+verifiers in an isolated draft workspace. Skill-Up validation and policy checks
+run automatically. The UI presents human-readable cases and an optional raw
+YAML/file view. Approving creates an immutable `EvalSnapshot`.
 
-The user selects which discovered Skills to import. Invalid Skills remain
-visible with actionable errors but cannot be run.
+## 3. Run
 
-Edge states:
-
-- No `SKILL.md`: explain the expected structure and stop.
-- Multiple Skills: present individual selectable rows.
-- Duplicate version: link to the existing version instead of creating another.
-- Existing Skill at a new commit: create a new immutable version.
-- Private repository authorization failure: preserve entered source details and
-  offer reconnection; never request a personal token in a normal text field.
-
-### 2. Discover
-
-The Skills catalog displays:
-
-- Name and description.
-- Source repository and path.
-- Current pinned version.
-- Validation state.
-- Number of enabled tests.
-- Latest run status and pass rate.
-- Baseline uplift when a completed paired run exists.
-
-Search covers name, description, and path for MVP (other search options can be introduced later).
-Filters cover valid/invalid, tested/untested, latest result, and source.
-
-Empty states distinguish:
-
-- Workspace has no Skills: show import action.
-- Search has no matches: retain filters and offer clear action.
-- Skill is imported but untested: link directly to **Create test**.
-
-### 3. Inspect
-
-The Skill detail screen has these tabs:
-
-- **Overview:** rendered description, source, version, validation, latest
-  evidence, and response-only coverage warning.
-- **Files:** package tree and safe read-only previews.
-- **Tests:** suites, case counts, draft state, and latest result.
-- **Runs:** history for this Skill and version filters.
-- **Statistics:** pass/baseline trend, latency, tokens, cost, errors, and sample
-  counts.
-
-The initial release does not edit Skill files. Source remains local Git and GitHub for the MVP.
-
-### 4. Create tests
-
-The user creates or opens a suite, then adds a case using a form:
-
-- Stable case ID generated from title and editable until first publication.
-- Title and optional description.
-- Required single user prompt.
-- Optional tags.
-- `Contains all`, `contains any`, `must not contain` text checks.
-- `Matches all`, `matches any`, `must not match` regular expressions.
-- Timeout selected from workspace-approved values.
-
-The UI shows a human-readable assertion summary and generated YAML preview.
-Unknown YAML fields are not accepted through the first-release UI.
-
-Saving creates a draft. Running does not freeze current draft. Only after user commits, it is saved as an immutable suite snapshot.
-Publishing writes standard files under `evals/` through the GitHub branch-and-pull-request workflow when the source is Git-backed. Uploaded Skills retain tests as SkillEd-managed snapshots until exported or connected to GitHub.
-
-### 5. Run
-
-The run dialog shows:
-
-- Skill and immutable version.
-- Suite snapshot and enabled case count.
-- Model selected from the workspace allowlist.
-- Iterations: 1, 3, or 5; default 1.
-- Fixed comparison: with Skill and without Skill.
-
-The user confirms before a paid run. The UI moves immediately to a run page
-showing queued/running progress. Leaving the page does not cancel the job.
+The user chooses the Skill version, approved eval snapshot, model, iterations,
+and optional without-Skill baseline. The confirmation screen shows estimated
+case executions and warns that the shared Codex identity has serialized usage.
 
 Run states:
 
 ```text
-queued → preparing → running → ingesting → completed
-                         ↘ failed
-queued/running → cancelling → cancelled
+queued → preparing → validating → running → judging → ingesting → completed
+                             ↘ failed
+queued|preparing|running → cancelling → cancelled
 ```
 
-Cancellation is best-effort, stops unscheduled work, terminates the current
-container, and preserves completed case results.
+Progress persists when the page is closed. Server-sent events provide live
+updates; polling remains authoritative.
 
-### 6. Review results
+## 4. Review
 
-The summary displays:
+The summary separates target correctness, semantic completeness, unsupported
+claims, scope preservation, artifact validity, stability, latency, and tokens.
+There is no opaque combined Skill score.
 
-- Scheduled, completed, passed, failed, errored, and cancelled executions.
-- With-Skill pass rate.
-- Without-Skill baseline pass rate.
-- Uplift in percentage points.
-- Latency, input/output tokens, estimated cost.
+Each case exposes its input, output, files, transcript, grader assertions,
+evidence, unexpected changes, and trial history. A green target result cannot
+hide collateral drift.
 
-The case table pairs with-Skill and without-Skill executions. Opening a row
-shows prompts, outputs, assertions, evidence, duration, usage, error details,
-and the exact snapshots used.
+## 5. Improve
 
-We do NOT need trigger of the Skill testing for now.
+The user chooses **Generate improvement** from a completed run. SkillEd starts
+an `upgrade_proposal` Codex thread with `skill-upper`, bound to the exact base
+version, visible failure evidence, and approved user constraints. It works on a
+temporary copy and returns:
 
-## Permissions
+- top-level behavior summary;
+- exact file patch;
+- reason and expected impact per change;
+- risks and compatibility changes;
+- proposed regression cases;
+- tests that should be rerun.
 
-Initial workspace roles, there is just a single role of user. RBAC can be added later on in the MVP.
+The top-level actions are **Apply and verify**, **Review details**, and
+**Reject**. Approval creates a candidate version, never an in-place edit.
+Rejection preserves the proposal and optional reason. Partial approval creates
+a revised proposal before a version is created.
 
-## Human and system decisions
+## 6. Verify and activate
 
-- User: defines prompts, assertions, run count, and whether evidence is good
-  enough.
-- SkillEd: validates structure and policy, freezes snapshots, schedules work,
-  calculates metrics, and preserves evidence.
-- (deferred) Skill-Up: executes variants and grades outputs.
-- Model: produces only a response; it cannot call a tool.
+SkillEd runs affected cases, the full visible regression suite, and reserved
+holdout cases against the candidate. The comparison shows file changes,
+fixed/unchanged/regressed cases, metric deltas, compatibility, and artifacts.
+The user may activate, keep the current version, request another proposal, or
+download the candidate. Activation is a pointer update and rollback remains
+available.
+
+## Conversation behavior
+
+Authoring and improvement are separate persisted threads. Test-agent and judge
+sessions are isolated per execution and are never resumed. SkillEd stores a
+structured handoff summary so a lost Codex thread can be recreated from exact
+artifact IDs, decisions, unresolved questions, and relevant run evidence.
