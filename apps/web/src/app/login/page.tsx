@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 export default function LoginPage() {
+  const [loginId, setLoginId] = useState("admin");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -14,7 +15,7 @@ export default function LoginPage() {
     const response = await fetch("/api/v1/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ loginId, password }),
     });
     if (!response.ok) {
       const problem = await response.json();
@@ -35,19 +36,31 @@ export default function LoginPage() {
         <div className="eyebrow">Private evaluation workbench</div>
         <h1 id="login-title">Sign in to inspect the evidence</h1>
         <p className="lede">
-          One local administrator controls Skill packages, evaluations, and
-          activation decisions. Codex credentials remain inside the worker.
+          Use your individual SkillEd account. Administrators manage access;
+          Codex credentials remain isolated inside the worker.
         </p>
         <form onSubmit={submit} className="login-form">
           <div className="field">
-            <label htmlFor="password">Administrator password</label>
+            <label htmlFor="loginId">Login ID</label>
+            <input
+              id="loginId"
+              name="loginId"
+              type="text"
+              autoComplete="username"
+              required
+              autoFocus
+              value={loginId}
+              onChange={(event) => setLoginId(event.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
             <input
               id="password"
               name="password"
               type="password"
               autoComplete="current-password"
               required
-              autoFocus
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
@@ -62,7 +75,7 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="login-note">
-          Local access only · session expires after 24 hours
+          Named local account · session expires after 24 hours
         </p>
       </section>
     </main>

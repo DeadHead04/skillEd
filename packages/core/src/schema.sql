@@ -5,6 +5,40 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
   applied_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  login_id text NOT NULL,
+  display_name text NOT NULL,
+  role text NOT NULL CHECK (role IN ('administrator', 'operator')),
+  password_hash text NOT NULL,
+  active boolean NOT NULL DEFAULT true,
+  session_version integer NOT NULL DEFAULT 1,
+  last_login_at timestamptz,
+  password_changed_at timestamptz NOT NULL DEFAULT now(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT users_login_id_format CHECK (login_id = lower(login_id))
+);
+CREATE UNIQUE INDEX IF NOT EXISTS users_login_id_unique ON users(lower(login_id));
+CREATE INDEX IF NOT EXISTS users_active_role_idx ON users(active, role);
+
+CREATE TABLE IF NOT EXISTS auth_login_attempts (
+  login_id text PRIMARY KEY,
+  failed_count integer NOT NULL DEFAULT 0,
+  locked_until timestamptz,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS user_audit_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  actor_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  target_user_id uuid REFERENCES users(id) ON DELETE SET NULL,
+  action text NOT NULL,
+  detail jsonb NOT NULL DEFAULT '{}',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS user_audit_events_created_idx ON user_audit_events(created_at DESC);
+
 CREATE TABLE IF NOT EXISTS skills (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL UNIQUE,

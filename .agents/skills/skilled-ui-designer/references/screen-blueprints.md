@@ -7,8 +7,21 @@ and an optional right evidence inspector. The context header always identifies
 the Skill and version. On narrow screens, navigation becomes a top bar and the
 inspector becomes a full-height drawer.
 
-Navigation contains only `Skill`, `Evals`, `Runs`, and `Improve`. Versions and
-downloads belong to the Skill context rather than separate global products.
+Navigation contains `Skill`, `Evals`, `Runs`, and `Improve`, plus `Users` for
+administrators. Versions and downloads belong to the Skill context rather than
+separate global products.
+
+## User management
+
+**Decision:** Who may operate this installation, and with which role?
+
+- Show named login ID, display name, active state, role, and last sign-in.
+- Administrators can create users, change roles, deactivate/reactivate, and
+  reset passwords; every session-impacting change states that it revokes access.
+- Operators never see the Users navigation and receive a forbidden response for
+  direct API access.
+- Prevent self-lockout and preserve at least one active administrator.
+- Do not imply teams, tenant separation, or per-user Codex credentials.
 
 ## Skill intake
 

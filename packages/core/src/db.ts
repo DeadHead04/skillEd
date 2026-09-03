@@ -15,7 +15,7 @@ export async function ensureSchema(sql: Db) {
     "utf8",
   );
   await sql.unsafe(source);
-  await sql`INSERT INTO schema_migrations(version) VALUES(1) ON CONFLICT DO NOTHING`;
+  await sql`INSERT INTO schema_migrations(version) VALUES(1),(2) ON CONFLICT DO NOTHING`;
 }
 export async function emit(
   sql: Db,

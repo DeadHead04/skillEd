@@ -21,9 +21,16 @@ type SkillSummary = {
 
 export function AppShell({
   skills,
+  currentUser,
   children,
 }: {
   skills: SkillSummary[];
+  currentUser: {
+    id: string;
+    loginId: string;
+    displayName: string;
+    role: "administrator" | "operator";
+  } | null;
   children: React.ReactNode;
 }) {
   const path = usePathname();
@@ -99,10 +106,23 @@ export function AppShell({
               {label}
             </Link>
           ))}
+          {currentUser?.role === "administrator" && (
+            <Link className={path === "/users" ? "active" : ""} href="/users">
+              Users
+            </Link>
+          )}
         </nav>
         <div className="local-note">
           <span className="dot" />
-          Local administrator
+          <span className="account-summary">
+            <b>{currentUser?.displayName ?? "Signed in"}</b>
+            <small>
+              {currentUser?.loginId ?? "local"} ·{" "}
+              {currentUser?.role === "administrator"
+                ? "Administrator"
+                : "Operator"}
+            </small>
+          </span>
           <button className="text-button" onClick={logout}>
             Sign out
           </button>

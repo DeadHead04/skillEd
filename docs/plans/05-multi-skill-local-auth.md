@@ -2,7 +2,7 @@
 
 ## Product decision
 
-One local administrator can retain multiple Skill packages. Selecting a Skill
+Named local users can retain multiple Skill packages. Selecting a Skill
 changes the Package, Evals, Runs, and Improve workflow as one scoped context.
 No global “current run” or “current eval” may leak from another Skill.
 
@@ -13,11 +13,22 @@ error evidence separate.
 
 ## Authentication boundary
 
-- `SKILLED_ADMIN_PASSWORD` is supplied through the environment.
-- `SKILLED_SESSION_SECRET` signs a 24-hour HTTP-only, same-site cookie.
+- `SKILLED_ADMIN_LOGIN_ID` and `SKILLED_ADMIN_PASSWORD` bootstrap the first
+  administrator only when the users table is empty.
+- Passwords are stored as bcrypt hashes through PostgreSQL `pgcrypto`.
+- `SKILLED_SESSION_SECRET` signs a 24-hour HTTP-only, same-site cookie carrying
+  user ID, role, expiry, and revocation version.
 - All pages and APIs except login and health require the session.
+- Administrators manage named administrator and operator accounts. Operators
+  use the shared Skill workspace but cannot manage users.
+- Deactivation, password reset, and role changes increment the session version,
+  invalidating existing sessions on their next request.
+- Five failed attempts lock a login ID for 15 minutes. Account mutations are
+  recorded in `user_audit_events`.
+- Self-deactivation is blocked, and at least one active administrator remains.
 - Worker Codex credentials are never exposed to the web container or browser.
-- This is local single-administrator access control, not public multi-user auth.
+- This is trusted local access control, not public identity, SSO, tenant
+  isolation, or per-user Codex OAuth.
 
 ## Package-scoped lookup
 
@@ -42,7 +53,10 @@ and PASS/PARTIAL/FAIL/ERROR counts.
 
 - An unauthenticated page redirects to login and an unauthenticated API returns
   `401 AUTH_REQUIRED`.
-- A valid login issues an HTTP-only session and logout invalidates it.
+- A valid named login issues an HTTP-only session and logout clears it.
+- An operator receives `403 ADMIN_REQUIRED` from user-management APIs.
+- Deactivating an operator invalidates their existing session immediately.
+- The last active administrator cannot be deactivated or demoted.
 - Two different Skill ZIP names can coexist and are separately selectable.
 - Selecting either package keeps its active version, latest eval, latest run,
   and proposal isolated.

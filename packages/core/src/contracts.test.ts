@@ -4,6 +4,7 @@ import {
   AuthoringIntakeSchema,
   evidenceLevel,
   GeneratedEvalSuiteSchema,
+  CreateUserSchema,
   ProblemSchema,
   UpdateProposalOutputSchema,
 } from "./contracts";
@@ -76,6 +77,26 @@ describe("shared contracts", () => {
           },
         ],
         evalChanges: [],
+      }).success,
+      false,
+    );
+  });
+  it("normalizes safe login IDs and rejects weak account data", () => {
+    assert.equal(
+      CreateUserSchema.parse({
+        loginId: "  QC.Operator  ",
+        displayName: "QC Operator",
+        role: "operator",
+        password: "twelve-chars-minimum",
+      }).loginId,
+      "qc.operator",
+    );
+    assert.equal(
+      CreateUserSchema.safeParse({
+        loginId: "bad login",
+        displayName: "Bad",
+        role: "owner",
+        password: "short",
       }).success,
       false,
     );

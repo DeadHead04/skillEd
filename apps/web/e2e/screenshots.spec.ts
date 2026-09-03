@@ -10,6 +10,7 @@ const routes = [
   ["evals", `/evals/current${scope}`],
   ["run", `/runs/${runId}${scope}`],
   ["improve", `/improve/current${scope}`],
+  ["users", "/users"],
 ] as const;
 
 test("capture login", async ({ page }, testInfo) => {

@@ -109,6 +109,38 @@ export const GeneratedEvalSuiteSchema = z.object({
 export const ConversationReplySchema = z.object({
   reply: z.string().min(1),
 });
+export const LoginIdSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3)
+  .max(40)
+  .regex(/^[a-z0-9][a-z0-9._-]*$/, {
+    message:
+      "Use 3-40 lowercase letters, numbers, periods, underscores, or hyphens.",
+  });
+export const PasswordSchema = z.string().min(12).max(128);
+export const UserRoleSchema = z.enum(["administrator", "operator"]);
+export const LoginSchema = z.object({
+  loginId: LoginIdSchema,
+  password: z.string().min(1).max(128),
+});
+export const CreateUserSchema = z.object({
+  loginId: LoginIdSchema,
+  displayName: z.string().trim().min(1).max(80),
+  role: UserRoleSchema,
+  password: PasswordSchema,
+});
+export const UpdateUserSchema = z
+  .object({
+    displayName: z.string().trim().min(1).max(80).optional(),
+    role: UserRoleSchema.optional(),
+    active: z.boolean().optional(),
+    password: PasswordSchema.optional(),
+  })
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one user field must change.",
+  });
 export const SkillFileChangeSchema = z.object({
   path: z
     .string()

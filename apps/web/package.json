@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "lint": "next lint || tsc --noEmit"
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@skilled/core": "workspace:*",

@@ -62,6 +62,8 @@ cp .env.example .env
 Set these values in `.env`:
 
 ```dotenv
+SKILLED_ADMIN_LOGIN_ID=admin
+SKILLED_ADMIN_DISPLAY_NAME=Local administrator
 SKILLED_ADMIN_PASSWORD=choose-a-local-password
 SKILLED_SESSION_SECRET=replace-with-output-from-openssl-rand-hex-32
 SKILLED_ADAPTER_MODE=real
@@ -109,7 +111,9 @@ docker compose up -d --build
 ```
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000) and sign in with
-`SKILLED_ADMIN_PASSWORD`.
+`SKILLED_ADMIN_LOGIN_ID` and `SKILLED_ADMIN_PASSWORD`. On an empty database,
+this first login bootstraps the first administrator. Later environment changes
+do not overwrite database-managed accounts.
 
 Successful health output includes:
 
@@ -129,7 +133,27 @@ Successful health output includes:
 ```
 
 The app binds only to `127.0.0.1:3000`. PostgreSQL has no host-published port.
-This is a trusted single-user setup, not a public arbitrary-code service.
+This is a trusted local multi-user setup, not a public arbitrary-code service.
+
+## Users and roles
+
+Administrators see **Users** in the workflow navigation. From that screen they
+can create named accounts, promote or demote operators, deactivate or reactivate
+accounts, and reset passwords. Password, role, and active-state changes revoke
+the affected user’s existing sessions immediately.
+
+- **Administrator:** operates every Skill workflow and manages users.
+- **Operator:** operates every shared Skill workflow but cannot view or call
+  user-management pages and APIs.
+
+Login IDs are normalized to lowercase. Passwords must contain 12-128 characters
+and are stored only as PostgreSQL `pgcrypto` bcrypt hashes. Five failed attempts
+lock that login ID for 15 minutes. SkillEd prevents self-deactivation and keeps
+at least one active administrator. User-management changes are recorded in the
+database audit log.
+
+V1 accounts share the same Skill packages and the same worker Codex identity.
+This is access management, not separate tenant storage or per-user Codex OAuth.
 
 ## Deterministic demo mode
 
@@ -346,11 +370,13 @@ An agent taking over this repository should:
 
 ## V1 boundaries
 
-- Private, trusted, single-user operation.
+- Private, trusted, named local accounts sharing one installation.
 - Multiple independent Skill packages; one selected workflow context at a time.
 - Sequential jobs and filesystem-backed artifacts.
-- One existing Codex login; no API-key or OAuth UI.
+- Administrator and operator roles; no teams, organizations, or tenant-level
+  data partitioning.
+- One existing worker Codex login; no per-user API-key or OAuth UI.
 - ZIP upload only.
-- No public arbitrary-code execution, teams, RBAC, billing, marketplace,
+- No public arbitrary-code execution, billing, marketplace,
   GitHub sync, live MCP, arbitrary dependency installation, or open internet
   tools.

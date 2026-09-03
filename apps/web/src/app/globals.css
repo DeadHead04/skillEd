@@ -187,6 +187,24 @@ button {
   font-size: 12px;
   color: #879095;
 }
+.account-summary {
+  display: block;
+  margin: -12px 0 0 14px;
+}
+.account-summary b,
+.account-summary small {
+  display: block;
+}
+.account-summary b {
+  color: #d9dfe1;
+  font-size: 12px;
+}
+.account-summary small {
+  margin-top: 3px;
+  color: #879095;
+  font-size: 10px;
+  text-transform: capitalize;
+}
 .text-button {
   display: block;
   margin: 7px 0 0 14px;
@@ -307,6 +325,142 @@ h3 {
   gap: 24px;
   align-items: flex-end;
   margin-bottom: 28px;
+}
+.compact-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.users-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+.user-list-panel .success-box,
+.user-list-panel .error-box {
+  margin: 16px 19px 0;
+}
+.success-box {
+  border: 1px solid #8fc6b5;
+  background: #eef8f4;
+  color: #11684f;
+  padding: 11px 13px;
+  font-size: 13px;
+}
+.user-rows {
+  display: grid;
+}
+.user-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(190px, 0.8fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px 19px;
+  border-bottom: 1px solid var(--line);
+}
+.user-row:last-child {
+  border-bottom: 0;
+}
+.user-row.inactive {
+  background: #f3f1eb;
+  color: var(--muted);
+}
+.user-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+.user-identity h3,
+.user-identity p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-identity h3 span {
+  color: var(--muted);
+  font-weight: 500;
+}
+.user-identity p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid #90a3a9;
+  background: #e6f8fa;
+  font-weight: 760;
+}
+.user-facts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px 11px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.user-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.user-actions .btn {
+  padding: 7px 9px;
+  font-size: 11px;
+}
+.password-reset {
+  grid-column: 1 / -1;
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+  font-size: 12px;
+}
+.password-reset summary {
+  width: max-content;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 680;
+}
+.inline-reset {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  gap: 9px;
+  align-items: center;
+  margin-top: 12px;
+}
+.inline-reset input {
+  border: 1px solid #bfc1bd;
+  border-radius: 3px;
+  padding: 9px 10px;
+}
+.create-user-form {
+  padding: 4px 19px 19px;
+}
+.create-user-form small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+.create-user-form .btn {
+  width: 100%;
+}
+.evidence-note {
+  border-top: 1px solid var(--line);
+  padding: 17px 19px;
+  background: #f2efe7;
+  font-size: 12px;
+}
+.evidence-note p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 .grid {
   display: grid;
@@ -486,6 +640,10 @@ input[type="file"]::file-selector-button {
   font-weight: 720;
 }
 .badge.pass {
+  color: var(--green);
+  border-color: #92c9b7;
+}
+.badge.grounded {
   color: var(--green);
   border-color: #92c9b7;
 }
@@ -783,7 +941,8 @@ input[type="file"]::file-selector-button {
 }
 @media (max-width: 1150px) {
   .grid,
-  .split {
+  .split,
+  .users-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -801,11 +960,15 @@ input[type="file"]::file-selector-button {
     margin: 0 0 12px;
   }
   .nav {
-    display: flex;
-    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     order: 4;
   }
   .nav a {
+    min-width: 0;
+    padding: 11px 4px;
+    font-size: 14px;
+    text-align: center;
     white-space: nowrap;
   }
   .local-note {
@@ -836,6 +999,12 @@ input[type="file"]::file-selector-button {
   }
   .page-head {
     display: block;
+  }
+  .compact-hero {
+    display: block;
+  }
+  .compact-hero > .badge {
+    margin-top: 15px;
   }
   .page-head .btn {
     margin-top: 18px;
@@ -910,6 +1079,15 @@ input[type="file"]::file-selector-button {
   .run-row {
     display: grid;
     gap: 10px;
+  }
+  .user-row {
+    grid-template-columns: 1fr;
+  }
+  .user-actions {
+    justify-content: flex-start;
+  }
+  .inline-reset {
+    grid-template-columns: 1fr;
   }
   .outcome-summary {
     min-width: 0;

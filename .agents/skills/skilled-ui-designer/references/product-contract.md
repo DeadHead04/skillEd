@@ -2,7 +2,7 @@
 
 ## V1 outcome
 
-One trusted user operates the entire product from the browser:
+Named trusted local users operate the product from the browser:
 
 ```text
 Upload Skill ZIP and task files
@@ -26,15 +26,17 @@ Upload Skill ZIP and task files
 - Run and case result
 - Update proposal
 - Downloadable Skill or run report
+- User account (administrator-managed access only)
 
 Do not introduce projects, teams, repositories, deployments, marketplaces,
 production traces, or billing into v1 UI.
 
 ## Trust model
 
-The cloud worker uses one already-authenticated Codex account and runs one job
-at a time. The user does not configure credentials, providers, worker images,
-network policy, or shell commands in the UI.
+The worker uses one already-authenticated Codex account and runs one job at a
+time. Administrators manage local administrator/operator accounts; every user
+shares the Skill workspace and worker identity. Users do not configure Codex
+credentials, providers, worker images, network policy, or shell commands.
 
 ## Result truth
 

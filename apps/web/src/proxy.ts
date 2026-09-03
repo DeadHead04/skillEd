@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { db } from "@skilled/core";
 import { SESSION_COOKIE, verifySessionToken } from "./lib/auth";
+
+const sql = db();
 
 export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -10,11 +13,45 @@ export async function proxy(request: NextRequest) {
   )
     return NextResponse.next();
 
-  const valid = await verifySessionToken(
+  const claims = await verifySessionToken(
     request.cookies.get(SESSION_COOKIE)?.value,
     process.env.SKILLED_SESSION_SECRET ?? "",
   );
-  if (valid) return NextResponse.next();
+  if (claims) {
+    const [user] =
+      await sql`SELECT id,login_id,display_name,role,active,session_version FROM users WHERE id=${claims.userId}`;
+    if (
+      user?.active &&
+      Number(user.session_version) === claims.sessionVersion &&
+      user.role === claims.role
+    ) {
+      const headers = new Headers(request.headers);
+      headers.set("x-skilled-user-id", String(user.id));
+      headers.set("x-skilled-login-id", String(user.login_id));
+      headers.set(
+        "x-skilled-display-name",
+        encodeURIComponent(String(user.display_name)),
+      );
+      headers.set("x-skilled-user-role", String(user.role));
+      if (path === "/users" && user.role !== "administrator") {
+        const skill = request.nextUrl.clone();
+        skill.pathname = "/skill";
+        return NextResponse.redirect(skill);
+      }
+      if (path.startsWith("/api/v1/users") && user.role !== "administrator")
+        return NextResponse.json(
+          {
+            code: "ADMIN_REQUIRED",
+            title: "Administrator access required",
+            detail: "Only an administrator can manage SkillEd users.",
+            retryable: false,
+            correlationId: crypto.randomUUID(),
+          },
+          { status: 403 },
+        );
+      return NextResponse.next({ request: { headers } });
+    }
+  }
 
   if (path.startsWith("/api/"))
     return NextResponse.json(

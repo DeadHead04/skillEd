@@ -21,15 +21,14 @@ test("navigation remains usable without future-product clutter", async ({
   await expect(page.getByText("Marketplace")).toHaveCount(0);
 });
 
-test("protected workbench requires the local administrator session", async ({
-  page,
-}) => {
+test("protected workbench requires a named user session", async ({ page }) => {
   const api = await page.request.get("/api/v1/skills");
   expect(api.status()).toBe(401);
   await expect(api.json()).resolves.toMatchObject({ code: "AUTH_REQUIRED" });
   await page.goto("/skill");
   await expect(page).toHaveURL(/\/login/);
-  await page.getByLabel("Administrator password").fill("wrong-password");
+  await page.getByLabel("Login ID").fill("missing-user");
+  await page.getByLabel("Password", { exact: true }).fill("wrong-password");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".error-box[role=alert]")).toContainText(
     "incorrect",
