@@ -20,6 +20,38 @@ export const JobEventSchema = z.object({
 });
 export type JobEvent = z.infer<typeof JobEventSchema>;
 
+export const RunProgressConfigurationSchema = z.enum([
+  "with_skill",
+  "without_skill",
+  "unknown",
+]);
+export const RunProgressStatusSchema = z.enum([
+  "PASS",
+  "FAIL",
+  "ERROR",
+  "SKIP",
+]);
+export const CaseStartedProgressSchema = z.object({
+  caseId: z.string(),
+  index: z.number().int().positive(),
+  total: z.number().int().positive(),
+  configuration: RunProgressConfigurationSchema,
+  iteration: z.number().int().positive(),
+  provisional: z.literal(true),
+});
+export const CaseCompletedProgressSchema = CaseStartedProgressSchema.extend({
+  reportedStatus: RunProgressStatusSchema,
+});
+export const StageChangedProgressSchema = z.object({
+  stage: z.string().min(1),
+});
+export type RunProgressConfiguration = z.infer<
+  typeof RunProgressConfigurationSchema
+>;
+export type RunProgressStatus = z.infer<typeof RunProgressStatusSchema>;
+export type CaseStartedProgress = z.infer<typeof CaseStartedProgressSchema>;
+export type CaseCompletedProgress = z.infer<typeof CaseCompletedProgressSchema>;
+
 export const ProblemSchema = z.object({
   code: z.string(),
   title: z.string(),
@@ -181,7 +213,7 @@ export const ConversationMessageSchema = z.object({
 export const RunLaunchSchema = z.object({
   skillVersionId: z.uuid(),
   evalVersionId: z.uuid(),
-  model: z.string().default("gpt-5.4"),
+  model: z.string().default("gpt-5.6-luna"),
   iterations: z.number().int().min(1).max(3).default(1),
   baseline: z.boolean().default(false),
 });

@@ -19,6 +19,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { Readable } from "node:stream";
+import { reconstructRunStatus } from "../../../../lib/run-progress";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -174,6 +175,26 @@ export async function GET(request: Request, context: Context) {
       const messages =
         await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${id} ORDER BY m.created_at`;
       return json({ ...evaluation, cases, messages });
+    }
+    if (path[0] === "runs" && path[1] && path[2] === "status") {
+      const [run] =
+        await sql`SELECT id,status,baseline,iterations,job_id,created_at,started_at,completed_at,eval_version_id FROM runs WHERE id=${path[1]}`;
+      if (!run) return fail("NOT_FOUND", "Run not found", "", 404);
+      const cases =
+        await sql`SELECT case_id FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND enabled=true ORDER BY case_id`;
+      const events = run.job_id
+        ? await sql`SELECT sequence,type,data,occurred_at FROM job_events WHERE job_id=${run.job_id} AND type IN ('stage_changed','case_started','case_completed') ORDER BY sequence`
+        : [];
+      const results =
+        await sql`SELECT case_id,configuration,iteration,result FROM case_results WHERE run_id=${run.id} ORDER BY case_id,configuration,iteration`;
+      return json(
+        reconstructRunStatus(
+          run as any,
+          cases.map((item) => String(item.case_id)),
+          events as any,
+          results as any,
+        ),
+      );
     }
     if (path[0] === "runs" && path[1] && path[2] === "download") {
       const [run] =
@@ -830,7 +851,7 @@ export async function POST(request: Request, context: Context) {
         [currentRun, p.base_version_id, base.checksum],
         [candidateRun, p.candidate_version_id, candidate.checksum],
       ])
-        await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,iterations,status) VALUES(${id},${version},${p.eval_version_id},'gpt-5.4',${sql.json(settings)},${checksum},${ev.checksum},1,'queued')`;
+        await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,iterations,status) VALUES(${id},${version},${p.eval_version_id},'gpt-5.6-luna',${sql.json(settings)},${checksum},${ev.checksum},1,'queued')`;
       const currentJob = await enqueue(sql, "run", currentRun, {
         comparison: "current",
       });

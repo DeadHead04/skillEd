@@ -9,6 +9,10 @@ import {
 import { spawn } from "node:child_process";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import {
+  buildExecutionSlots,
+  createSkillUpProgressParser,
+} from "./run-progress.js";
 
 export async function runEvaluation(sql: Db, job: Record<string, any>) {
   const [run] =
@@ -27,24 +31,27 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
   await sql`UPDATE runs SET status='running' WHERE id=${run.id}`;
   await emit(sql, job.id, "stage_changed", {
     stage: "running",
-    totalCases: cases.length * run.iterations,
+    total: cases.length * run.iterations,
   });
   let completed = 0;
-  for (const item of cases)
-    for (let iteration = 1; iteration <= run.iterations; iteration++) {
+  for (let iteration = 1; iteration <= run.iterations; iteration++)
+    for (const [caseOffset, item] of cases.entries()) {
       const [fresh] =
         await sql`SELECT cancel_requested_at FROM jobs WHERE id=${job.id}`;
       if (fresh?.cancel_requested_at) {
         await sql`UPDATE runs SET status='cancelled',completed_at=now() WHERE id=${run.id}`;
         await sql`UPDATE jobs SET status='cancelled',completed_at=now() WHERE id=${job.id}`;
+        await emit(sql, job.id, "stage_changed", { stage: "cancelled" });
         await emit(sql, job.id, "completed", { cancelled: true, completed });
         return;
       }
       await emit(sql, job.id, "case_started", {
         caseId: item.case_id,
+        index: caseOffset + 1,
+        configuration: "with_skill",
         iteration,
-        completed,
-        total: cases.length * run.iterations,
+        total: cases.length,
+        provisional: true,
       });
       const falseGreen = String(item.case_id).startsWith("FG-");
       const scopeDrift = item.case_id === "FG-004";
@@ -73,12 +80,16 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
       completed++;
       await emit(sql, job.id, "case_completed", {
         caseId: item.case_id,
+        index: caseOffset + 1,
+        configuration: "with_skill",
         iteration,
-        result,
-        completed,
-        total: cases.length * run.iterations,
+        reportedStatus: result === "PASS" ? "PASS" : "FAIL",
+        total: cases.length,
+        provisional: true,
       });
     }
+  await sql`UPDATE runs SET status='finalizing' WHERE id=${run.id}`;
+  await emit(sql, job.id, "stage_changed", { stage: "finalizing" });
   const normalized =
     await sql`SELECT case_id,configuration,iteration,result,assertions,dimensions,tokens,duration_ms,error_class,detail FROM case_results WHERE run_id=${run.id} ORDER BY case_id,iteration`;
   const store = new ArtifactStore();
@@ -122,6 +133,7 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
   await rm(reportDir, { recursive: true, force: true });
   await sql`UPDATE runs SET status='completed',completed_at=now(),raw_report_key=${rawKey},normalized_key=${normalizedKey} WHERE id=${run.id}`;
   await finalizeVerification(sql, run.id);
+  await emit(sql, job.id, "stage_changed", { stage: "completed" });
   await emit(sql, job.id, "completed", { resourceId: run.id, completed });
 }
 
@@ -196,10 +208,18 @@ async function runRealEvaluation(
   run: Record<string, any>,
 ) {
   await sql`UPDATE runs SET engine_versions=${sql.json({ adapter: "real", engine: "codex", skillUp: "vendored" })} WHERE id=${run.id}`;
+  await sql`UPDATE runs SET status='preparing',started_at=COALESCE(started_at,now()) WHERE id=${run.id}`;
+  await emit(sql, job.id, "stage_changed", { stage: "preparing" });
   const [inputs] =
     await sql`SELECT sv.installable_key,sv.selected_root,ev.bundle_key FROM skill_versions sv JOIN eval_versions ev ON ev.id=${run.eval_version_id} WHERE sv.id=${run.skill_version_id}`;
   if (!inputs?.installable_key || !inputs?.bundle_key)
     throw new Error("Pinned Skill or eval artifact is missing");
+  const cases =
+    await sql`SELECT case_id FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND enabled=true ORDER BY case_id`;
+  const slots = buildExecutionSlots(
+    cases.map((item) => String(item.case_id)),
+    Boolean(run.baseline),
+  );
   const store = new ArtifactStore();
   const operation = join(
     process.env.WORK_ROOT ?? "/data/work",
@@ -234,8 +254,12 @@ async function runRealEvaluation(
       "html",
     ];
     if (run.baseline) args.push("--baseline");
-    await sql`UPDATE runs SET status='running',started_at=now() WHERE id=${run.id}`;
-    await emit(sql, job.id, "stage_changed", { stage: "running" });
+    await mkdir(output, { recursive: true });
+    await sql`UPDATE runs SET status='running' WHERE id=${run.id}`;
+    await emit(sql, job.id, "stage_changed", {
+      stage: "running",
+      total: slots.length * Number(run.iterations),
+    });
     const child = spawn(process.env.SKILL_UP_BIN ?? "skill-up", args, {
       cwd: skillRoot,
       env: { ...process.env },
@@ -243,24 +267,15 @@ async function runRealEvaluation(
     });
     let stdout = "",
       stderr = "";
+    const progress = createSkillUpProgressParser({
+      slots,
+      iterations: Number(run.iterations),
+      onEvent: ({ type, data }) => emit(sql, job.id, type, data),
+    });
     child.stdout.on("data", (chunk) => {
       const text = String(chunk);
       stdout += text;
-      for (const line of text.split("\n")) {
-        const progress = line.match(/\[(\d+)\/(\d+)\]\s+([^:]+):/);
-        if (progress)
-          void emit(
-            sql,
-            job.id,
-            line.includes("⏳") ? "case_started" : "case_completed",
-            {
-              index: Number(progress[1]),
-              total: Number(progress[2]),
-              caseId: progress[3]?.trim(),
-              provisional: true,
-            },
-          );
-      }
+      progress.feed(text);
     });
     child.stderr.on("data", (chunk) => {
       stderr += String(chunk);
@@ -282,6 +297,12 @@ async function runRealEvaluation(
     });
     clearInterval(cancel);
     if (terminationTimer) clearTimeout(terminationTimer);
+    progress.flush();
+    await progress.drain();
+    await sql`UPDATE runs SET status=${termSent ? "cancelling" : "finalizing"} WHERE id=${run.id}`;
+    await emit(sql, job.id, "stage_changed", {
+      stage: termSent ? "cancelling" : "finalizing",
+    });
     let samples = 0;
     for (let iteration = 1; iteration <= run.iterations; iteration++) {
       const reportPath = join(output, `iteration-${iteration}`, "result.json");
@@ -289,6 +310,7 @@ async function runRealEvaluation(
       try {
         report = JSON.parse(await readFile(reportPath, "utf8"));
       } catch {
+        if (termSent) break;
         if (iteration === 1)
           throw new Error(
             `Skill-Up did not produce trustworthy result.json (exit ${exitCode}): ${stderr.slice(-2000)}`,
@@ -301,40 +323,7 @@ async function runRealEvaluation(
         raw,
       );
       for (const value of report.case_results ?? []) {
-        const [caseMeta] =
-          await sql`SELECT * FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND case_id=${value.case_id}`;
-        if (!caseMeta)
-          throw new Error(`Unclassified case in report: ${value.case_id}`);
-        const mapped =
-          value.grading?.assertion_results?.map((assertion: any) => {
-            const meta = caseMeta.assertion_mapping?.[assertion.text];
-            return {
-              id: assertion.text,
-              dimension: meta?.dimension,
-              required: meta?.required !== false,
-              passed: Boolean(assertion.passed),
-              evidence: assertion.evidence,
-            };
-          }) ??
-          (caseMeta.judge_type === "script"
-            ? (caseMeta.required_dimensions as string[]).map((dimension) => ({
-                id: `${value.case_id}-${dimension}`,
-                dimension,
-                required: true,
-                passed: value.status === "PASS",
-                evidence: value.error,
-              }))
-            : []);
-        if (value.status === "ERROR")
-          mapped.push({
-            id: "infrastructure",
-            dimension: "stability",
-            required: true,
-            passed: false,
-            error: value.error ?? "Skill-Up error",
-          });
-        const result = deriveResult(mapped);
-        await sql`INSERT INTO case_results(run_id,case_id,configuration,iteration,result,assertions,dimensions,stable,tokens,duration_ms,error_class,detail) VALUES(${run.id},${value.case_id},${value.configuration || "skill"},${iteration},${result},${sql.json(mapped)},${sql.json(Object.fromEntries(mapped.filter((a: any) => a.dimension).map((a: any) => [a.dimension, a.passed])))},null,${sql.json({ input: value.input_tokens, output: value.output_tokens, judgeInput: value.judge_input_tokens, judgeOutput: value.judge_output_tokens })},${value.duration_ms},${value.status === "ERROR" ? "judge_or_agent" : null},${sql.json({ prompt: value.prompt, response: value.response, error: value.error })}`;
+        await persistSkillUpCaseResult(sql, run, value, iteration);
         samples++;
       }
     }
@@ -373,6 +362,9 @@ async function runRealEvaluation(
     const rawKey = `runs/${run.id}/raw-report.zip`;
     await store.put(rawKey, await readFile(rawBundle));
     await sql`UPDATE runs SET status=${termSent ? "cancelled" : "completed"},completed_at=now(),raw_report_key=${rawKey},normalized_key=${normalizedKey} WHERE id=${run.id}`;
+    await emit(sql, job.id, "stage_changed", {
+      stage: termSent ? "cancelled" : "completed",
+    });
     await emit(sql, job.id, "completed", {
       resourceId: run.id,
       samples,
@@ -381,4 +373,46 @@ async function runRealEvaluation(
   } finally {
     await rm(operation, { recursive: true, force: true });
   }
+}
+
+export async function persistSkillUpCaseResult(
+  sql: Db,
+  run: Record<string, any>,
+  value: Record<string, any>,
+  iteration: number,
+) {
+  const [caseMeta] =
+    await sql`SELECT * FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND case_id=${value.case_id}`;
+  if (!caseMeta)
+    throw new Error(`Unclassified case in report: ${value.case_id}`);
+  const mapped =
+    value.grading?.assertion_results?.map((assertion: any) => {
+      const meta = caseMeta.assertion_mapping?.[assertion.text];
+      return {
+        id: assertion.text,
+        dimension: meta?.dimension,
+        required: meta?.required !== false,
+        passed: Boolean(assertion.passed),
+        evidence: assertion.evidence,
+      };
+    }) ??
+    (caseMeta.judge_type === "script"
+      ? (caseMeta.required_dimensions as string[]).map((dimension) => ({
+          id: `${value.case_id}-${dimension}`,
+          dimension,
+          required: true,
+          passed: value.status === "PASS",
+          evidence: value.error,
+        }))
+      : []);
+  if (value.status === "ERROR")
+    mapped.push({
+      id: "infrastructure",
+      dimension: "stability",
+      required: true,
+      passed: false,
+      error: value.error ?? "Skill-Up error",
+    });
+  const result = deriveResult(mapped);
+  await sql`INSERT INTO case_results(run_id,case_id,configuration,iteration,result,assertions,dimensions,stable,tokens,duration_ms,error_class,detail) VALUES(${run.id},${value.case_id},${value.configuration || "skill"},${iteration},${result},${sql.json(mapped)},${sql.json(Object.fromEntries(mapped.filter((a: any) => a.dimension).map((a: any) => [a.dimension, a.passed])))},null,${sql.json({ input: value.input_tokens, output: value.output_tokens, judgeInput: value.judge_input_tokens, judgeOutput: value.judge_output_tokens })},${value.duration_ms},${value.status === "ERROR" ? "judge_or_agent" : null},${sql.json({ prompt: value.prompt, response: value.response, error: value.error })})`;
 }

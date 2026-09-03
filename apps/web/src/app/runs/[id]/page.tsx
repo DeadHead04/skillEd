@@ -1,5 +1,6 @@
 import { currentEval, currentRun, currentSkill } from "../../../lib/data";
 import { ApiAction } from "../../../components/actions";
+import { LiveRunProgress } from "../../../components/live-run-progress";
 export const dynamic = "force-dynamic";
 
 export default async function RunPage({
@@ -59,7 +60,7 @@ export default async function RunPage({
                 </div>
                 <div className="fact">
                   <dt>Engine</dt>
-                  <dd>Codex · gpt-5.4</dd>
+                  <dd>Codex · gpt-5.6-luna</dd>
                 </div>
                 <div className="fact">
                   <dt>Isolation</dt>
@@ -87,7 +88,7 @@ export default async function RunPage({
                   body={{
                     skillVersionId: (skill!.version as any).id,
                     evalVersionId: evaluation!.id,
-                    model: "gpt-5.4",
+                    model: "gpt-5.6-luna",
                     iterations: 1,
                     baseline: false,
                   }}
@@ -187,174 +188,171 @@ export default async function RunPage({
             : "This run predates adapter provenance, so SkillEd will not present it as a real Codex run."}
         </div>
       )}
-      <div className="metric-row">
-        <div className="metric">
-          <span>Pass</span>
-          <b>{counts.PASS}</b>
-        </div>
-        <div className="metric">
-          <span>Partial</span>
-          <b>{counts.PARTIAL}</b>
-        </div>
-        <div className="metric">
-          <span>Fail</span>
-          <b>{counts.FAIL}</b>
-        </div>
-        <div className="metric">
-          <span>Error</span>
-          <b>{counts.ERROR}</b>
-        </div>
-        <div className="metric">
-          <span>Tokens</span>
-          <b>{tokens.toLocaleString()}</b>
-        </div>
-        <div className="metric">
-          <span>Duration</span>
-          <b>{(duration / 1000).toFixed(1)}s</b>
-        </div>
-      </div>
-      {run.status !== "completed" ? (
-        <section className="panel">
-          <div className="empty">
-            <h2>Worker stage: {run.status}</h2>
-            <p>
-              Progress is based on completed cases, never an invented
-              percentage.
-            </p>
-            {run.job_id && (
-              <ApiAction
-                url={`/api/v1/runs/${run.id}/cancel`}
-                label="Cancel run"
-                kind="danger"
-              />
-            )}
+      {!["completed", "failed", "cancelled"].includes(run.status) ? (
+        <LiveRunProgress runId={String(run.id)} />
+      ) : run.status === "completed" ? (
+        <>
+          <div className="metric-row">
+            <div className="metric">
+              <span>Pass</span>
+              <b>{counts.PASS}</b>
+            </div>
+            <div className="metric">
+              <span>Partial</span>
+              <b>{counts.PARTIAL}</b>
+            </div>
+            <div className="metric">
+              <span>Fail</span>
+              <b>{counts.FAIL}</b>
+            </div>
+            <div className="metric">
+              <span>Error</span>
+              <b>{counts.ERROR}</b>
+            </div>
+            <div className="metric">
+              <span>Tokens</span>
+              <b>{tokens.toLocaleString()}</b>
+            </div>
+            <div className="metric">
+              <span>Duration</span>
+              <b>{(duration / 1000).toFixed(1)}s</b>
+            </div>
           </div>
-        </section>
-      ) : (
-        <div className="grid">
-          <section className="panel">
-            <div className="panel-head">
-              <h2>Failure-first case results</h2>
-              <span>
-                {displayResults.length} cases · {results.length} samples
-              </span>
-            </div>
-            <div className="panel-body" style={{ padding: 0 }}>
-              <table className="case-table">
-                <thead>
-                  <tr>
-                    <th>Result</th>
-                    <th>Case</th>
-                    <th>Coverage group</th>
-                    <th>Failed dimensions</th>
-                    <th>Evidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {displayResults.map((result) => {
-                    const failed = Object.entries(result.dimensions ?? {})
-                      .filter(([, ok]) => !ok)
-                      .map(([d]) => d);
-                    return (
-                      <tr
-                        key={result.id}
-                        className={result.result !== "PASS" ? "failure" : ""}
-                      >
-                        <td data-label="Result">
-                          <span
-                            className={`badge ${String(result.result).toLowerCase()}`}
-                          >
-                            {result.result}
-                          </span>
-                        </td>
-                        <td data-label="Case">
-                          <div>
-                            <b>{result.case_id}</b>
-                            <br />
-                            {result.title} · {result.sampleCount} samples
-                            {!result.stable && (
-                              <>
-                                <br />
-                                <b>Flaky</b>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                        <td data-label="Coverage group">
-                          {result.coverage_group}
-                        </td>
-                        <td data-label="Failed dimensions">
-                          {failed.length ? failed.join(" · ") : "—"}
-                        </td>
-                        <td data-label="Evidence">
-                          {result.result === "PARTIAL" ? (
-                            <b>Target passed; scope failed</b>
-                          ) : (
-                            result.detail?.response
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-            <div className="decision-bar">
-              <span>
-                {counts.FAIL + counts.PARTIAL > 0
-                  ? "Actionable Skill failures found."
-                  : "No actionable failures."}
-              </span>
-              <div style={{ display: "flex", gap: 8 }}>
-                <a
-                  className="btn secondary"
-                  href={`/api/v1/runs/${run.id}/download`}
-                >
-                  Raw report
-                </a>
-                {counts.FAIL + counts.PARTIAL > 0 && (
-                  <ApiAction
-                    url="/api/v1/updates/generate"
-                    body={{ runId: run.id }}
-                    label="Suggest update"
-                    navigateTo={`/improve/:resourceId?skill=${run.skill_id}`}
-                  />
-                )}
-              </div>
-            </div>
-          </section>
-          <aside>
+          <div className="grid">
             <section className="panel">
               <div className="panel-head">
-                <h2>Evidence boundaries</h2>
+                <h2>Failure-first case results</h2>
+                <span>
+                  {displayResults.length} cases · {results.length} samples
+                </span>
               </div>
-              <div className="panel-body">
-                <div className="callout">
-                  Agent, judge, timeout, cancellation, and ingestion errors
-                  remain distinct. A Python validator checks exact artifacts; it
-                  never performs the task on Codex’s behalf.
+              <div className="panel-body" style={{ padding: 0 }}>
+                <table className="case-table">
+                  <thead>
+                    <tr>
+                      <th>Result</th>
+                      <th>Case</th>
+                      <th>Coverage group</th>
+                      <th>Failed dimensions</th>
+                      <th>Evidence</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {displayResults.map((result) => {
+                      const failed = Object.entries(result.dimensions ?? {})
+                        .filter(([, ok]) => !ok)
+                        .map(([d]) => d);
+                      return (
+                        <tr
+                          key={result.id}
+                          className={result.result !== "PASS" ? "failure" : ""}
+                        >
+                          <td data-label="Result">
+                            <span
+                              className={`badge ${String(result.result).toLowerCase()}`}
+                            >
+                              {result.result}
+                            </span>
+                          </td>
+                          <td data-label="Case">
+                            <div>
+                              <b>{result.case_id}</b>
+                              <br />
+                              {result.title} · {result.sampleCount} samples
+                              {!result.stable && (
+                                <>
+                                  <br />
+                                  <b>Flaky</b>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                          <td data-label="Coverage group">
+                            {result.coverage_group}
+                          </td>
+                          <td data-label="Failed dimensions">
+                            {failed.length ? failed.join(" · ") : "—"}
+                          </td>
+                          <td data-label="Evidence">
+                            {result.result === "PARTIAL" ? (
+                              <b>Target passed; scope failed</b>
+                            ) : (
+                              result.detail?.response
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="decision-bar">
+                <span>
+                  {counts.FAIL + counts.PARTIAL > 0
+                    ? "Actionable Skill failures found."
+                    : "No actionable failures."}
+                </span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <a
+                    className="btn secondary"
+                    href={`/api/v1/runs/${run.id}/download`}
+                  >
+                    Raw report
+                  </a>
+                  {counts.FAIL + counts.PARTIAL > 0 && (
+                    <ApiAction
+                      url="/api/v1/updates/generate"
+                      body={{ runId: run.id }}
+                      label="Suggest update"
+                      navigateTo={`/improve/:resourceId?skill=${run.skill_id}`}
+                    />
+                  )}
                 </div>
               </div>
             </section>
-            <div style={{ height: 18 }} />
-            <section className="panel">
-              <div className="panel-head">
-                <h2>Reproducibility</h2>
-              </div>
-              <div className="panel-body mono">
-                model {run.model}
-                <br />
-                skill {String(run.skill_checksum).slice(0, 16)}
-                <br />
-                eval {String(run.eval_checksum).slice(0, 16)}
-                <br />
-                iterations {run.iterations}
-                <br />
-                parallelism 1
-              </div>
-            </section>
-          </aside>
-        </div>
+            <aside>
+              <section className="panel">
+                <div className="panel-head">
+                  <h2>Evidence boundaries</h2>
+                </div>
+                <div className="panel-body">
+                  <div className="callout">
+                    Agent, judge, timeout, cancellation, and ingestion errors
+                    remain distinct. A Python validator checks exact artifacts;
+                    it never performs the task on Codex’s behalf.
+                  </div>
+                </div>
+              </section>
+              <div style={{ height: 18 }} />
+              <section className="panel">
+                <div className="panel-head">
+                  <h2>Reproducibility</h2>
+                </div>
+                <div className="panel-body mono">
+                  model {run.model}
+                  <br />
+                  skill {String(run.skill_checksum).slice(0, 16)}
+                  <br />
+                  eval {String(run.eval_checksum).slice(0, 16)}
+                  <br />
+                  iterations {run.iterations}
+                  <br />
+                  parallelism 1
+                </div>
+              </section>
+            </aside>
+          </div>
+        </>
+      ) : (
+        <section className="panel">
+          <div className="empty">
+            <h2>Evaluation {run.status}</h2>
+            <p>
+              Durable progress recorded before the run stopped remains available
+              from the run status endpoint.
+            </p>
+          </div>
+        </section>
       )}
     </div>
   );

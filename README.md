@@ -132,8 +132,9 @@ Successful health output includes:
 }
 ```
 
-The app binds only to `127.0.0.1:3000`. PostgreSQL has no host-published port.
-This is a trusted local multi-user setup, not a public arbitrary-code service.
+The app binds only to `127.0.0.1:3000`. PostgreSQL is available locally at
+`127.0.0.1:3001`; neither service is exposed to the LAN. This is a trusted
+local multi-user setup, not a public arbitrary-code service.
 
 ## Users and roles
 

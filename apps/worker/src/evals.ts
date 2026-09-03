@@ -20,6 +20,12 @@ import { codexAppServer as appServer } from "./app-server.js";
 
 const execute = promisify(execFile);
 
+export const MAX_NUM_TEST_CASES = 5;
+
+const LimitedGeneratedEvalSuiteSchema = GeneratedEvalSuiteSchema.extend({
+  cases: GeneratedEvalSuiteSchema.shape.cases.max(MAX_NUM_TEST_CASES),
+});
+
 function safeName(value: string) {
   return basename(value)
     .replace(/[^a-zA-Z0-9._-]/g, "_")
@@ -465,7 +471,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
     const answerText = JSON.stringify(context.answers ?? {});
     const second = await appServer.structuredTurn(
       cwd,
-      `${contract}\nUser answers: ${answerText}. Create a sophisticated coverage plan with named false-green/adversarial coverage, mixed deterministic and agent judges, provenance, dimensions, and iteration rationale.`,
+      `${contract}\nUser answers: ${answerText}. Create a sophisticated coverage plan with named false-green/adversarial coverage, mixed deterministic and agent judges, provenance, dimensions, and iteration rationale. The sum of caseCount across every coverage group must not exceed ${MAX_NUM_TEST_CASES}.`,
       z.toJSONSchema(CoveragePlanSchema),
       codexThreadId,
       hooks,
@@ -577,8 +583,8 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     const { cwd } = await stageAuthorWorkspace(sql, id, context.original_key);
     const turn = await appServer.structuredTurn(
       cwd,
-      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Use a script judge only when one or more exact equals, contains, or not_contains checks can prove the required rule from EVAL_FINAL_MESSAGE. Otherwise use an agent judge; never use a mere non-empty-output check.`,
-      z.toJSONSchema(GeneratedEvalSuiteSchema),
+      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate at most ${MAX_NUM_TEST_CASES} total test cases, even if the approved coverage plan requests more. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Use a script judge only when one or more exact equals, contains, or not_contains checks can prove the required rule from EVAL_FINAL_MESSAGE. Otherwise use an agent judge; never use a mere non-empty-output check.`,
+      z.toJSONSchema(LimitedGeneratedEvalSuiteSchema),
       conversation.codex_thread_id,
       {
         onThread: async (threadId) => {
@@ -593,7 +599,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         },
       },
     );
-    const suite = GeneratedEvalSuiteSchema.parse(turn.structured);
+    const suite = LimitedGeneratedEvalSuiteSchema.parse(turn.structured);
     caseSet = suite.cases;
     generationNotes = suite.generationNotes;
     await persistMessage(
@@ -604,6 +610,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       suite,
     );
   }
+  caseSet = caseSet.slice(0, MAX_NUM_TEST_CASES);
   const root = join(process.env.WORK_ROOT ?? "/tmp/skilled", `eval-${id}`);
   try {
     const evalDir = join(root, "evals/cases");
@@ -636,7 +643,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         judge === "agent"
           ? {
               type: "agent_judge",
-              model: "gpt-5.4",
+              model: "gpt-5.6-luna",
               criteria: assertions.map((item) => item.text),
               pass_threshold: 1,
               timeout_seconds: 180,
@@ -718,7 +725,7 @@ print(json.dumps({"passed": True, "checks": len(checks)}))
       },
       mcp: { servers: [] },
       skills: [{ source: "local_path", path: "." }],
-      engine: { name: "codex", model: { name: "gpt-5.4" } },
+      engine: { name: "codex", model: { name: "gpt-5.6-luna" } },
       cases: {
         files: caseSet.map(
           ({ id: caseId }) => `evals/cases/${caseId.toLowerCase()}.yaml`,
