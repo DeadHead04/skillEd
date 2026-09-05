@@ -1,0 +1,13 @@
+services:
+  - type: pserv
+    name: skilled-execution-canary
+    runtime: docker
+    plan: starter
+    region: singapore
+    numInstances: 1
+    autoDeployTrigger: off
+    dockerContext: ./infra/render-canary
+    dockerfilePath: ./infra/render-canary/Dockerfile
+    envVars:
+      - key: PORT
+        value: "10000"
