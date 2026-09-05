@@ -10,7 +10,9 @@ jobs:
           POSTGRES_PASSWORD: synthetic-test-password
           POSTGRES_DB: skilled_test
         ports: ["5432:5432"]
-        options: --health-cmd='pg_isready -U postgres' --health-interval=2s --health-timeout=3s --health-retries=20
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval=2s --health-timeout=3s --health-retries=20
     env:
       SKILLED_TEST_DATABASE_URL: postgres://postgres:synthetic-test-password@127.0.0.1:5432/skilled_test
       SKILLED_PRIVATE_SERVICE_TESTS: "true"
@@ -45,5 +47,5 @@ jobs:
         run: PLAYWRIGHT_TEST_BASE_URL=http://127.0.0.1:3100 pnpm test:e2e
       - name: Diff whitespace check
         run: git diff --check
-      - if: always()
+      - if: always() && hashFiles('compose.test.yaml') != ''
         run: docker compose -f compose.test.yaml down
