@@ -114,7 +114,13 @@ export function ProposalDecision({
             disabled={busy || (!skillApproved && !evalApproved)}
             onClick={() => decide(true)}
           >
-            {busy ? "Working…" : "Approve and test"}
+            {busy
+              ? "Working…"
+              : skillApproved && evalApproved
+                ? "Approve Skill and eval"
+                : evalApproved
+                  ? "Approve eval only"
+                  : "Approve Skill only"}
           </button>
         </div>
       </div>

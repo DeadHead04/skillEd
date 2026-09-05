@@ -159,9 +159,7 @@ export function UploadForm({
       )}
 
       <div className="dropzone">
-        <label htmlFor={compact ? "skill-new" : "skill-zip"}>
-          Skill package (.zip)
-        </label>
+        <label htmlFor={compact ? "skill-new" : "skill-zip"}>Skill ZIP</label>
         <input
           id={compact ? "skill-new" : "skill-zip"}
           required
@@ -173,7 +171,7 @@ export function UploadForm({
 
       <div className="field">
         <label htmlFor={compact ? "task-new" : "task"}>
-          What must this Skill get right?
+          What should this Skill reliably accomplish?
         </label>
         <textarea
           id={compact ? "task-new" : "task"}
@@ -185,7 +183,7 @@ export function UploadForm({
 
       <div className="field">
         <label htmlFor={compact ? "materials-new" : "materials"}>
-          Task material
+          Task materials (dataset, authority, examples, or expected outputs)
         </label>
         <input
           id={compact ? "materials-new" : "materials"}

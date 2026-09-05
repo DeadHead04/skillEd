@@ -62,6 +62,9 @@ export default async function ImprovePage({
           lede="Codex receives the immutable base Skill and the selected failure evidence — not the authoring conversation, and no ability to edit files directly."
           status={<Status value="active" label="Working" />}
         />
+        {/* Without this the page would sit on "diagnosing" forever: the stream
+            refreshes the route when the worker finishes the job. */}
+        <JobStream jobId={proposal.activeJob?.id} />
       </Work>
     );
 

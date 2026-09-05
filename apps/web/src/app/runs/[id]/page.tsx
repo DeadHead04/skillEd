@@ -306,6 +306,25 @@ export default async function RunPage({
         </span>
       </div>
 
+      {/* Provenance, stated before the numbers are read. */}
+      {(run.evidenceMode !== "real" ||
+        run.provenance_status === "legacy_unverified") && (
+        <p className="notice" role="status">
+          <b>
+            {run.provenance_status === "legacy_unverified"
+              ? "Imported history"
+              : run.evidenceMode === "demo"
+                ? "Demo evidence"
+                : "Unverified evidence"}
+          </b>
+          {run.provenance_status === "legacy_unverified"
+            ? "This run is preserved history that was never reverified. Re-run it before relying on these numbers."
+            : run.evidenceMode === "demo"
+              ? "The deterministic adapter produced this run, not Codex. Switch the worker to real mode before treating it as Codex evidence."
+              : "This run predates provenance recording, so SkillEd will not present it as a real Codex result."}
+        </p>
+      )}
+
       <Metrics items={metrics} />
 
       <section className="section">
