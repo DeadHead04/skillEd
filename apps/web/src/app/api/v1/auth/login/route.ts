@@ -56,7 +56,12 @@ async function bootstrapAdministrator() {
 
 export async function POST(request: Request) {
   const sessionSecret = process.env.SKILLED_SESSION_SECRET ?? "";
-  if (sessionSecret.length < 32)
+  if (
+    sessionSecret.length < 32 ||
+    (process.env.SKILLED_DEPLOYMENT === "render" &&
+      (sessionSecret.includes("local-development") ||
+        process.env.SKILLED_HTTPS !== "true"))
+  )
     return problem(
       "AUTH_NOT_CONFIGURED",
       "Local authentication is not configured",

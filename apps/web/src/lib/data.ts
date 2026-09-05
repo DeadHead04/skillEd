@@ -32,27 +32,44 @@ function summarizeResults(results: any[]) {
 export async function listSkills(): Promise<any[]> {
   await ready;
   const skills =
-    await sql`SELECT s.*,v.version active_version,v.description,v.status version_status FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC,s.name`;
-  return Promise.all(
-    skills.map(async (skill) => {
-      const [run] =
-        await sql`SELECT r.id,r.status,r.created_at FROM runs r WHERE r.skill_version_id=${skill.active_version_id} ORDER BY r.created_at DESC LIMIT 1`;
-      const results = run
-        ? await sql`SELECT case_id,result FROM case_results WHERE run_id=${run.id}`
-        : [];
-      return {
-        ...skill,
-        latestRun: run ? { ...run, summary: summarizeResults(results) } : null,
-      };
-    }),
-  );
+    await sql`SELECT s.*,v.id displayed_version_id,v.version active_version,v.description,v.status version_status FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC,s.name`;
+  const ids = skills.map((s) => s.displayed_version_id).filter(Boolean);
+  const runs = ids.length
+    ? await sql`SELECT DISTINCT ON (skill_version_id) id,status,created_at,skill_version_id FROM runs WHERE skill_version_id=ANY(${ids}::uuid[]) ORDER BY skill_version_id,created_at DESC`
+    : [];
+  const runIds = runs.map((r) => r.id);
+  const results = runIds.length
+    ? await sql`SELECT run_id,case_id,result FROM case_results WHERE run_id=ANY(${runIds}::uuid[]) AND configuration IN ('skill','with_skill')`
+    : [];
+  return skills.map((skill) => {
+    const run = runs.find(
+      (r) => r.skill_version_id === skill.displayed_version_id,
+    );
+    return {
+      ...skill,
+      latestRun: run
+        ? {
+            ...run,
+            summary: summarizeResults(
+              results.filter((row) => row.run_id === run.id),
+            ),
+          }
+        : null,
+    };
+  });
 }
 
 export async function currentSkill(skillId?: string): Promise<any> {
   await ready;
   const [skill] = skillId
-    ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id WHERE s.id=${skillId}`
-    : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC LIMIT 1`;
+    ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) WHERE s.id=${skillId}`
+    : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC LIMIT 1`;
+  if (skill?.version)
+    skill.version.importedHistory = Boolean(
+      (
+        await sql`SELECT 1 FROM history_assessments WHERE resource_id=${skill.version.id}`
+      )[0],
+    );
   return skill ?? null;
 }
 export async function currentEval(id?: string, skillId?: string): Promise<any> {
@@ -66,6 +83,10 @@ export async function currentEval(id?: string, skillId?: string): Promise<any> {
   if (!evaluation) return null;
   const cases =
     await sql`SELECT * FROM eval_cases WHERE eval_version_id=${evaluation.id} ORDER BY case_id`;
+  const files =
+    await sql`SELECT * FROM eval_files WHERE eval_version_id=${evaluation.id} ORDER BY created_at`;
+  const [activeJob] =
+    await sql`SELECT id,status FROM jobs WHERE resource_id=${evaluation.id} AND status IN ('queued','running') ORDER BY created_at DESC LIMIT 1`;
   const messages =
     await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${evaluation.id} ORDER BY m.created_at`;
   const [conversation] =
@@ -73,6 +94,8 @@ export async function currentEval(id?: string, skillId?: string): Promise<any> {
   return {
     ...evaluation,
     cases,
+    files,
+    activeJob,
     messages,
     conversation,
     evidenceMode:
@@ -116,7 +139,7 @@ export async function currentProposal(
   if (p.skill_patch_key) {
     try {
       skillPatch = await readFile(
-        new ArtifactStore().path(p.skill_patch_key),
+        await new ArtifactStore().materialize(p.skill_patch_key),
         "utf8",
       );
     } catch {
@@ -127,7 +150,7 @@ export async function currentProposal(
   if (p.eval_patch_key) {
     try {
       evalPatch = await readFile(
-        new ArtifactStore().path(p.eval_patch_key),
+        await new ArtifactStore().materialize(p.eval_patch_key),
         "utf8",
       );
     } catch {
@@ -138,16 +161,29 @@ export async function currentProposal(
     await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${p.id} AND c.kind='skill_update' ORDER BY m.created_at`;
   const [conversation] =
     await sql`SELECT codex_thread_id FROM conversations WHERE resource_id=${p.id} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
+  const [activeJob] =
+    await sql`SELECT id,status FROM jobs WHERE (resource_id=${p.id} OR resource_id=${p.current_verification_run_id} OR resource_id=${p.candidate_verification_run_id}) AND status IN ('queued','running') ORDER BY created_at DESC LIMIT 1`;
   return {
     ...p,
+    activeVersionId:
+      (
+        await sql`SELECT active_version_id FROM skills WHERE id=${p.skill_id}`
+      )[0]?.active_version_id ?? null,
+    activeJob,
     skillPatch,
     evalPatch,
     messages,
-    evidenceMode: conversation?.codex_thread_id
-      ? "real"
-      : p.skill_changes?.length
+    evidenceMode: (
+      await sql`SELECT 1 FROM history_assessments WHERE resource_id=${p.id}`
+    )[0]
+      ? "legacy"
+      : (
+            await sql`SELECT adapter FROM jobs WHERE resource_id=${p.id} ORDER BY created_at LIMIT 1`
+          )[0]?.adapter === "demo"
         ? "demo"
-        : "unknown",
+        : conversation?.codex_thread_id
+          ? "real"
+          : "unknown",
   };
 }
 
@@ -158,8 +194,12 @@ export async function skillRuns(skillId: string): Promise<any[]> {
   return Promise.all(
     runs.map(async (run) => {
       const results =
-        await sql`SELECT case_id,result FROM case_results WHERE run_id=${run.id}`;
+        await sql`SELECT case_id,result FROM case_results WHERE run_id=${run.id} AND configuration IN ('skill','with_skill')`;
       return { ...run, summary: summarizeResults(results) };
     }),
   );
+}
+
+export async function skillVersions(skillId: string): Promise<any[]> {
+  return sql`SELECT sv.*,EXISTS(SELECT 1 FROM history_assessments h WHERE h.resource_id=sv.id) imported_history FROM skill_versions sv WHERE skill_id=${skillId} ORDER BY version DESC`;
 }

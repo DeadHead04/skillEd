@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -111,6 +112,15 @@ func (j *ScriptJudge) evaluateInRuntime(ctx context.Context, rt evalruntime.Runt
 	transcriptEnv := remoteTranscript
 	if remoteTranscript != "" {
 		transcriptEnv = plan.envPath(remoteTranscript)
+	}
+	// SkillEd opts into a trusted, fail-closed wrapper for local script judges.
+	// It applies a restricted-read permission profile and strips service environment.
+	if wrapper := os.Getenv("SKILLED_SCRIPT_SANDBOX"); wrapper != "" && rt.RequiresProcessSandbox() {
+		quote, quoteErr := shell.Quoter()
+		if quoteErr != nil {
+			return nil, quoteErr
+		}
+		command = quote(wrapper) + " " + quote(cwd) + " " + quote(remoteScript) + " " + quote(remoteTranscript) + " " + quote(command)
 	}
 	result, err := rt.Exec(ctx, command, evalruntime.ExecOptions{
 		Cwd:        cwd,

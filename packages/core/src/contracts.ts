@@ -69,6 +69,14 @@ export const EvidenceLevelSchema = z.enum([
   "Strong",
 ]);
 export const ResultSchema = z.enum(["ERROR", "FAIL", "PARTIAL", "PASS"]);
+export const MaterialKindSchema = z.enum([
+  "task",
+  "dataset",
+  "authority",
+  "expected",
+  "example",
+  "past_failure",
+]);
 export type Result = z.infer<typeof ResultSchema>;
 export const DimensionSchema = z.enum([
   "correctness",
@@ -124,12 +132,25 @@ export const GeneratedEvalCaseSchema = z.object({
   judgeType: z.enum(["agent", "script"]).default("agent"),
   dimensions: z.array(DimensionSchema).min(1),
   provenance: z.array(z.string()).min(1),
+  sourceReferences: z
+    .array(
+      z.object({ materialId: z.uuid(), location: z.string().min(1).max(500) }),
+    )
+    .default([]),
   criteria: z.array(z.string().min(1)).min(1),
   deterministicChecks: z
     .array(
       z.object({
-        kind: z.enum(["equals", "contains", "not_contains"]),
-        value: z.string().min(1),
+        kind: z.enum(["equals", "contains", "not_contains", "unchanged"]),
+        value: z
+          .union([z.string(), z.number(), z.boolean(), z.null()])
+          .optional(),
+        dimension: DimensionSchema.default("correctness"),
+        file: z.string().optional(),
+        format: z.enum(["text", "json", "csv", "xlsx"]).default("text"),
+        selector: z.string().default(""),
+        expectedMaterialId: z.string().optional(),
+        allowedPaths: z.array(z.string()).default([]),
       }),
     )
     .max(20),
@@ -137,6 +158,15 @@ export const GeneratedEvalCaseSchema = z.object({
 export const GeneratedEvalSuiteSchema = z.object({
   cases: z.array(GeneratedEvalCaseSchema).min(1).max(50),
   generationNotes: z.array(z.string()).default([]),
+});
+export const AuthoringRevisionSchema = z.object({
+  reply: z.string().min(1),
+  revision: z
+    .object({
+      understanding: TaskUnderstandingSchema,
+      plan: CoveragePlanSchema,
+    })
+    .nullable(),
 });
 export const ConversationReplySchema = z.object({
   reply: z.string().min(1),
@@ -184,12 +214,16 @@ export const SkillFileChangeSchema = z.object({
         !/(^|[\\/])\.\.([\\/]|$)/.test(value),
       "Skill change path must remain inside the Skill root",
     ),
-  action: z.enum(["replace", "create"]),
-  content: z.string().max(1_000_000),
+  action: z.enum(["replace", "create", "delete", "rename"]),
+  content: z.string().max(1_000_000).optional(),
+  from: z.string().optional(),
   reason: z.string().min(1),
 });
 export const EvalCaseChangeSchema = z.object({
   caseId: z.string().min(1),
+  deterministicChecks: GeneratedEvalCaseSchema.shape.deterministicChecks
+    .nullable()
+    .default(null),
   reason: z.string().min(1),
   prompt: z.string().min(1).nullable(),
   criteria: z.array(z.string().min(1)).min(1).nullable(),
@@ -216,6 +250,11 @@ export const RunLaunchSchema = z.object({
   model: z.string().default("gpt-5.6-luna"),
   iterations: z.number().int().min(1).max(3).default(1),
   baseline: z.boolean().default(false),
+  selectedCaseIds: z
+    .array(z.string().regex(/^[A-Z][A-Z0-9_-]{2,63}$/))
+    .min(1)
+    .max(50)
+    .optional(),
 });
 export const ProposalDecisionSchema = z.object({
   skillDecision: z.enum(["approved", "rejected"]),

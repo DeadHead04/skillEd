@@ -1,5 +1,6 @@
 import { currentProposal, currentRun } from "../../../lib/data";
 import { ApiAction, ConversationForm } from "../../../components/actions";
+import { JobStream } from "../../../components/job-stream";
 export const dynamic = "force-dynamic";
 export default async function ImprovePage({
   params,
@@ -27,6 +28,22 @@ export default async function ImprovePage({
     comparison = proposal.comparison as any;
   return (
     <div className="content">
+      <JobStream jobId={proposal.activeJob?.id} />
+      {proposal.candidate_version_id && (
+        <div className="decision-bar">
+          <a
+            className="btn secondary"
+            href={`/api/v1/skill/download/${proposal.candidate_version_id}`}
+          >
+            Download candidate
+          </a>
+          <a
+            href={`/evals/${proposal.eval_version_id}?skill=${proposal.skill_id}`}
+          >
+            Review verification evaluation
+          </a>
+        </div>
+      )}
       <div className="page-head">
         <div>
           <div className="eyebrow">
@@ -117,6 +134,7 @@ export default async function ImprovePage({
                     <ApiAction
                       url={`/api/v1/updates/${proposal.id}/decide`}
                       body={{
+                        expectedRevision: proposal.revision,
                         skillDecision: "rejected",
                         evalDecision: "rejected",
                       }}
@@ -126,6 +144,7 @@ export default async function ImprovePage({
                     <ApiAction
                       url={`/api/v1/updates/${proposal.id}/decide`}
                       body={{
+                        expectedRevision: proposal.revision,
                         skillDecision: "approved",
                         evalDecision: "rejected",
                       }}
@@ -135,6 +154,7 @@ export default async function ImprovePage({
                       <ApiAction
                         url={`/api/v1/updates/${proposal.id}/decide`}
                         body={{
+                          expectedRevision: proposal.revision,
                           skillDecision: "approved",
                           evalDecision: "approved",
                         }}
@@ -144,11 +164,14 @@ export default async function ImprovePage({
                   </div>
                 </div>
               )}
-              {proposal.status === "candidate_created" && (
+              {(proposal.status === "candidate_created" ||
+                (proposal.status === "failed" &&
+                  proposal.candidate_version_id)) && (
                 <div className="decision-bar">
                   <span>Candidate created; active bytes are unchanged.</span>
                   <ApiAction
                     url={`/api/v1/updates/${proposal.id}/verify`}
+                    body={{ expectedRevision: proposal.revision }}
                     label="Verify candidate"
                   />
                 </div>
@@ -158,6 +181,10 @@ export default async function ImprovePage({
                   <span>No new required-dimension regression.</span>
                   <ApiAction
                     url={`/api/v1/updates/${proposal.id}/activate`}
+                    body={{
+                      expectedRevision: proposal.revision,
+                      expectedActiveVersionId: proposal.activeVersionId,
+                    }}
                     label="Activate candidate"
                   />
                 </div>

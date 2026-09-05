@@ -1,4 +1,4 @@
-FROM node:24.13.0-bookworm-slim
+FROM node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
 RUN apt-get update && apt-get install -y --no-install-recommends python3 ca-certificates && rm -rf /var/lib/apt/lists/* \
     && npm install -g @openai/codex@0.149.0-alpha.4.1 \
     && useradd --uid 10001 --create-home skilled

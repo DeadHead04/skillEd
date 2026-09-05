@@ -12,7 +12,7 @@ fi
 attempt=1
 health=""
 while [ "$attempt" -le 30 ]; do
-  if health=$(curl -fsS http://127.0.0.1:3000/api/v1/health 2>/dev/null); then
+  if health=$(curl -fsS "${SKILLED_BASE_URL:-http://127.0.0.1:3000}/api/v1/health" 2>/dev/null); then
     if printf '%s' "$health" | grep -q '"status":"ready"'; then
       break
     fi
@@ -36,8 +36,8 @@ if [ "$mode" = "demo" ]; then
     exit 1
   }
 else
-  printf '%s' "$health" | grep -q '"codexLogin":"Logged in using ChatGPT"' || {
-    echo "Stack is healthy but real ChatGPT Codex authentication is unavailable." >&2
+  printf '%s' "$health" | grep -q '"execution":"ready"' || {
+    echo "Web and history are available, but the required execution acceptance gate has not passed." >&2
     exit 1
   }
 fi

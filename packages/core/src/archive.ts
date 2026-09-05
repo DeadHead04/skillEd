@@ -1,9 +1,10 @@
 import { createWriteStream } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, stat, chmod } from "node:fs/promises";
+import { pipeline } from "node:stream/promises";
 import { dirname, posix, resolve } from "node:path";
 import yauzl from "yauzl";
 import yazl from "yazl";
-import { sha256 } from "./artifacts";
+import { hashFile } from "./artifacts";
 
 export const ZIP_LIMITS = {
   compressed: 100 * 1024 * 1024,
@@ -41,11 +42,18 @@ function normalizedPath(value: string) {
 
 export async function inspectZip(
   file: string,
-  options: { requireSkill?: boolean } = {},
+  options: { requireSkill?: boolean; internalTransfer?: boolean } = {},
 ): Promise<{ entries: ZipEntry[]; roots: string[]; checksum: string }> {
-  const bytes = await readFile(file);
-  if (bytes.length > ZIP_LIMITS.compressed)
-    throw new Error("Compressed archive exceeds 100 MiB");
+  const compressedLimit = options.internalTransfer
+    ? 512 * 1024 * 1024
+    : ZIP_LIMITS.compressed;
+  const fileLimit = options.internalTransfer
+    ? 250 * 1024 * 1024
+    : ZIP_LIMITS.file;
+  if ((await stat(file)).size > compressedLimit)
+    throw new Error(
+      `Compressed archive exceeds ${compressedLimit / 1024 ** 2} MiB`,
+    );
   const entries: ZipEntry[] = [],
     seen = new Set<string>();
   let expanded = 0;
@@ -59,6 +67,10 @@ export async function inspectZip(
         zip.on("entry", (entry) => {
           try {
             const path = normalizedPath(entry.fileName);
+            if (/(^|\/)(auth\.json|\.codex|\.auth)(\/|$)/i.test(path))
+              throw new Error(
+                "Credential-store entries are prohibited in archives",
+              );
             if (seen.has(path))
               throw new Error(`Duplicate normalized path: ${path}`);
             seen.add(path);
@@ -68,12 +80,13 @@ export async function inspectZip(
               type === 0o120000 ||
               type === 0o060000 ||
               type === 0o020000 ||
-              type === 0o010000
+              type === 0o010000 ||
+              type === 0o140000
             )
               throw new Error(`Unsupported special file: ${path}`);
             if (entry.generalPurposeBitFlag & 1)
               throw new Error(`Encrypted entry: ${path}`);
-            if (entry.uncompressedSize > ZIP_LIMITS.file)
+            if (entry.uncompressedSize > fileLimit)
               throw new Error(`Expanded file exceeds 100 MiB: ${path}`);
             expanded += entry.uncompressedSize;
             if (expanded > ZIP_LIMITS.expanded)
@@ -103,13 +116,13 @@ export async function inspectZip(
     .map((p) => (p === "." ? "" : p));
   if (!roots.length && options.requireSkill !== false)
     throw new Error("No SKILL.md found");
-  return { entries, roots, checksum: sha256(bytes) };
+  return { entries, roots, checksum: await hashFile(file) };
 }
 
 export async function extractZip(
   file: string,
   destination: string,
-  options: { requireSkill?: boolean } = {},
+  options: { requireSkill?: boolean; internalTransfer?: boolean } = {},
 ) {
   const inspected = await inspectZip(file, options);
   await mkdir(destination, { recursive: true });
@@ -134,9 +147,12 @@ export async function extractZip(
             if (streamError || !stream) return reject(streamError);
             try {
               await mkdir(dirname(target), { recursive: true });
-              const chunks: Buffer[] = [];
-              for await (const chunk of stream) chunks.push(Buffer.from(chunk));
-              await writeFile(target, Buffer.concat(chunks));
+              await pipeline(
+                stream,
+                createWriteStream(target, { flags: "wx", mode: 0o600 }),
+              );
+              const mode = (entry.externalFileAttributes >>> 16) & 0xffff;
+              await chmod(target, mode & 0o111 ? 0o755 : 0o644);
               zip.readEntry();
             } catch (cause) {
               reject(cause);

@@ -1,0 +1,53 @@
+# Entirely separate, credential-free deterministic installation.
+name: skilled-pilot-test
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: skilled
+      POSTGRES_PASSWORD: deterministic-test-database-only
+      POSTGRES_DB: skilled_test
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U skilled -d skilled_test]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - test-postgres:/var/lib/postgresql/data
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      DATABASE_URL: postgres://skilled:deterministic-test-database-only@postgres:5432/skilled_test
+      ARTIFACT_ROOT: /data/artifacts
+      SKILLED_ADAPTER_MODE: fake
+      SKILLED_ADMIN_LOGIN_ID: admin
+      SKILLED_ADMIN_PASSWORD: deterministic-test-password-only
+      SKILLED_SESSION_SECRET: deterministic-test-session-secret-not-for-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:3100:3000
+    volumes:
+      - test-artifacts:/data/artifacts
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      DATABASE_URL: postgres://skilled:deterministic-test-database-only@postgres:5432/skilled_test
+      ARTIFACT_ROOT: /data/artifacts
+      WORK_ROOT: /data/work
+      SKILLED_ADAPTER_MODE: fake
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - test-artifacts:/data/artifacts
+      - test-work:/data/work
+volumes:
+  test-postgres:
+  test-artifacts:
+  test-work:

@@ -1,6 +1,12 @@
 import Link from "next/link";
-import { currentSkill, currentEval, skillRuns } from "../../lib/data";
+import {
+  currentSkill,
+  currentEval,
+  skillRuns,
+  skillVersions,
+} from "../../lib/data";
 import { UploadForm, ApiAction } from "../../components/actions";
+import { NewEvaluationForm } from "../../components/workflow-forms";
 export const dynamic = "force-dynamic";
 export default async function SkillPage({
   searchParams,
@@ -11,6 +17,7 @@ export default async function SkillPage({
   const skill = query.new ? null : await currentSkill(query.skill);
   const evaluation = skill ? await currentEval(undefined, skill.id) : null;
   const runs = skill ? await skillRuns(skill.id) : [];
+  const versions = skill ? await skillVersions(skill.id) : [];
   const version = skill?.version as any;
   return (
     <div className="content">
@@ -28,13 +35,49 @@ export default async function SkillPage({
           <span className="badge pass">Ready · v{version.version}</span>
         )}
       </div>
+      {version?.importedHistory && (
+        <div className="callout">
+          Imported history — not reverified. The active-version pointer is
+          preserved history; run the corrected evaluation pipeline before
+          relying on it.
+        </div>
+      )}
+      {skill && (
+        <details className="panel">
+          <summary className="panel-head">
+            New evaluation and version history
+          </summary>
+          <div className="panel-body">
+            <NewEvaluationForm skillId={skill.id} versions={versions} />
+            <h2>Version history</h2>
+            <ul className="list">
+              {versions.map((v) => (
+                <li key={v.id}>
+                  Version {v.version} ·{" "}
+                  {v.id === skill.active_version_id ? "Active" : "Inactive"} ·{" "}
+                  <a href={`/api/v1/skill/download/${v.id}`}>Download</a> ·{" "}
+                  {v.imported_history
+                    ? "Imported history — not reverified"
+                    : v.installable_checksum
+                      ? "Package integrity recorded"
+                      : "Integrity not recorded"}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </details>
+      )}
       {!skill ? (
         <UploadForm />
       ) : (
         <div className="grid">
           <section className="panel">
             <div className="panel-head">
-              <h2>Active package</h2>
+              <h2>
+                {skill.active_version_id
+                  ? "Active package"
+                  : "Uploaded package"}
+              </h2>
               <span className="mono">
                 {String(version.checksum).slice(0, 12)}
               </span>
@@ -100,7 +143,9 @@ export default async function SkillPage({
                 <ul className="list">
                   <li>SKILL.md discovered and selected</li>
                   <li>Archive paths and file types safe</li>
-                  <li>Runtime: Node 24 · Python 3.12 · Go 1.25</li>
+                  <li>
+                    Execution readiness is checked separately before running
+                  </li>
                   <li>No package content executed</li>
                 </ul>
                 <p>
@@ -123,7 +168,7 @@ export default async function SkillPage({
                 <h2>Upload new version</h2>
               </div>
               <div className="panel-body">
-                <UploadForm />
+                <UploadForm skillId={skill.id} />
               </div>
             </section>
           </aside>

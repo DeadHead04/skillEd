@@ -24,6 +24,7 @@ services:
       DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
       ARTIFACT_ROOT: /data/artifacts
       WORKER_STALE_AFTER_SECONDS: "30"
+      SKILLED_ADAPTER_MODE: ${SKILLED_ADAPTER_MODE:-real}
       SKILLED_ADMIN_LOGIN_ID: ${SKILLED_ADMIN_LOGIN_ID:-admin}
       SKILLED_ADMIN_DISPLAY_NAME: ${SKILLED_ADMIN_DISPLAY_NAME:-Local administrator}
       SKILLED_ADMIN_PASSWORD: ${SKILLED_ADMIN_PASSWORD:-skilled-local}

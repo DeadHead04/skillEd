@@ -4,6 +4,8 @@ import {
   ConversationForm,
   EvalQuestionsForm,
 } from "../../../components/actions";
+import { MaterialManager } from "../../../components/workflow-forms";
+import { JobStream } from "../../../components/job-stream";
 export const dynamic = "force-dynamic";
 export default async function EvalPage({
   params,
@@ -57,6 +59,88 @@ export default async function EvalPage({
           {evaluation.evidence_level} evidence
         </span>
       </div>
+      <JobStream jobId={evaluation.activeJob?.id} />
+      {evaluation.status === "failed" && (
+        <div className="error-box" role="alert">
+          <p>
+            {evaluation.validation?.error ?? "Evaluation preparation stopped."}
+          </p>
+          <ApiAction
+            url={`/api/v1/evals/${evaluation.id}/author`}
+            label="Retry preparation"
+          />
+        </div>
+      )}
+      {evaluation.status === "approved" && (
+        <div className="decision-bar">
+          <ApiAction
+            url={`/api/v1/evals/${evaluation.id}/clone`}
+            label="Clone as new draft"
+            navigateTo={`/evals/:resourceId?skill=${evaluation.skill_id}`}
+          />
+          <a
+            className="btn"
+            href={`/runs/new?skill=${evaluation.skill_id}&eval=${evaluation.id}`}
+          >
+            New run
+          </a>
+        </div>
+      )}
+      <MaterialManager
+        evalId={evaluation.id}
+        revision={evaluation.revision}
+        files={evaluation.files}
+        editable={[
+          "collecting",
+          "awaiting_answers",
+          "awaiting_plan_approval",
+          "ready",
+          "failed",
+        ].includes(evaluation.status)}
+      />
+      {evaluation.cases.length > 0 && (
+        <details className="panel">
+          <summary className="panel-head">
+            Case details — {evaluation.cases.length} of 50 allowed
+          </summary>
+          <div className="panel-body">
+            {evaluation.cases.map((item: any) => (
+              <details key={item.id}>
+                <summary>
+                  {item.case_id} · {item.title} ·{" "}
+                  {item.enabled ? "Enabled" : "Disabled"}
+                </summary>
+                <h3>Task prompt</h3>
+                <pre style={{ whiteSpace: "pre-wrap" }}>
+                  {item.source?.prompt}
+                </pre>
+                <h3>Required assertions</h3>
+                <pre style={{ whiteSpace: "pre-wrap" }}>
+                  {JSON.stringify(item.assertion_mapping, null, 2)}
+                </pre>
+                <h3>Sources, fixtures and validators</h3>
+                <pre style={{ whiteSpace: "pre-wrap" }}>
+                  {JSON.stringify(
+                    {
+                      sources: item.evidence_provenance,
+                      inputs: evaluation.files
+                        .filter((f: any) => f.kind === "dataset")
+                        .map((f: any) => ({
+                          id: f.id,
+                          name: f.filename,
+                          checksum: f.metadata?.checksum,
+                        })),
+                      checks: item.source?.deterministicChecks,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              </details>
+            ))}
+          </div>
+        </details>
+      )}
       <div className="tabs">
         <a className={evaluation.status === "understanding" ? "active" : ""}>
           Understand
@@ -212,12 +296,14 @@ export default async function EvalPage({
                 {evaluation.status === "awaiting_plan_approval" && (
                   <ApiAction
                     url={`/api/v1/evals/${evaluation.id}/approve-plan`}
+                    body={{ expectedRevision: evaluation.revision }}
                     label="Generate evals"
                   />
                 )}
                 {evaluation.status === "ready" && (
                   <ApiAction
                     url={`/api/v1/evals/${evaluation.id}/approve`}
+                    body={{ expectedRevision: evaluation.revision }}
                     label="Approve evals"
                   />
                 )}
@@ -250,6 +336,28 @@ export default async function EvalPage({
                     <div className="message" key={message.id}>
                       <strong>{message.role}</strong>
                       {message.content}
+                      {message.structured?.revision && (
+                        <details>
+                          <summary>Review proposed changes</summary>
+                          <pre style={{ whiteSpace: "pre-wrap" }}>
+                            {JSON.stringify(
+                              message.structured.revision,
+                              null,
+                              2,
+                            )}
+                          </pre>
+                          {evaluation.status !== "approved" && (
+                            <ApiAction
+                              url={`/api/v1/evals/${evaluation.id}/apply-revision`}
+                              label="Apply reviewed revision"
+                              body={{
+                                messageId: message.id,
+                                expectedRevision: evaluation.revision,
+                              }}
+                            />
+                          )}
+                        </details>
+                      )}
                     </div>
                   ))
                 ) : (

@@ -774,10 +774,9 @@ func buildCodexRunStdinCmdWithLastMessage(promptPath, model string, provider cod
 // buildCodexResumeCmdWithLastMessage constructs a codex CLI command that resumes
 // an existing session identified by sessionID and sends a new user message.
 // Note: `codex exec resume` does not support --sandbox; the session inherits
-// sandbox mode from its initial creation. We use --dangerously-bypass-approvals-and-sandbox
-// to ensure non-interactive execution (approvals are skipped).
+// sandbox mode from its initial creation. Never widen that boundary on resume.
 func buildCodexResumeCmdWithLastMessage(sessionID, instruction, model string, provider codexProviderConfig, lastMessagePath string) string {
-	cmd := "codex exec resume --json --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox"
+	cmd := "codex exec resume --json --skip-git-repo-check"
 	cmd += codexProviderFlags(provider)
 	if model != "" {
 		cmd += " -m " + shellQuote(model)

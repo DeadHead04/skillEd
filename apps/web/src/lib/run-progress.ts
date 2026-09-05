@@ -25,7 +25,12 @@ type EventRow = {
   occurred_at: string | Date;
 };
 
-const terminalStatuses = new Set(["completed", "failed", "cancelled"]);
+const terminalStatuses = new Set([
+  "completed",
+  "failed",
+  "cancelled",
+  "interrupted",
+]);
 const keyFor = (value: {
   caseId: string;
   configuration: string;
@@ -33,7 +38,8 @@ const keyFor = (value: {
 }) => `${value.caseId}\u0000${value.configuration}\u0000${value.iteration}`;
 
 function normalizeConfiguration(value: unknown) {
-  if (value === "without_skill") return "without_skill" as const;
+  if (value === "without_skill" || value === "baseline")
+    return "without_skill" as const;
   if (value === "unknown") return "unknown" as const;
   return "with_skill" as const;
 }

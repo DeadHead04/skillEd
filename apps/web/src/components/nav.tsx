@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 type SkillSummary = {
+  active_version_id: string | null;
   id: string;
   name: string;
   active_version?: number;
@@ -72,7 +73,10 @@ export function AppShell({
               >
                 <span>
                   <b>{skill.name}</b>
-                  <small>Active v{skill.active_version ?? "—"}</small>
+                  <small>
+                    {skill.active_version_id ? "Active" : "Uploaded"} v
+                    {skill.active_version ?? "—"}
+                  </small>
                 </span>
                 <span
                   className="skill-score"
@@ -111,6 +115,9 @@ export function AppShell({
               Users
             </Link>
           )}
+          {currentUser?.role === "administrator" && (
+            <Link href="/diagnostics">Diagnostics</Link>
+          )}
         </nav>
         <div className="local-note">
           <span className="dot" />
@@ -133,7 +140,8 @@ export function AppShell({
           <div className="context">
             {selected ? (
               <>
-                <b>{selected.name}</b> · active v
+                <b>{selected.name}</b> ·{" "}
+                {selected.active_version_id ? "active" : "uploaded"} v
                 {selected.active_version ?? "—"}
               </>
             ) : (

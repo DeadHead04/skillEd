@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch, safeRedirect } from "../lib/client-request";
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -42,7 +43,7 @@ export function UserManagement({
     setBusy(url);
     setMessage("");
     setError("");
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method,
       headers: { "content-type": "application/json" },
       body: JSON.stringify(body),

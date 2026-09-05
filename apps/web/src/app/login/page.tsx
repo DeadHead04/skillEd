@@ -1,4 +1,5 @@
 "use client";
+import { apiFetch, safeRedirect } from "../../lib/client-request";
 
 import { useState } from "react";
 
@@ -12,7 +13,7 @@ export default function LoginPage() {
     event.preventDefault();
     setBusy(true);
     setError("");
-    const response = await fetch("/api/v1/auth/login", {
+    const response = await apiFetch("/api/v1/auth/login", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ loginId, password }),
@@ -24,7 +25,7 @@ export default function LoginPage() {
       return;
     }
     const next = new URLSearchParams(window.location.search).get("next");
-    window.location.assign(next?.startsWith("/") ? next : "/skill");
+    window.location.assign(safeRedirect(next, window.location.origin));
   }
 
   return (
