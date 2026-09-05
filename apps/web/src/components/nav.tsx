@@ -14,6 +14,7 @@ type Summary = {
 
 type SkillSummary = {
   id: string;
+  active_version_id?: string | null;
   name: string;
   active_version?: number;
   latestRun?: { status: string; summary: Summary } | null;
@@ -124,7 +125,10 @@ export function AppShell({
                 >
                   <span>
                     <b>{skill.name}</b>
-                    <small>Active v{skill.active_version ?? "—"}</small>
+                    <small>
+                      {skill.active_version_id ? "Active" : "Uploaded"} v
+                      {skill.active_version ?? "—"}
+                    </small>
                   </span>
                   <span
                     className="skill-score"
@@ -175,6 +179,17 @@ export function AppShell({
                 <span>Users</span>
               </Link>
             )}
+            {currentUser?.role === "administrator" && (
+              <Link
+                className={path === "/diagnostics" ? "active" : ""}
+                href="/diagnostics"
+              >
+                <span className="glyph" aria-hidden="true">
+                  ·
+                </span>
+                <span>Diagnostics</span>
+              </Link>
+            )}
           </nav>
         </div>
 
@@ -200,7 +215,8 @@ export function AppShell({
               <>
                 <b>{selected.name}</b>
                 <span className="pin">
-                  active v{selected.active_version ?? "—"}
+                  {selected.active_version_id ? "active" : "uploaded"} v
+                  {selected.active_version ?? "—"}
                 </span>
                 {stages?.evals.version ? (
                   <span className="pin">eval v{stages.evals.version}</span>

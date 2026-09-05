@@ -1,9 +1,10 @@
-import { chmod, cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, rm, writeFile, readFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { basename, join } from "node:path";
 import {
   ArtifactStore,
+  AuthoringRevisionSchema,
   AuthoringIntakeSchema,
   ConversationReplySchema,
   CoveragePlanSchema,
@@ -14,13 +15,15 @@ import {
   extractZip,
   sha256,
   type Db,
+  MaterialKindSchema,
+  GeneratedEvalCaseSchema,
 } from "@skilled/core";
 import { z } from "zod";
 import { codexAppServer as appServer } from "./app-server.js";
 
 const execute = promisify(execFile);
 
-export const MAX_NUM_TEST_CASES = 5;
+export const MAX_NUM_TEST_CASES = 50;
 
 const LimitedGeneratedEvalSuiteSchema = GeneratedEvalSuiteSchema.extend({
   cases: GeneratedEvalSuiteSchema.shape.cases.max(MAX_NUM_TEST_CASES),
@@ -58,7 +61,7 @@ async function stageAuthorWorkspace(
   await mkdir(cwd, { recursive: true });
   await rm(join(cwd, "skill-package"), { recursive: true, force: true });
   await extractZip(
-    new ArtifactStore().path(originalKey),
+    await new ArtifactStore().materialize(originalKey),
     join(cwd, "skill-package"),
   );
   await mkdir(join(cwd, ".agents/skills"), { recursive: true });
@@ -77,10 +80,11 @@ async function stageAuthorWorkspace(
   const manifest = [];
   for (const file of files) {
     if (!file.artifact_key) continue;
+    MaterialKindSchema.parse(file.kind);
     const relative = `${file.kind}/${file.id}-${safeName(file.filename)}`;
     const target = join(materialDir, relative);
     await mkdir(join(materialDir, file.kind), { recursive: true });
-    await cp(new ArtifactStore().path(file.artifact_key), target);
+    await cp(await new ArtifactStore().materialize(file.artifact_key), target);
     const mime = String(file.metadata?.mime ?? "");
     const previewable =
       mime.startsWith("text/") ||
@@ -109,21 +113,21 @@ async function stageAuthorWorkspace(
 }
 
 export const DEFAULT_UNDERSTANDING = TaskUnderstandingSchema.parse({
-  inputs: ["Product source fields", "Hindi PDP content"],
-  outputs: ["QC decision with grounded findings"],
+  inputs: ["Uploaded task files and Skill instructions"],
+  outputs: ["The requested output, with evidence that it meets the task rules"],
   authorities: ["Uploaded rules and expected outputs"],
   invariants: [
     "Do not fabricate evidence",
     "Do not approve semantic omissions",
     "Do not modify source data",
   ],
-  allowedChanges: ["QC result and evidence only"],
-  dependencies: ["Skill instructions", "task materials"],
-  ambiguity: ["Unstated acceptable translation variants"],
+  allowedChanges: ["Only changes explicitly requested by the task"],
+  dependencies: ["none"],
+  ambiguity: ["Confirm which output fields may change"],
   likelyHallucinations: [
     "Invented source claims",
     "Evidence not present in input",
-    "Added address or product attributes",
+    "Facts or changes not supported by the task",
   ],
   failureModes: [
     "False PASS",
@@ -170,14 +174,14 @@ export const DEFAULT_PLAN = CoveragePlanSchema.parse({
 const cases = [
   [
     "CORE-001",
-    "Valid grounded PDP",
+    "Valid output grounded in the input",
     "Core correctness",
     "agent",
     ["correctness", "semantic", "source"],
   ],
   [
     "CORE-002",
-    "Clear mistranslation",
+    "Incorrect interpretation of the input",
     "Core correctness",
     "agent",
     ["correctness", "semantic"],
@@ -191,7 +195,7 @@ const cases = [
   ],
   [
     "CORE-004",
-    "Allowed language variation",
+    "An equivalent valid output",
     "Core correctness",
     "agent",
     ["correctness", "semantic"],
@@ -219,7 +223,7 @@ const cases = [
   ],
   [
     "FG-004",
-    "Address addition",
+    "An unauthorized field addition",
     "False green / adversarial",
     "agent",
     ["correctness", "scope"],
@@ -348,8 +352,10 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
   const phase = String(job.payload?.phase ?? "initial");
   await emit(sql, job.id, "stage_changed", { stage: phase });
   const [context] =
-    await sql`SELECT ev.*,sv.original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${job.resource_id} LIMIT 1`;
+    await sql`SELECT ev.*,sv.installable_key original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${job.resource_id} LIMIT 1`;
   if (!context) throw new Error("Eval context not found");
+  if (phase === "initial")
+    await sql`UPDATE eval_versions SET status='understanding' WHERE id=${job.resource_id}`;
   const conversation = await conversationFor(
     sql,
     String(job.resource_id),
@@ -374,7 +380,20 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
         sql,
         conversation.id,
         "assistant",
-        "I recorded that revision request. The deterministic adapter keeps the approved evidence unchanged.",
+        "Demo revision prepared. Review the proposed task understanding and coverage before applying it.",
+        {
+          reply: "Demo revision",
+          revision: {
+            understanding: {
+              ...context.task_understanding,
+              ambiguity: [
+                ...(context.task_understanding?.ambiguity ?? []),
+                message,
+              ],
+            },
+            plan: context.coverage_plan,
+          },
+        },
       );
     } else {
       const { cwd } = await stageAuthorWorkspace(
@@ -384,10 +403,13 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
       );
       const turn = await appServer.structuredTurn(
         cwd,
-        `${contract}\nRespond to the user's authoring question or revision request: ${message}`,
-        z.toJSONSchema(ConversationReplySchema),
+        `${contract}\nRespond to the user's authoring question or revision request: ${message}. Return revision=null for explanations. For changes, return a complete proposed understanding and coverage plan. The user must review and apply it before anything changes. Current understanding: ${JSON.stringify(context.task_understanding)}. Current plan: ${JSON.stringify(context.coverage_plan)}`,
+        z.toJSONSchema(AuthoringRevisionSchema),
         codexThreadId,
         {
+          recoveryContext: JSON.stringify(
+            await sql`SELECT role,content,structured FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
+          ),
           onThread: async (id) => {
             codexThreadId = id;
             await sql`UPDATE conversations SET codex_thread_id=${id},updated_at=now() WHERE id=${conversation.id}`;
@@ -401,7 +423,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
           },
         },
       );
-      const reply = ConversationReplySchema.parse(turn.structured);
+      const reply = AuthoringRevisionSchema.parse(turn.structured);
       await persistMessage(
         sql,
         conversation.id,
@@ -424,6 +446,9 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
       context.original_key,
     );
     const hooks = {
+      recoveryContext: JSON.stringify(
+        await sql`SELECT role,content,structured FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
+      ),
       onThread: async (id: string) => {
         codexThreadId = id;
         await sql`UPDATE conversations SET codex_thread_id=${id},updated_at=now() WHERE id=${conversation.id}`;
@@ -538,55 +563,63 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
 export async function generateEval(sql: Db, job: Record<string, any>) {
   const id = String(job.resource_id);
   const [context] =
-    await sql`SELECT ev.coverage_plan,ev.answers,sv.original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${id} LIMIT 1`;
+    await sql`SELECT ev.coverage_plan,ev.answers,sv.installable_key original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${id} LIMIT 1`;
   if (!context) throw new Error("Eval context not found");
   const fallback = isProductQcTask(context?.metadata?.text)
     ? productCases
     : cases;
   let generationNotes: string[] = [];
-  let caseSet: Array<{
-    id: string;
-    title: string;
-    coverageGroup: string;
-    purpose: string;
-    prompt: string;
-    judgeType: "agent" | "script";
-    dimensions: Array<
-      "correctness" | "semantic" | "source" | "scope" | "artifact" | "stability"
-    >;
-    provenance: string[];
-    criteria: string[];
-    deterministicChecks: Array<{
-      kind: "equals" | "contains" | "not_contains";
-      value: string;
-    }>;
-  }> = fallback.map(([caseId, title, group, judge, dimensions]) => ({
-    id: caseId,
-    title,
-    coverageGroup: group,
-    purpose: `Regression coverage for ${group}`,
-    prompt: `Perform the uploaded task for adversarial case ${caseId}. Return grounded evidence and do not change unrelated content.`,
-    judgeType: judge,
-    dimensions: [...dimensions],
-    provenance: group.startsWith("False")
-      ? ["recorded failure patterns"]
-      : ["task invariants"],
-    criteria: dimensions.map(
-      (dimension) =>
-        `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
-    ),
-    deterministicChecks:
-      judge === "script" ? [{ kind: "contains" as const, value: caseId }] : [],
-  }));
-  if (process.env.SKILLED_ADAPTER_MODE !== "fake") {
+  let caseSet: Array<z.infer<typeof GeneratedEvalCaseSchema>> = fallback.map(
+    ([caseId, title, group, judge, dimensions]) => ({
+      id: caseId,
+      title,
+      coverageGroup: group,
+      purpose: `Regression coverage for ${group}`,
+      prompt: `Perform the uploaded task for adversarial case ${caseId}. Return grounded evidence and do not change unrelated content.`,
+      judgeType: judge,
+      dimensions: [...dimensions],
+      provenance: group.startsWith("False")
+        ? ["recorded failure patterns"]
+        : ["task invariants"],
+      criteria: dimensions.map(
+        (dimension) =>
+          `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
+      ),
+      sourceReferences: [],
+      deterministicChecks:
+        judge === "script"
+          ? dimensions.map((dimension) => ({
+              kind: "contains" as const,
+              value: caseId,
+              dimension,
+              file: dimension === "artifact" ? "output.txt" : undefined,
+              format: "text" as const,
+              selector: "",
+              allowedPaths: [],
+            }))
+          : [],
+    }),
+  );
+  if (job.payload?.rebuild) {
+    const stored =
+      await sql`SELECT source,enabled FROM eval_cases WHERE eval_version_id=${id} ORDER BY case_id`;
+    caseSet = stored
+      .filter((c) => c.enabled)
+      .map((c) => GeneratedEvalCaseSchema.parse(c.source));
+    if (!caseSet.length)
+      throw new Error("At least one enabled case is required");
+  } else if (process.env.SKILLED_ADAPTER_MODE !== "fake") {
     const conversation = await conversationFor(sql, id, "eval_authoring");
     const { cwd } = await stageAuthorWorkspace(sql, id, context.original_key);
     const turn = await appServer.structuredTurn(
       cwd,
-      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate at most ${MAX_NUM_TEST_CASES} total test cases, even if the approved coverage plan requests more. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Use a script judge only when one or more exact equals, contains, or not_contains checks can prove the required rule from EVAL_FINAL_MESSAGE. Otherwise use an agent judge; never use a mere non-empty-output check.`,
+      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate exactly the approved coverage counts, up to ${MAX_NUM_TEST_CASES}. If coverage cannot be satisfied, return a validation error rather than truncate. Each required dimension needs its own criterion. Deterministic checks may inspect text, JSON, CSV or XLSX artifacts using file, format and JSON-pointer selector. unchanged checks use expectedMaterialId and explicitly allowedPaths. Map every check to its dimension. Dataset files are staged under inputs/<material-id>-<filename>; expected and authority files are judge-only. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Include sourceReferences with exact material IDs from the material manifest and a concrete rule/cell/section location for each case. Use a script judge when concrete file or final-message checks cover every required dimension. Artifact dimensions must inspect a named output file. Otherwise use an agent judge; never use a mere non-empty-output check.`,
       z.toJSONSchema(LimitedGeneratedEvalSuiteSchema),
       conversation.codex_thread_id,
       {
+        recoveryContext: JSON.stringify(
+          await sql`SELECT role,content FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
+        ),
         onThread: async (threadId) => {
           await sql`UPDATE conversations SET codex_thread_id=${threadId},updated_at=now() WHERE id=${conversation.id}`;
         },
@@ -610,15 +643,82 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       suite,
     );
   }
-  caseSet = caseSet.slice(0, MAX_NUM_TEST_CASES);
+  if (
+    caseSet.length > MAX_NUM_TEST_CASES ||
+    new Set(caseSet.map((c) => c.id)).size !== caseSet.length
+  )
+    throw new Error("Invalid case count or duplicate case IDs");
+  if (process.env.SKILLED_ADAPTER_MODE !== "fake" && !job.payload?.rebuild) {
+    const planned = (context.coverage_plan.groups ?? []).reduce(
+      (n: number, group: any) => n + Number(group.caseCount),
+      0,
+    );
+    if (planned !== caseSet.length)
+      throw new Error("Generated cases do not match approved coverage count");
+  }
+  const materials =
+    await sql`SELECT * FROM eval_files WHERE eval_version_id=${id} AND artifact_key IS NOT NULL ORDER BY id`;
+  const fixtureEntries: string[] = [];
+  const truth: Record<string, string> = {};
+  const pendingCases: Array<Record<string, any>> = [];
   const root = join(process.env.WORK_ROOT ?? "/tmp/skilled", `eval-${id}`);
   try {
     const evalDir = join(root, "evals/cases");
     await mkdir(evalDir, { recursive: true });
     await sql`UPDATE eval_versions SET status='generating' WHERE id=${id}`;
     await emit(sql, job.id, "stage_changed", { stage: "generating" });
-    const manifest: any = { schemaVersion: 1, cases: {} };
+    const manifest: any = { schemaVersion: 2, cases: {}, fixtures: [] };
+    for (const file of materials) {
+      MaterialKindSchema.parse(file.kind);
+      const bytes = await readFile(
+        await new ArtifactStore().materialize(file.artifact_key),
+      );
+      truth[file.id] = bytes.toString("base64");
+      if (file.kind !== "dataset") continue;
+      const relativePath = `evals/fixtures/inputs/${file.id}-${safeName(file.filename)}`;
+      await mkdir(join(root, "evals/fixtures/inputs"), { recursive: true });
+      await writeFile(join(root, relativePath), bytes);
+      fixtureEntries.push(relativePath);
+      manifest.fixtures.push({
+        id: file.id,
+        path: `inputs/${file.id}-${safeName(file.filename)}`,
+        checksum: sha256(bytes),
+      });
+    }
+    const sourceFiles =
+      await sql`SELECT id,kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${id}`;
+    manifest.sources = await Promise.all(
+      sourceFiles.map(async (file) => ({
+        id: file.id,
+        kind: file.kind,
+        filename: file.filename,
+        checksum: file.artifact_key
+          ? sha256(
+              await readFile(
+                await new ArtifactStore().materialize(file.artifact_key),
+              ),
+            )
+          : sha256(JSON.stringify(file.metadata)),
+      })),
+    );
     for (const definition of caseSet) {
+      if (
+        process.env.SKILLED_ADAPTER_MODE !== "fake" &&
+        (!definition.sourceReferences.length ||
+          definition.sourceReferences.some(
+            (reference) =>
+              !sourceFiles.some((file) => file.id === reference.materialId),
+          ))
+      )
+        throw new Error("Every real case requires valid material references");
+      if (
+        definition.judgeType === "script" &&
+        definition.dimensions.includes("artifact") &&
+        !definition.deterministicChecks.some(
+          (check) => check.dimension === "artifact" && check.file,
+        )
+      )
+        throw new Error("Artifact assertions must inspect an output file");
       const {
         id: caseId,
         title,
@@ -626,15 +726,27 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         judgeType: requestedJudge,
         dimensions,
       } = definition;
-      const judge =
-        requestedJudge === "script" && definition.deterministicChecks.length > 0
-          ? "script"
-          : "agent";
+      if (
+        requestedJudge === "script" &&
+        !dimensions.every((dimension) =>
+          definition.deterministicChecks.some(
+            (check) => check.dimension === dimension,
+          ),
+        )
+      )
+        throw new Error(
+          `Script validators must cover every required dimension: ${caseId}`,
+        );
+      const judge = requestedJudge;
+      if (
+        definition.criteria.length !== dimensions.length ||
+        new Set(dimensions).size !== dimensions.length ||
+        new Set(definition.criteria).size !== definition.criteria.length
+      )
+        throw new Error(`Invalid dimension/criteria mapping: ${caseId}`);
       const assertions = dimensions.map((dimension, index) => ({
         id: `${caseId}-${dimension}`,
-        text:
-          definition.criteria[index] ??
-          `[${caseId}-${dimension}] Satisfy the required ${dimension} dimension with grounded evidence.`,
+        text: `[${caseId}-${dimension}] ${definition.criteria[index]!}`,
         dimension,
         required: true,
       }));
@@ -650,7 +762,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
             }
           : {
               type: "script",
-              script_path: `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
+              script_path: `evals/scripts/${caseId.toLowerCase()}.py`,
               timeout_seconds: 30,
             };
       const spec = {
@@ -658,6 +770,15 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         title,
         description: definition.purpose,
         input: { prompt },
+        context: fixtureEntries.length ? { repo_fixture: "fixtures" } : {},
+        collect_artifacts: [
+          "outputs/**",
+          "*.xlsx",
+          "*.csv",
+          "*.json",
+          "*.txt",
+          "*.md",
+        ],
         constraints: { timeout_seconds: 900, max_turns: 8 },
         judge: judgeConfig,
       };
@@ -670,44 +791,47 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         coverageGroup: group,
         judge,
         evidenceProvenance: definition.provenance,
+        sourceReferences: definition.sourceReferences,
         assertions: Object.fromEntries(
           assertions.map((a) => [
             a.text,
-            { dimension: a.dimension, required: true },
+            { id: a.id, dimension: a.dimension, required: true },
           ]),
         ),
       };
-      await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${id},${caseId},${title},${group},${judge},${sql.json(manifest.cases[caseId].evidenceProvenance)},${sql.json([...dimensions])},${`evals/cases/${caseId.toLowerCase()}.yaml`},${sql.json(manifest.cases[caseId].assertions)},${sql.json({ prompt })}) ON CONFLICT(eval_version_id,case_id) DO UPDATE SET source=excluded.source`;
+      pendingCases.push({
+        definition,
+        judge,
+        assertions: manifest.cases[caseId].assertions,
+      });
       if (judge === "script") {
-        const scriptDir = join(root, "evals/fixtures/scripts");
+        const scriptDir = join(root, "evals/scripts");
         await mkdir(scriptDir, { recursive: true });
-        const script = join(scriptDir, `${caseId.toLowerCase()}.sh`);
-        const checks = JSON.stringify(definition.deterministicChecks);
+        const script = join(scriptDir, `${caseId.toLowerCase()}.py`);
+        const selectedTruth = Object.fromEntries(
+          definition.deterministicChecks
+            .filter((c) => c.expectedMaterialId)
+            .map((c) => {
+              if (!truth[c.expectedMaterialId!])
+                throw new Error("Unknown expected material");
+              return [c.expectedMaterialId!, truth[c.expectedMaterialId!]];
+            }),
+        );
+        const harness = await readFile(
+          new URL(
+            "../../../packages/core/src/judge-harness.py",
+            import.meta.url,
+          ),
+          "utf8",
+        );
+        const specification = JSON.stringify({
+          assertions,
+          checks: definition.deterministicChecks,
+          truth: selectedTruth,
+        });
         await writeFile(
           script,
-          `#!/usr/bin/env python3
-import json
-import os
-import sys
-
-text = os.environ.get("EVAL_FINAL_MESSAGE", "")
-checks = json.loads(${JSON.stringify(checks)})
-failures = []
-for check in checks:
-    kind = check["kind"]
-    value = check["value"]
-    passed = (
-        text == value if kind == "equals" else
-        value in text if kind == "contains" else
-        value not in text
-    )
-    if not passed:
-        failures.append({"kind": kind, "value": value})
-if failures:
-    print(json.dumps({"passed": False, "failures": failures}, ensure_ascii=False))
-    sys.exit(1)
-print(json.dumps({"passed": True, "checks": len(checks)}))
-`,
+          `#!/usr/bin/env python3\n${harness}\nsys.exit(run_checks(json.loads(${JSON.stringify(specification)})))\n`,
         );
         await chmod(script, 0o755);
       }
@@ -753,15 +877,13 @@ print(json.dumps({"passed": True, "checks": len(checks)}))
     const bundleEntries = [
       "evals/eval.yaml",
       "evals/skilled.manifest.json",
+      ...fixtureEntries,
       ...caseSet.map(
         ({ id: caseId }) => `evals/cases/${caseId.toLowerCase()}.yaml`,
       ),
       ...caseSet
-        .filter(({ judgeType }) => judgeType === "script")
-        .map(
-          ({ id: caseId }) =>
-            `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
-        ),
+        .filter(({ id: caseId }) => manifest.cases[caseId].judge === "script")
+        .map(({ id: caseId }) => `evals/scripts/${caseId.toLowerCase()}.py`),
     ];
     const bundle = join(root, "bundle.zip");
     await createZip(root, bundleEntries, bundle);
@@ -769,10 +891,21 @@ print(json.dumps({"passed": True, "checks": len(checks)}))
     const bytes = await import("node:fs/promises").then((fs) =>
       fs.readFile(bundle),
     );
-    const key = `eval-versions/${id}/bundle.zip`;
+    const key = `eval-versions/${id}/bundles/${sha256(bytes)}.zip`;
     await store.put(key, bytes);
     const checksum = sha256(bytes);
-    await sql`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},generation_notes=${sql.json(generationNotes)},validation=${sql.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: caseSet.length, adapter: process.env.SKILLED_ADAPTER_MODE === "fake" ? "fake" : "codex" })} WHERE id=${id}`;
+    await sql.begin(async (tx) => {
+      const [draft] =
+        await tx`SELECT status FROM eval_versions WHERE id=${id} FOR UPDATE`;
+      if (!draft || draft.status !== "generating")
+        throw new Error("Eval state changed during generation");
+      await tx`DELETE FROM eval_cases WHERE eval_version_id=${id}`;
+      for (const item of pendingCases) {
+        const d = item.definition;
+        await tx`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${id},${d.id},${d.title},${d.coverageGroup},${item.judge},${tx.json(d.provenance)},${tx.json(d.dimensions)},${`evals/cases/${d.id.toLowerCase()}.yaml`},${tx.json(item.assertions)},${tx.json(d)})`;
+      }
+      await tx`UPDATE eval_versions SET status='ready',bundle_key=${key},checksum=${checksum},generation_notes=${tx.json(generationNotes)},validation=${tx.json({ valid: true, validator: "skill-up validate", output: validation.stdout.trim(), cases: caseSet.length, adapter: process.env.SKILLED_ADAPTER_MODE === "fake" ? "fake" : "codex" })} WHERE id=${id}`;
+    });
     await emit(sql, job.id, "artifact_created", { kind: "eval_bundle" });
     await emit(sql, job.id, "completed", {
       resourceId: id,

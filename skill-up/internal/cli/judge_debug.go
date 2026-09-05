@@ -292,9 +292,14 @@ func buildJudgeFromConfig(cfg config.JudgeConfig, mockResults []judge.CriterionR
 		if cfg.ScriptPath == "" {
 			return nil, errors.New("script judge requires script_path")
 		}
+		timeoutSeconds := 0
+		if cfg.TimeoutSeconds != nil {
+			timeoutSeconds = *cfg.TimeoutSeconds
+		}
 		return &judge.ScriptJudge{
 			ScriptPath:     cfg.ScriptPath,
 			TranscriptPath: transcriptPath,
+			TimeoutSeconds: timeoutSeconds,
 		}, nil
 	case "agent_judge":
 		return buildMockAgentJudge(cfg, mockResults)

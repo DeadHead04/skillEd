@@ -4,25 +4,13 @@ import {
   emit,
   extractZip,
   type Db,
+  unifiedFilePatch,
+  sha256,
 } from "@skilled/core";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { z } from "zod";
 import { codexAppServer } from "./app-server.js";
-
-function unifiedPatch(changes: Array<Record<string, any>>) {
-  return changes
-    .map(
-      (change) =>
-        `--- a/${change.path}\n+++ b/${change.path}\n@@ proposed ${change.action} @@\n${String(
-          change.content,
-        )
-          .split("\n")
-          .map((line) => `+${line}`)
-          .join("\n")}\n`,
-    )
-    .join("\n");
-}
 
 export async function generateProposal(sql: Db, job: Record<string, any>) {
   const [proposal] =
@@ -41,7 +29,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
   await rm(cwd, { recursive: true, force: true });
   await mkdir(cwd, { recursive: true });
   if (process.env.SKILLED_ADAPTER_MODE === "fake") {
-    await extractZip(store.path(proposal.installable_key), cwd);
+    await extractZip(await store.materialize(proposal.installable_key), cwd);
     const skillPath = join(cwd, proposal.selected_root, "SKILL.md");
     const current = await readFile(skillPath, "utf8");
     output = UpdateProposalOutputSchema.parse({
@@ -65,7 +53,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
   } else {
     await mkdir(join(cwd, "base-skill"), { recursive: true });
     await extractZip(
-      store.path(proposal.installable_key),
+      await store.materialize(proposal.installable_key),
       join(cwd, "base-skill"),
     );
     await mkdir(join(cwd, ".agents/skills"), { recursive: true });
@@ -96,6 +84,9 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
       z.toJSONSchema(UpdateProposalOutputSchema),
       conversation.codex_thread_id,
       {
+        recoveryContext: JSON.stringify(
+          await sql`SELECT role,content FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
+        ),
         onThread: async (threadId) => {
           await sql`UPDATE conversations SET codex_thread_id=${threadId},updated_at=now() WHERE id=${conversation.id}`;
         },
@@ -110,10 +101,14 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     );
     output = UpdateProposalOutputSchema.parse(turn.structured);
   }
-  const patch = unifiedPatch(output.skillChanges);
-  const skillKey = `proposals/${proposal.id}/skill.patch`;
+  const baseRoot =
+    process.env.SKILLED_ADAPTER_MODE === "fake"
+      ? join(cwd, proposal.selected_root)
+      : join(cwd, "base-skill", proposal.selected_root);
+  const patch = await unifiedFilePatch(baseRoot, output.skillChanges);
+  const skillKey = `proposals/${proposal.id}/${sha256(patch)}/skill.patch`;
   const evalKey = output.evalChanges.length
-    ? `proposals/${proposal.id}/eval.patch.json`
+    ? `proposals/${proposal.id}/${sha256(JSON.stringify(output.evalChanges))}/eval.patch.json`
     : null;
   await store.put(skillKey, Buffer.from(patch));
   if (evalKey)

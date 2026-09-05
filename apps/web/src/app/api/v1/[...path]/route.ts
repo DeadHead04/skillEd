@@ -1,5 +1,10 @@
+import { remapCaseMaterials } from "@skilled/core";
 import {
   ArtifactStore,
+  TOOLCHAIN_CAPABILITIES,
+  unsupportedRequirements,
+  AuthoringRevisionSchema,
+  GeneratedEvalCaseSchema,
   ConversationMessageSchema,
   EvalAnswersSchema,
   RunLaunchSchema,
@@ -13,13 +18,25 @@ import {
   problem,
   readZipEntry,
   sha256,
+  type Db,
+  inTransaction,
+  recordDecision,
+  MaterialKindSchema,
+  parseSkillMetadata,
+  excludedPackagePath,
+  applyFileChanges,
+  packageFiles,
+  type FileChange,
 } from "@skilled/core";
-import Busboy from "busboy";
-import { createWriteStream } from "node:fs";
+import { multipart } from "../../../../lib/multipart";
+import { mutation } from "../../../../lib/mutation";
+
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
-import { Readable } from "node:stream";
+
 import { reconstructRunStatus } from "../../../../lib/run-progress";
 
 export const runtime = "nodejs";
@@ -38,58 +55,9 @@ const fail = (
 ) => json(problem(code, title, detail, retryable, field), status);
 type Context = { params: Promise<{ path: string[] }> };
 
-async function multipart(request: Request) {
-  const directory = await mkdtemp(join(tmpdir(), "skilled-upload-"));
-  const files: {
-    field: string;
-    filename: string;
-    path: string;
-    mime: string;
-  }[] = [];
-  const fields: Record<string, string> = {};
-  await new Promise<void>((done, reject) => {
-    const bb = Busboy({
-      headers: Object.fromEntries(request.headers),
-      limits: { fileSize: 100 * 1024 * 1024, files: 30, fields: 30 },
-    });
-    bb.on("file", (field, stream, info) => {
-      const path = join(
-        directory,
-        `${crypto.randomUUID()}-${basename(info.filename)}`,
-      );
-      files.push({
-        field,
-        filename: basename(info.filename),
-        path,
-        mime: info.mimeType,
-      });
-      stream.pipe(createWriteStream(path));
-      stream.on("limit", () => reject(new Error("Upload exceeds 100 MiB")));
-    });
-    bb.on("field", (name, value) => {
-      fields[name] = value;
-    });
-    bb.on("finish", done);
-    bb.on("error", reject);
-    Readable.fromWeb(request.body as never).pipe(bb);
-  });
-  return { directory, files, fields };
-}
-function parseFrontmatter(text: string) {
-  const head = text.match(/^---\s*\n([\s\S]*?)\n---/);
-  const source = head?.[1] ?? "";
-  return {
-    name:
-      source.match(/^name:\s*["']?([^\n"']+)/m)?.[1]?.trim() ??
-      "Uploaded Skill",
-    description:
-      source.match(/^description:\s*["']?([^\n"']+)/m)?.[1]?.trim() ?? "",
-  };
-}
-const excluded = (path: string) =>
-  /(^|\/)(evals?|runs?|outputs?|test-results|\.git|\.svn|\.hg|\.env|auth\.json|__MACOSX|node_modules)(\/|$)/i.test(
-    path,
-  ) || /(^|\/)(\.DS_Store|.*\.tmp)$/.test(path);
+const parseFrontmatter = parseSkillMetadata;
+const excluded = excludedPackagePath;
+
 /** A normalised URL can leave a non-id segment where an id belongs; that is a
  * miss, not a server error. */
 const isId = (value: string | undefined) =>
@@ -100,6 +68,7 @@ export async function GET(request: Request, context: Context) {
   await ready;
   const { path } = await context.params;
   try {
+    if (path[0] === "capabilities") return json(TOOLCHAIN_CAPABILITIES);
     if (path[0] === "health") {
       const [dbNow] = await sql`SELECT now()`,
         [worker] =
@@ -109,6 +78,10 @@ export async function GET(request: Request, context: Context) {
         : Infinity;
       return json({
         status: dbNow && age < 30_000 ? "ready" : "degraded",
+        execution:
+          age < 30_000
+            ? (worker?.readiness?.execution ?? "blocked")
+            : "blocked",
         database: "ready",
         worker: worker
           ? {
@@ -126,8 +99,8 @@ export async function GET(request: Request, context: Context) {
     if (path[0] === "skill" && path[1] === "current") {
       const skillId = new URL(request.url).searchParams.get("skill");
       const [skill] = skillId
-        ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id WHERE s.id=${skillId}`
-        : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC LIMIT 1`;
+        ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) WHERE s.id=${skillId}`
+        : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC LIMIT 1`;
       if (!skill) return json(null);
       return json(skill);
     }
@@ -158,7 +131,9 @@ export async function GET(request: Request, context: Context) {
         ? `${version.selected_root}/${entryPath}`
         : entryPath;
       try {
-        return json(await readZipEntry(store.path(key), inArchive));
+        return json(
+          await readZipEntry(await store.materialize(key), inArchive),
+        );
       } catch (cause) {
         return fail(
           "NOT_FOUND",
@@ -186,7 +161,10 @@ export async function GET(request: Request, context: Context) {
         );
       try {
         return json(
-          await readZipEntry(store.path(evaluation.bundle_key), entryPath),
+          await readZipEntry(
+            await store.materialize(evaluation.bundle_key),
+            entryPath,
+          ),
         );
       } catch (cause) {
         return fail(
@@ -218,13 +196,35 @@ export async function GET(request: Request, context: Context) {
       const original =
         new URL(request.url).searchParams.get("kind") === "original";
       const key = original ? version.original_key : version.installable_key;
-      const bytes = await readFile(store.path(key));
+      const bytes = await readFile(await store.materialize(key));
       return new Response(bytes, {
         headers: {
           "content-type": "application/zip",
-          "content-disposition": `attachment; filename="${version.name}-v${version.version}.zip"`,
+          "content-disposition": `attachment; filename="${String(version.name).replace(/[^A-Za-z0-9._-]/g, "_")}-v${version.version}.zip"`,
         },
       });
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "materials" && path[3]) {
+      const [file] =
+        await sql`SELECT * FROM eval_files WHERE id=${path[3]} AND eval_version_id=${path[1]}`;
+      if (!file?.artifact_key)
+        return fail("NOT_FOUND", "Material not found", "", 404);
+      const safeName = String(file.filename).replace(/[^A-Za-z0-9._-]/g, "_");
+      const preview = /\.(txt|csv|md|json|yaml|yml)$/i.test(safeName);
+      return new Response(
+        Readable.toWeb(
+          createReadStream(await store.materialize(file.artifact_key)),
+        ) as ReadableStream,
+        {
+          headers: {
+            "content-type": preview
+              ? "text/plain; charset=utf-8"
+              : "application/octet-stream",
+            "x-content-type-options": "nosniff",
+            "content-disposition": `${preview ? "inline" : "attachment"}; filename="${safeName}"`,
+          },
+        },
+      );
     }
     if (path[0] === "evals" && path[1]) {
       let id = path[1];
@@ -247,7 +247,7 @@ export async function GET(request: Request, context: Context) {
     }
     if (path[0] === "runs" && path[1] && path[2] === "status") {
       const [run] =
-        await sql`SELECT id,status,baseline,iterations,job_id,created_at,started_at,completed_at,eval_version_id FROM runs WHERE id=${path[1]}`;
+        await sql`SELECT id,status,baseline,iterations,settings,job_id,created_at,started_at,completed_at,eval_version_id FROM runs WHERE id=${path[1]}`;
       if (!run) return fail("NOT_FOUND", "Run not found", "", 404);
       const cases =
         await sql`SELECT case_id FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND enabled=true ORDER BY case_id`;
@@ -259,15 +259,51 @@ export async function GET(request: Request, context: Context) {
       return json(
         reconstructRunStatus(
           run as any,
-          cases.map((item) => String(item.case_id)),
+          cases
+            .map((item) => String(item.case_id))
+            .filter(
+              (id) =>
+                !Array.isArray(run.settings?.selectedCaseIds) ||
+                run.settings.selectedCaseIds.includes(id),
+            ),
           events as any,
           results as any,
         ),
       );
     }
+    if (path[0] === "runs" && path[1] && path[2] === "artifact") {
+      const key = new URL(request.url).searchParams.get("key");
+      if (!key)
+        return fail("MISSING_ARTIFACT", "Artifact key is required", "", 400);
+      const entries =
+        await sql`SELECT artifacts FROM case_results WHERE run_id=${path[1]}`;
+      const artifact = entries
+        .flatMap((row) => row.artifacts ?? [])
+        .find((item: any) => item.key === key);
+      if (!artifact)
+        return fail(
+          "NOT_FOUND",
+          "Artifact is not referenced by this run",
+          "",
+          404,
+        );
+      const filename = basename(key).replace(/[^A-Za-z0-9._-]/g, "_");
+      return new Response(
+        Readable.toWeb(
+          createReadStream(await store.materialize(key)),
+        ) as ReadableStream,
+        {
+          headers: {
+            "content-type": artifact.mediaType,
+            "x-content-type-options": "nosniff",
+            "content-disposition": `attachment; filename="${filename}"`,
+          },
+        },
+      );
+    }
     if (path[0] === "runs" && path[1] && path[2] === "download") {
       const [run] =
-        await sql`SELECT raw_report_key FROM runs WHERE id=${path[1]} AND status='completed'`;
+        await sql`SELECT raw_report_key FROM runs WHERE id=${path[1]}`;
       if (!run?.raw_report_key)
         return fail(
           "NOT_READY",
@@ -275,7 +311,7 @@ export async function GET(request: Request, context: Context) {
           "The run has no completed raw report bundle.",
           409,
         );
-      const bytes = await readFile(store.path(run.raw_report_key));
+      const bytes = await readFile(await store.materialize(run.raw_report_key));
       return new Response(bytes, {
         headers: {
           "content-type": "application/zip",
@@ -315,9 +351,9 @@ export async function GET(request: Request, context: Context) {
       if (!p) return fail("NOT_FOUND", "Proposal not found", "", 404);
       let skillPatch = "";
       if (p.skill_patch_key)
-        skillPatch = (await readFile(store.path(p.skill_patch_key))).toString(
-          "utf8",
-        );
+        skillPatch = (
+          await readFile(await store.materialize(p.skill_patch_key))
+        ).toString("utf8");
       return json({ ...p, skillPatch });
     }
     if (path[0] === "jobs" && path[1] && path[2] !== "events") {
@@ -331,36 +367,52 @@ export async function GET(request: Request, context: Context) {
             new URL(request.url).searchParams.get("after") ??
             0,
         );
+      if (!Number.isSafeInteger(last) || last < 0)
+        return fail("INVALID_CURSOR", "Invalid event cursor", "", 400);
       const encoder = new TextEncoder();
+      let closed = false;
       const stream = new ReadableStream({
         async start(controller) {
-          let cursor = last,
-            closed = false;
+          let cursor = last;
           const close = () => {
             if (!closed) {
               closed = true;
               controller.close();
             }
           };
-          request.signal.addEventListener("abort", close);
-          for (let cycles = 0; cycles < 600 && !closed; cycles++) {
-            const events =
-              await sql`SELECT sequence,type,data,occurred_at FROM job_events WHERE job_id=${jobId} AND sequence>${cursor} ORDER BY sequence`;
-            for (const event of events) {
-              cursor = Number(event.sequence);
-              controller.enqueue(
-                encoder.encode(
-                  `id: ${cursor}\ndata: ${JSON.stringify({ id: cursor, jobId, type: event.type, occurredAt: new Date(event.occurred_at).toISOString(), data: event.data })}\n\n`,
-                ),
-              );
-              if (event.type === "completed" || event.type === "failed") {
-                close();
-                return;
+          request.signal.addEventListener("abort", close, { once: true });
+          try {
+            for (let cycles = 0; cycles < 300 && !closed; cycles++) {
+              // Disconnect slow readers; EventSource reconnects from its durable cursor.
+              if ((controller.desiredSize ?? 0) < -250) break;
+              const events =
+                await sql`SELECT sequence,type,data,occurred_at FROM job_events WHERE job_id=${jobId} AND sequence>${cursor} ORDER BY sequence LIMIT 250`;
+              for (const event of events) {
+                if (closed) return;
+                cursor = Number(event.sequence);
+                controller.enqueue(
+                  encoder.encode(
+                    `id: ${cursor}\ndata: ${JSON.stringify({ id: cursor, jobId, type: event.type, occurredAt: new Date(event.occurred_at).toISOString(), data: event.data })}\n\n`,
+                  ),
+                );
+                if (
+                  ["completed", "failed", "cancelled", "interrupted"].includes(
+                    event.type,
+                  )
+                )
+                  return;
               }
+              await new Promise((r) => setTimeout(r, 1000));
             }
-            await new Promise((r) => setTimeout(r, 500));
+          } catch {
+            /* A reconnect replays committed events after a transient database failure. */
+          } finally {
+            request.signal.removeEventListener("abort", close);
+            close();
           }
-          close();
+        },
+        cancel() {
+          closed = true;
         },
       });
       return new Response(stream, {
@@ -389,12 +441,140 @@ export async function GET(request: Request, context: Context) {
 }
 
 export async function POST(request: Request, context: Context) {
+  return mutation(request, (tx) => post(request, context, tx));
+}
+async function post(request: Request, context: Context, sql: Db) {
   await ready;
   const { path } = await context.params;
   try {
+    if (
+      path[0] === "updates" &&
+      path[1] &&
+      path[1] !== "generate" &&
+      request.headers.get("content-type")?.includes("application/json")
+    ) {
+      const input = await request.clone().json();
+      if (input.expectedRevision !== undefined) {
+        const [proposal] =
+          await sql`SELECT revision FROM update_proposals WHERE id=${path[1]} FOR UPDATE`;
+        if (
+          !proposal ||
+          Number(proposal.revision) !== Number(input.expectedRevision)
+        )
+          return fail(
+            "STALE_REVISION",
+            "Proposal changed",
+            "Refresh and review the latest proposal",
+            409,
+          );
+      }
+    }
+    if (
+      path[0] === "evals" &&
+      path[1] &&
+      request.headers.get("content-type")?.includes("application/json")
+    ) {
+      const input = await request.clone().json();
+      if (input.expectedRevision !== undefined) {
+        const [revision] =
+          await sql`SELECT revision FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
+        if (
+          !revision ||
+          Number(input.expectedRevision) !== Number(revision.revision)
+        )
+          return fail(
+            "STALE_REVISION",
+            "Evaluation changed",
+            "Refresh and review the latest revision before continuing",
+            409,
+          );
+      }
+    }
+    if (path[0] === "jobs" && path[1] && path[2] === "cancel") {
+      const rows =
+        await sql`UPDATE jobs SET cancel_requested_at=now() WHERE id=${path[1]} AND status IN ('queued','running') RETURNING resource_id`;
+      return json({ resourceId: rows[0]?.resource_id ?? path[1] });
+    }
+    if (path[0] === "evals" && path.length === 1) {
+      const input = await request.json();
+      const [version] =
+        await sql`SELECT id FROM skill_versions WHERE id=${String(input.skillVersionId)}`;
+      if (!version)
+        return fail("NOT_FOUND", "Skill version not found", "", 404);
+      const id = crypto.randomUUID();
+      await sql`INSERT INTO eval_versions(id,skill_version_id,status) VALUES(${id},${version.id},'collecting')`;
+      if (input.taskDescription)
+        await sql`INSERT INTO eval_files(eval_version_id,kind,filename,metadata) VALUES(${id},'task','task-description.txt',${sql.json({ text: String(input.taskDescription).slice(0, 100_000) })})`;
+      return json({ resourceId: id }, 201);
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "clone") {
+      const [source] =
+        await sql`SELECT * FROM eval_versions WHERE id=${path[1]} FOR SHARE`;
+      if (!source) return fail("NOT_FOUND", "Evaluation not found", "", 404);
+      const id = crypto.randomUUID();
+      await sql`INSERT INTO eval_versions(id,skill_version_id,status,evidence_level,task_understanding,coverage_plan,answers,questions) VALUES(${id},${source.skill_version_id},'collecting',${source.evidence_level},${sql.json(source.task_understanding)},${sql.json(source.coverage_plan)},${sql.json(source.answers)},${sql.json(source.questions)})`;
+      await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) SELECT ${id},kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${source.id}`;
+      await recordDecision(
+        sql,
+        request.headers.get("x-skilled-user-id"),
+        id,
+        "clone_eval",
+        { sourceEvalId: source.id },
+      );
+      return json({ resourceId: id }, 201);
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "materials") {
+      const [draft] =
+        await sql`SELECT status,revision FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
+      if (
+        !draft ||
+        ![
+          "collecting",
+          "awaiting_answers",
+          "awaiting_plan_approval",
+          "ready",
+          "failed",
+        ].includes(draft.status)
+      )
+        return fail(
+          "IMMUTABLE_EVAL",
+          "Materials cannot change now",
+          "Clone an approved evaluation or wait for its active job",
+          409,
+        );
+      const upload = await multipart(request);
+      try {
+        if (
+          upload.fields.expectedRevision &&
+          Number(upload.fields.expectedRevision) !== Number(draft.revision)
+        )
+          return fail(
+            "STALE_REVISION",
+            "Evaluation changed",
+            "Refresh before changing materials",
+            409,
+          );
+        for (const file of upload.files) {
+          const kind = MaterialKindSchema.parse(
+            upload.fields[`kind:${file.filename}`] ?? "dataset",
+          );
+          const key = `eval-versions/${path[1]}/inputs/${crypto.randomUUID()}-${file.filename}`;
+          const saved = await store.putFile(key, file.path);
+          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) VALUES(${path[1]},${kind},${file.filename},${key},${sql.json({ mime: file.mime, checksum: saved.checksum })})`;
+        }
+        await sql`UPDATE eval_versions SET status='collecting',revision=revision+1,validation='{}' WHERE id=${path[1]}`;
+        return json({ resourceId: path[1] }, 201);
+      } finally {
+        await rm(upload.directory, { recursive: true, force: true });
+      }
+    }
     if (path[0] === "skill" && path[1] === "upload") {
       const upload = await multipart(request);
       try {
+        for (const file of upload.files.filter((f) => f.field === "taskFile"))
+          MaterialKindSchema.parse(
+            upload.fields[`kind:${file.filename}`] ?? "dataset",
+          );
         const zip = upload.files.find((f) => f.field === "skill");
         if (!zip)
           return fail(
@@ -432,57 +612,63 @@ export async function POST(request: Request, context: Context) {
         const metadata = parseFrontmatter(
           await readFile(join(extracted, root, "SKILL.md"), "utf8"),
         );
-        const [existingSkill] =
-          await sql`SELECT * FROM skills WHERE name=${metadata.name}`;
-        const [duplicate] =
-          await sql`SELECT * FROM skill_versions WHERE checksum=${inspected.checksum}`;
-        if (duplicate) {
-          const [existingEval] =
-            await sql`SELECT id FROM eval_versions WHERE skill_version_id=${duplicate.id} ORDER BY created_at DESC LIMIT 1`;
-          return json(
-            {
-              jobId: null,
-              resourceId: duplicate.id,
-              skillId: duplicate.skill_id,
-              evalId: existingEval?.id,
-              identical: true,
-            },
-            200,
+        const targetSkillId = upload.fields.skillId;
+        const [existingSkill] = targetSkillId
+          ? await sql`SELECT * FROM skills WHERE id=${targetSkillId}`
+          : await sql`SELECT * FROM skills WHERE name=${metadata.name}`;
+        if (targetSkillId && !existingSkill)
+          return fail(
+            "NOT_FOUND",
+            "Skill not found",
+            "Choose an existing package",
+            404,
           );
-        }
+        if (!targetSkillId && existingSkill)
+          return fail(
+            "PACKAGE_EXISTS",
+            "Package already exists",
+            "Open this package and use Upload new version, or give the new package a different name.",
+            409,
+          );
         const skillId = existingSkill?.id ?? crypto.randomUUID();
         if (!existingSkill)
           await sql`INSERT INTO skills(id,name) VALUES(${skillId},${metadata.name})`;
-        const versionRows =
-          await sql`SELECT COALESCE(max(version),0)+1 next FROM skill_versions WHERE skill_id=${skillId}`;
-        const next = versionRows[0]?.next;
-        if (!next) throw new Error("Could not allocate Skill version");
-        const versionId = crypto.randomUUID();
-        const originalKey = `skill-versions/${versionId}/original.zip`,
-          installableKey = `skill-versions/${versionId}/installable.zip`;
-        await store.put(originalKey, await readFile(zip.path));
-        const included = inspected.entries
-          .filter(
-            (e) =>
-              !e.directory &&
-              e.path.startsWith(root ? `${root}/` : "") &&
-              !excluded(e.path),
-          )
-          .map((e) => e.path);
-        const installablePath = join(upload.directory, "installable.zip");
-        await createZip(extracted, included, installablePath);
-        await store.put(installableKey, await readFile(installablePath));
-        const manifest = {
-          entries: included.map((p) => ({
-            path: root ? relative(root, p) : p,
-            size: inspected.entries.find((e) => e.path === p)?.size ?? 0,
-          })),
-          excluded: inspected.entries
-            .filter((e) => excluded(e.path))
-            .map((e) => e.path),
-        };
-        await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key) VALUES(${versionId},${skillId},${Number(next)},${metadata.name},${metadata.description},${root},${sql.json(inspected.roots)},${sql.json(manifest)},${sql.json({ ready: true, findings: [], runtimes: ["node24", "python3.12", "go1.25"] })},'ready',${inspected.checksum},${originalKey},${installableKey})`;
-        await sql`UPDATE skills SET active_version_id=${versionId},updated_at=now() WHERE id=${skillId}`;
+        const [duplicate] =
+          await sql`SELECT * FROM skill_versions WHERE skill_id=${skillId} AND checksum=${inspected.checksum} AND selected_root=${root} AND normalization_version='skilled-package-v2'`;
+        const versionId = duplicate?.id ?? crypto.randomUUID();
+        if (!duplicate) {
+          const [versionRow] =
+            await sql`SELECT COALESCE(max(version),0)+1 next FROM skill_versions WHERE skill_id=${skillId}`;
+          const next = Number(versionRow!.next);
+          const originalKey = `skill-versions/${versionId}/original.zip`,
+            installableKey = `skill-versions/${versionId}/installable.zip`;
+          await store.putFile(originalKey, zip.path);
+          const included = inspected.entries
+            .filter(
+              (e) =>
+                !e.directory &&
+                e.path.startsWith(root ? `${root}/` : "") &&
+                !excluded(e.path),
+            )
+            .map((e) => e.path);
+          const installablePath = join(upload.directory, "installable.zip");
+          await createZip(extracted, included, installablePath);
+          const installed = await store.putFile(
+            installableKey,
+            installablePath,
+          );
+          const manifest = {
+            entries: included.map((p) => ({
+              path: root ? relative(root, p) : p,
+              size: inspected.entries.find((e) => e.path === p)?.size ?? 0,
+            })),
+            excluded: inspected.entries
+              .filter((e) => excluded(e.path))
+              .map((e) => e.path),
+          };
+          await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key,installable_checksum,normalization_version) VALUES(${versionId},${skillId},${Number(next)},${metadata.name},${metadata.description},${root},${sql.json(inspected.roots)},${sql.json(manifest)},${sql.json({ ready: true, findings: [], checks: ["archive", "frontmatter"], execution: "not_checked" })},'ready',${inspected.checksum},${originalKey},${installableKey},${installed.checksum},'skilled-package-v2')`;
+          // Activation is separate from intake, including the first version.
+        }
         const evalId = crypto.randomUUID();
         const kinds = [
           "task",
@@ -495,8 +681,8 @@ export async function POST(request: Request, context: Context) {
           await sql`INSERT INTO eval_files(eval_version_id,kind,filename,metadata) VALUES(${evalId},'task','task-description.txt',${sql.json({ text: upload.fields.taskDescription })})`;
         for (const file of upload.files.filter((f) => f.field === "taskFile")) {
           const key = `eval-versions/${evalId}/inputs/${crypto.randomUUID()}-${file.filename}`;
-          await store.put(key, await readFile(file.path));
-          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) VALUES(${evalId},${upload.fields[`kind:${file.filename}`] ?? "dataset"},${file.filename},${key},${sql.json({ mime: file.mime })})`;
+          const savedMaterial = await store.putFile(key, file.path);
+          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) VALUES(${evalId},${upload.fields[`kind:${file.filename}`] ?? "dataset"},${file.filename},${key},${sql.json({ mime: file.mime, checksum: savedMaterial.checksum })})`;
         }
         return json(
           {
@@ -504,7 +690,7 @@ export async function POST(request: Request, context: Context) {
             resourceId: versionId,
             skillId,
             evalId,
-            identical: false,
+            identical: Boolean(duplicate),
           },
           201,
         );
@@ -514,6 +700,24 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "evals" && path[1] && path[2] === "author") {
       const evalId = path[1];
+      const [authorTarget] =
+        await sql`SELECT status FROM eval_versions WHERE id=${evalId} FOR UPDATE`;
+      if (
+        !authorTarget ||
+        ![
+          "collecting",
+          "failed",
+          "awaiting_answers",
+          "awaiting_plan_approval",
+          "ready",
+        ].includes(authorTarget.status)
+      )
+        return fail(
+          "IMMUTABLE_EVAL",
+          "Clone this evaluation first",
+          "Approved evaluations cannot be authored again",
+          409,
+        );
       const [existing] =
         await sql`SELECT id FROM conversations WHERE kind='eval_authoring' AND resource_id=${evalId} ORDER BY created_at DESC LIMIT 1`;
       const conversationId = existing?.id ?? crypto.randomUUID();
@@ -558,7 +762,7 @@ export async function POST(request: Request, context: Context) {
         await sql`SELECT id FROM conversations WHERE resource_id=${path[1]} AND kind='eval_authoring' ORDER BY created_at DESC LIMIT 1`;
       if (!conversation)
         return fail("NOT_FOUND", "Conversation not found", "", 404);
-      await sql.begin(async (tx) => {
+      await inTransaction(sql, async (tx) => {
         await tx`UPDATE eval_versions SET answers=${tx.json(input.answers)},status='planning' WHERE id=${path[1]!}`;
         await tx`INSERT INTO conversation_messages(conversation_id,role,content,structured) VALUES(${conversation.id},'user',${Object.entries(
           input.answers,
@@ -584,6 +788,51 @@ export async function POST(request: Request, context: Context) {
       });
       return json({ jobId, resourceId: path[1] }, 202);
     }
+    if (path[0] === "evals" && path[1] && path[2] === "apply-revision") {
+      const input = await request.json();
+      const [draft] =
+        await sql`SELECT status,revision FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
+      if (
+        !draft ||
+        ![
+          "ready",
+          "failed",
+          "awaiting_answers",
+          "awaiting_plan_approval",
+        ].includes(draft.status)
+      )
+        return fail(
+          "IMMUTABLE_EVAL",
+          "Revision cannot be applied",
+          "Clone an approved evaluation or wait for the current operation",
+          409,
+        );
+      const [message] =
+        await sql`SELECT m.structured FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE m.id=${String(input.messageId)} AND c.resource_id=${path[1]} AND c.kind='eval_authoring' AND m.completed=true AND m.role='assistant'`;
+      const proposed = AuthoringRevisionSchema.parse(message?.structured);
+      if (!proposed.revision)
+        return fail("NO_REVISION", "No structured revision", "", 400);
+      const total = proposed.revision.plan.groups.reduce(
+        (sum, group) => sum + group.caseCount,
+        0,
+      );
+      if (total < 1 || total > 50)
+        return fail(
+          "COVERAGE_LIMIT",
+          "Coverage must fit the pilot limit",
+          "Choose between 1 and 50 cases before applying the revision",
+          409,
+        );
+      await sql`UPDATE eval_versions SET task_understanding=${sql.json(proposed.revision.understanding)},coverage_plan=${sql.json(proposed.revision.plan)},revision=revision+1,status='awaiting_plan_approval',validation='{}' WHERE id=${path[1]}`;
+      await recordDecision(
+        sql,
+        request.headers.get("x-skilled-user-id"),
+        path[1],
+        "apply_eval_revision",
+        { messageId: input.messageId, revision: draft.revision },
+      );
+      return json({ resourceId: path[1] });
+    }
     if (path[0] === "evals" && path[1] && path[2] === "approve-plan") {
       const [id] =
         await sql`UPDATE eval_versions SET status='generating' WHERE id=${path[1]} AND status='awaiting_plan_approval' RETURNING id`;
@@ -599,7 +848,7 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "evals" && path[1] && path[2] === "retry") {
       const [row] =
-        await sql`UPDATE eval_versions SET status='generating',validation='{}' WHERE id=${path[1]} AND status IN ('failed','generating') RETURNING id`;
+        await sql`UPDATE eval_versions SET status='generating',validation='{}' WHERE id=${path[1]} AND status='failed' RETURNING id`;
       if (!row)
         return fail(
           "INVALID_TRANSITION",
@@ -615,6 +864,14 @@ export async function POST(request: Request, context: Context) {
     if (path[0] === "evals" && path[1] && path[2] === "approve") {
       const [row] =
         await sql`UPDATE eval_versions target SET status='approved',version=(SELECT COALESCE(max(other.version),0)+1 FROM eval_versions other JOIN skill_versions other_sv ON other_sv.id=other.skill_version_id WHERE other.version IS NOT NULL AND other_sv.skill_id=(SELECT target_sv.skill_id FROM skill_versions target_sv WHERE target_sv.id=target.skill_version_id)),approved_at=now() WHERE target.id=${path[1]} AND target.status='ready' AND (target.validation->>'valid')::boolean=true RETURNING target.id`;
+      if (row)
+        await recordDecision(
+          sql,
+          request.headers.get("x-skilled-user-id"),
+          row.id,
+          "approve_eval",
+          { evalId: row.id },
+        );
       return row
         ? json({ resourceId: row.id, status: "approved" })
         : fail(
@@ -627,18 +884,45 @@ export async function POST(request: Request, context: Context) {
     if (path[0] === "runs" && path[1] === "launch") {
       const input = RunLaunchSchema.parse(await request.json());
       const [sv] =
-        await sql`SELECT checksum FROM skill_versions WHERE id=${input.skillVersionId}`;
+        await sql`SELECT checksum,installable_checksum,skill_id FROM skill_versions WHERE id=${input.skillVersionId}`;
       const [ev] =
-        await sql`SELECT checksum,status FROM eval_versions WHERE id=${input.evalVersionId}`;
-      if (!sv || !ev || ev.status !== "approved")
+        await sql`SELECT ev.checksum,ev.status,ev.task_understanding,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE ev.id=${input.evalVersionId}`;
+      if (!sv || !ev || ev.status !== "approved" || sv.skill_id !== ev.skill_id)
         return fail(
           "NOT_READY",
           "Approved eval and Skill required",
           "Approve the eval before launching.",
           409,
         );
+      const unsupported = unsupportedRequirements(
+        ev.task_understanding?.dependencies,
+      );
+      if (process.env.SKILLED_ADAPTER_MODE !== "fake" && unsupported.length)
+        return fail(
+          "UNSUPPORTED_RUNTIME",
+          "Runtime requirements are unavailable",
+          `This installation cannot provide: ${unsupported.join(", ")}. Review the capability manifest and revise the task.`,
+          409,
+        );
+      const approvedCases =
+        await sql`SELECT case_id FROM eval_cases WHERE eval_version_id=${input.evalVersionId} AND enabled=true ORDER BY case_id`;
+      const selectedCaseIds =
+        input.selectedCaseIds ?? approvedCases.map((c) => String(c.case_id));
+      if (
+        !selectedCaseIds.length ||
+        new Set(selectedCaseIds).size !== selectedCaseIds.length ||
+        selectedCaseIds.some(
+          (id) => !approvedCases.some((c) => c.case_id === id),
+        )
+      )
+        return fail(
+          "INVALID_CASE_SELECTION",
+          "Select approved cases",
+          "The run must contain unique enabled cases from this evaluation",
+          400,
+        );
       const runId = crypto.randomUUID();
-      await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,baseline,iterations) VALUES(${runId},${input.skillVersionId},${input.evalVersionId},${input.model},${sql.json({ parallelism: 1, retries: { correctness: 0, transient: 1 }, environment: "none" })},${sv.checksum},${ev.checksum},${input.baseline},${input.iterations})`;
+      await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,baseline,iterations,provenance_status) VALUES(${runId},${input.skillVersionId},${input.evalVersionId},${input.model},${sql.json({ parallelism: 1, retries: { correctness: 0, transient: 1 }, environment: "none", selectedCaseIds, adapter: process.env.SKILLED_ADAPTER_MODE === "fake" ? "demo" : "real" })},${sv.checksum},${ev.checksum},${input.baseline},${input.iterations},'verified_pipeline')`;
       const jobId = await enqueue(sql, "run", runId, input);
       await sql`UPDATE runs SET job_id=${jobId} WHERE id=${runId}`;
       return json({ jobId, resourceId: runId }, 202);
@@ -655,6 +939,13 @@ export async function POST(request: Request, context: Context) {
       const [run] =
         await sql`SELECT * FROM runs WHERE id=${body.runId} AND status='completed'`;
       if (!run) return fail("NOT_READY", "Completed run required", "", 409);
+      if (run.provenance_status === "legacy_unverified")
+        return fail(
+          "LEGACY_EVIDENCE",
+          "Rerun imported history",
+          "Imported results cannot certify a new improvement. Launch a run through the corrected pipeline first.",
+          409,
+        );
       const proposalId = crypto.randomUUID();
       await sql`INSERT INTO update_proposals(id,source_run_id,base_version_id,eval_version_id) VALUES(${proposalId},${run.id},${run.skill_version_id},${run.eval_version_id})`;
       const conversationId = crypto.randomUUID();
@@ -678,7 +969,7 @@ export async function POST(request: Request, context: Context) {
         await sql`SELECT id FROM conversations WHERE resource_id=${path[1]} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
       if (!conversation)
         return fail("NOT_FOUND", "Conversation not found", "", 404);
-      await sql.begin(async (tx) => {
+      await inTransaction(sql, async (tx) => {
         await tx`INSERT INTO conversation_messages(conversation_id,role,content) VALUES(${conversation.id},'user',${input.message})`;
         await tx`UPDATE update_proposals SET status='generating',updated_at=now() WHERE id=${path[1]!}`;
       });
@@ -706,10 +997,11 @@ export async function POST(request: Request, context: Context) {
       const candidateWork = await mkdtemp(join(tmpdir(), "skilled-candidate-"));
       let candidateChecksum: string,
         candidateKey: string,
-        candidateManifest: any;
+        candidateManifest: any,
+        candidateMetadata: { name: string; description: string };
       try {
         const inspected = await extractZip(
-          store.path(p.installable_key),
+          await store.materialize(p.installable_key),
           candidateWork,
         );
         const skillRoot = resolve(candidateWork, p.selected_root);
@@ -718,41 +1010,14 @@ export async function POST(request: Request, context: Context) {
           /(^|\/)\.\.(\/|$)/.test(p.selected_root)
         )
           throw new Error("Unsafe Skill root");
-        for (const change of p.skill_changes as Array<Record<string, any>>) {
-          const changePath = String(change.path ?? "");
-          const target = resolve(skillRoot, changePath);
-          const rel = relative(skillRoot, target);
-          if (
-            !changePath ||
-            rel.startsWith("..") ||
-            resolve(target) === resolve(skillRoot) ||
-            typeof change.content !== "string" ||
-            Buffer.byteLength(change.content) > 1_000_000
-          )
-            throw new Error(`Unsafe Skill change path: ${changePath}`);
-          if (change.action !== "replace" && change.action !== "create")
-            throw new Error(
-              `Unsupported Skill change action: ${change.action}`,
-            );
-          if (change.action === "replace") await readFile(target);
-          await mkdir(dirname(target), { recursive: true });
-          await writeFile(target, change.content);
-        }
+        candidateMetadata = await applyFileChanges(
+          skillRoot,
+          p.skill_changes as FileChange[],
+        );
         const output = join(candidateWork, "candidate.zip");
-        const entries = [
-          ...inspected.entries
-            .filter(
-              (entry) => !entry.directory && entry.path !== "candidate.zip",
-            )
-            .map((entry) => entry.path),
-          ...(p.skill_changes as Array<Record<string, any>>)
-            .filter((change) => change.action === "create")
-            .map((change) =>
-              p.selected_root
-                ? `${p.selected_root}/${change.path}`
-                : String(change.path),
-            ),
-        ].filter((value, index, all) => all.indexOf(value) === index);
+        const entries = (await packageFiles(skillRoot)).map((file) =>
+          p.selected_root ? `${p.selected_root}/${file}` : file,
+        );
         await createZip(candidateWork, entries, output);
         const bytes = await readFile(output);
         candidateChecksum = sha256(bytes);
@@ -773,7 +1038,7 @@ export async function POST(request: Request, context: Context) {
       } finally {
         await rm(candidateWork, { recursive: true, force: true });
       }
-      await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key,base_version_id) VALUES(${candidate},${p.skill_id},${Number(next)},${p.name},${p.description},${p.selected_root},${sql.json(p.root_candidates)},${sql.json(candidateManifest!)},${sql.json(p.readiness)},'candidate',${candidateChecksum!},${candidateKey!},${candidateKey!},${p.base_version_id})`;
+      await sql`INSERT INTO skill_versions(id,skill_id,version,name,description,selected_root,root_candidates,manifest,readiness,status,checksum,original_key,installable_key,base_version_id,installable_checksum,normalization_version) VALUES(${candidate},${p.skill_id},${Number(next)},${candidateMetadata!.name},${candidateMetadata!.description},${p.selected_root},${sql.json(p.root_candidates)},${sql.json(candidateManifest!)},${sql.json({ ready: true, checks: ["archive", "frontmatter"], execution: "not_checked" })},'candidate',${candidateChecksum!},${candidateKey!},${candidateKey!},${p.base_version_id},${candidateChecksum!},'skilled-package-v2')`;
       let verificationEvalId = p.eval_version_id;
       if (
         input.evalDecision === "approved" &&
@@ -787,95 +1052,69 @@ export async function POST(request: Request, context: Context) {
         const nextEvalRows =
           await sql`SELECT COALESCE(max(ev.version),0)+1 next FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${p.skill_id}`;
         verificationEvalId = crypto.randomUUID();
-        const evalWork = await mkdtemp(
-          join(tmpdir(), "skilled-eval-candidate-"),
+        const sourceCases =
+          await sql`SELECT * FROM eval_cases WHERE eval_version_id=${p.eval_version_id} ORDER BY case_id`;
+        const changes = new Map(
+          (p.eval_changes as Array<Record<string, any>>).map((change) => [
+            change.caseId,
+            change,
+          ]),
         );
-        try {
-          const inspectedEval = await extractZip(
-            store.path(sourceEval.bundle_key),
-            evalWork,
-            { requireSkill: false },
-          );
-          const sourceCases =
-            await sql`SELECT * FROM eval_cases WHERE eval_version_id=${p.eval_version_id} ORDER BY case_id`;
-          const changes = new Map(
-            (p.eval_changes as Array<Record<string, any>>).map((change) => [
-              change.caseId,
-              change,
-            ]),
-          );
-          const manifestPath = resolve(evalWork, "evals/skilled.manifest.json");
-          const derivedManifest = JSON.parse(
-            await readFile(manifestPath, "utf8"),
-          );
-          for (const sourceCase of sourceCases) {
-            const change = changes.get(sourceCase.case_id);
-            if (!change) continue;
-            const yamlFile = resolve(evalWork, sourceCase.yaml_path);
-            if (relative(evalWork, yamlFile).startsWith(".."))
-              throw new Error("Unsafe eval case path");
-            const spec = JSON.parse(await readFile(yamlFile, "utf8"));
-            if (change.prompt) spec.input.prompt = String(change.prompt);
-            if (change.criteria) {
-              spec.judge.criteria = change.criteria;
-              derivedManifest.cases[sourceCase.case_id].assertions =
-                Object.fromEntries(
-                  (change.criteria as string[]).map((criterion, index) => [
-                    criterion,
-                    {
-                      dimension:
-                        sourceCase.required_dimensions[index] ??
-                        sourceCase.required_dimensions[0],
-                      required: true,
-                    },
-                  ]),
-                );
-            }
-            await writeFile(yamlFile, JSON.stringify(spec, null, 2));
-          }
-          await writeFile(
-            manifestPath,
-            JSON.stringify(derivedManifest, null, 2),
-          );
-          const bundle = join(evalWork, "derived-bundle.zip");
-          await createZip(
-            evalWork,
-            inspectedEval.entries
-              .filter((entry) => !entry.directory)
-              .map((entry) => entry.path),
-            bundle,
-          );
-          const bytes = await readFile(bundle);
-          const bundleKey = `eval-versions/${verificationEvalId}/bundle.zip`;
-          await store.put(bundleKey, bytes);
-          await sql`INSERT INTO eval_versions(id,skill_version_id,version,revision,status,evidence_level,task_understanding,coverage_plan,answers,questions,generation_notes,bundle_key,checksum,validation,approved_at) VALUES(${verificationEvalId},${p.base_version_id},${Number(nextEvalRows[0]?.next ?? 1)},1,'approved',${sourceEval.evidence_level},${sql.json(sourceEval.task_understanding)},${sql.json(sourceEval.coverage_plan)},${sql.json(sourceEval.answers)},${sql.json(sourceEval.questions)},${sql.json(sourceEval.generation_notes)},${bundleKey},${sha256(bytes)},${sql.json({ valid: true, derivedFrom: p.eval_version_id, proposalId: p.proposal_id })},now())`;
-          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) SELECT ${verificationEvalId},kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${p.eval_version_id}`;
-          for (const sourceCase of sourceCases) {
-            const change = changes.get(sourceCase.case_id);
-            const source = { ...sourceCase.source };
-            let mapping = sourceCase.assertion_mapping;
-            if (change?.prompt) source.prompt = String(change.prompt);
-            if (change?.criteria) {
-              source.criteria = change.criteria;
-              mapping = Object.fromEntries(
-                (change.criteria as string[]).map((criterion, index) => [
-                  criterion,
-                  {
-                    dimension:
-                      sourceCase.required_dimensions[index] ??
-                      sourceCase.required_dimensions[0],
-                    required: true,
-                  },
-                ]),
+        if (
+          changes.size !== p.eval_changes.length ||
+          [...changes.keys()].some(
+            (id) => !sourceCases.some((c) => c.case_id === id),
+          )
+        )
+          throw new Error("Eval patch contains duplicate or unknown case IDs");
+        await sql`INSERT INTO eval_versions(id,skill_version_id,revision,status,evidence_level,task_understanding,coverage_plan,answers,questions,validation) VALUES(${verificationEvalId},${p.base_version_id},1,'generating',${sourceEval.evidence_level},${sql.json(sourceEval.task_understanding)},${sql.json(sourceEval.coverage_plan)},${sql.json(sourceEval.answers)},${sql.json(sourceEval.questions)},${sql.json({ valid: false, derivedFrom: p.eval_version_id, proposalId: p.proposal_id })})`;
+        const materialIds = new Map<string, string>();
+        for (const material of await sql`SELECT * FROM eval_files WHERE eval_version_id=${p.eval_version_id}`) {
+          const copiedId = crypto.randomUUID();
+          materialIds.set(material.id, copiedId);
+          await sql`INSERT INTO eval_files(id,eval_version_id,kind,filename,artifact_key,metadata) VALUES(${copiedId},${verificationEvalId},${material.kind},${material.filename},${material.artifact_key},${sql.json(material.metadata)})`;
+        }
+        for (const item of sourceCases) {
+          const change = changes.get(item.case_id);
+          const source = GeneratedEvalCaseSchema.parse(item.source);
+          if (change?.prompt) source.prompt = String(change.prompt);
+          if (change?.criteria) {
+            if (
+              change.criteria.length !== source.dimensions.length ||
+              new Set(change.criteria).size !== change.criteria.length
+            )
+              throw new Error(
+                "Each required dimension needs one distinct criterion",
               );
-            }
-            await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,enabled,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${verificationEvalId},${sourceCase.case_id},${sourceCase.title},${sourceCase.coverage_group},${sourceCase.enabled},${sourceCase.judge_type},${sql.json(sourceCase.evidence_provenance)},${sql.json(sourceCase.required_dimensions)},${sourceCase.yaml_path},${sql.json(mapping)},${sql.json(source)})`;
+            if (item.judge_type === "script" && !change.deterministicChecks)
+              throw new Error(
+                "Script rubric changes require explicit regenerated validators before approval",
+              );
+            source.criteria = change.criteria;
           }
-        } finally {
-          await rm(evalWork, { recursive: true, force: true });
+          if (change?.deterministicChecks)
+            source.deterministicChecks = change.deterministicChecks;
+          const rebound = remapCaseMaterials(source, materialIds);
+          await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,enabled,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${verificationEvalId},${item.case_id},${item.title},${item.coverage_group},${item.enabled},${item.judge_type},${sql.json(item.evidence_provenance)},${sql.json(item.required_dimensions)},${item.yaml_path},${sql.json(item.assertion_mapping)},${sql.json(rebound)})`;
         }
       }
-      await sql`UPDATE update_proposals SET status='candidate_created',skill_decision='approved',eval_decision=${input.evalDecision},candidate_version_id=${candidate},eval_version_id=${verificationEvalId},updated_at=now() WHERE id=${p.proposal_id}`;
+
+      if (verificationEvalId !== p.eval_version_id)
+        await enqueue(sql, "eval_generate", verificationEvalId, {
+          rebuild: true,
+        });
+      await recordDecision(
+        sql,
+        request.headers.get("x-skilled-user-id"),
+        p.proposal_id,
+        "decide_proposal",
+        {
+          ...input,
+          baseVersionId: p.base_version_id,
+          candidateVersionId: candidate,
+        },
+      );
+      await sql`UPDATE update_proposals SET source_eval_version_id=COALESCE(source_eval_version_id,eval_version_id),status='candidate_created' ,skill_decision='approved',eval_decision=${input.evalDecision},candidate_version_id=${candidate},eval_version_id=${verificationEvalId},updated_at=now() WHERE id=${p.proposal_id}`;
       return json(
         {
           resourceId: p.proposal_id,
@@ -887,7 +1126,7 @@ export async function POST(request: Request, context: Context) {
     }
     if (path[0] === "updates" && path[1] && path[2] === "verify") {
       const [p] =
-        await sql`SELECT * FROM update_proposals WHERE id=${path[1]} AND status='candidate_created'`;
+        await sql`SELECT * FROM update_proposals WHERE id=${path[1]} AND status IN ('candidate_created','failed') AND candidate_version_id IS NOT NULL`;
       if (!p)
         return fail(
           "NOT_READY",
@@ -900,7 +1139,7 @@ export async function POST(request: Request, context: Context) {
       const [candidate] =
         await sql`SELECT checksum FROM skill_versions WHERE id=${p.candidate_version_id}`;
       const [ev] =
-        await sql`SELECT checksum FROM eval_versions WHERE id=${p.eval_version_id}`;
+        await sql`SELECT checksum FROM eval_versions WHERE id=${p.eval_version_id} AND status='approved' AND (validation->>'valid')::boolean=true`;
       if (!base || !candidate || !ev)
         return fail(
           "MISSING_VERSION",
@@ -920,7 +1159,7 @@ export async function POST(request: Request, context: Context) {
         [currentRun, p.base_version_id, base.checksum],
         [candidateRun, p.candidate_version_id, candidate.checksum],
       ])
-        await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,iterations,status) VALUES(${id},${version},${p.eval_version_id},'gpt-5.6-luna',${sql.json(settings)},${checksum},${ev.checksum},1,'queued')`;
+        await sql`INSERT INTO runs(id,skill_version_id,eval_version_id,model,settings,skill_checksum,eval_checksum,iterations,status,provenance_status) VALUES(${id},${version},${p.eval_version_id},'gpt-5.6-luna',${sql.json(settings)},${checksum},${ev.checksum},3,'queued','verified_pipeline')`;
       const currentJob = await enqueue(sql, "run", currentRun, {
         comparison: "current",
       });
@@ -936,6 +1175,11 @@ export async function POST(request: Request, context: Context) {
       );
     }
     if (path[0] === "updates" && path[1] && path[2] === "activate") {
+      const activationInput = request.headers
+        .get("content-type")
+        ?.includes("application/json")
+        ? await request.clone().json()
+        : {};
       const [p] =
         await sql`SELECT p.*,sv.skill_id FROM update_proposals p JOIN skill_versions sv ON sv.id=p.candidate_version_id WHERE p.id=${path[1]} AND p.status='verified'`;
       if (!p)
@@ -945,9 +1189,55 @@ export async function POST(request: Request, context: Context) {
           "Verification must finish without blocking regressions.",
           409,
         );
-      await sql.begin(async (tx) => {
-        await tx`UPDATE skills SET active_version_id=${p.candidate_version_id},updated_at=now() WHERE id=${p.skill_id}`;
-        await tx`UPDATE skill_versions SET status='ready' WHERE id=${p.candidate_version_id}`;
+      await inTransaction(sql, async (tx) => {
+        const [selected] =
+          await tx`SELECT active_version_id FROM skills WHERE id=${p.skill_id} FOR UPDATE`;
+        if (
+          p.activated_at &&
+          selected?.active_version_id === p.candidate_version_id
+        )
+          return;
+        if (
+          "expectedActiveVersionId" in activationInput &&
+          activationInput.expectedActiveVersionId !==
+            selected?.active_version_id
+        )
+          throw Object.assign(
+            new Error("Active version changed since review"),
+            { status: 409 },
+          );
+        if (
+          selected?.active_version_id &&
+          selected.active_version_id !== p.base_version_id
+        )
+          throw Object.assign(
+            new Error(
+              "Active version changed; verify a new candidate against the current base",
+            ),
+            { status: 409 },
+          );
+        const [verified] =
+          await tx`SELECT provenance_status,engine_versions FROM runs WHERE id=${p.candidate_verification_run_id}`;
+        if (
+          process.env.SKILLED_ADAPTER_MODE !== "fake" &&
+          verified?.engine_versions?.adapter !== "real"
+        )
+          throw new Error("Demo evidence cannot authorize real activation");
+        if (verified?.provenance_status !== "verified_pipeline")
+          throw new Error("Imported verification must be rerun");
+        await tx`UPDATE skills SET active_version_id=${p.candidate_version_id},updated_at=now() WHERE id=${p.skill_id} AND (active_version_id=${p.base_version_id} OR active_version_id IS NULL) RETURNING id`;
+        // Skill versions remain immutable after activation.
+        await recordDecision(
+          tx,
+          request.headers.get("x-skilled-user-id"),
+          p.id,
+          "activate",
+          {
+            current: selected?.active_version_id,
+            candidate: p.candidate_version_id,
+            comparison: p.comparison,
+          },
+        );
         await tx`UPDATE update_proposals SET activated_at=now(),updated_at=now() WHERE id=${p.id}`;
       });
       return json({ resourceId: p.candidate_version_id, status: "active" });
@@ -959,6 +1249,16 @@ export async function POST(request: Request, context: Context) {
       404,
     );
   } catch (cause) {
+    if (
+      (cause as any)?.status === 409 ||
+      ["23514", "23505", "40001"].includes((cause as any)?.code)
+    )
+      return fail(
+        "STATE_CONFLICT",
+        "The resource changed; refresh before retrying",
+        cause instanceof Error ? cause.message : String(cause),
+        409,
+      );
     if ((cause as any)?.issues)
       return fail(
         "VALIDATION",
@@ -977,25 +1277,96 @@ export async function POST(request: Request, context: Context) {
 }
 
 export async function PATCH(request: Request, context: Context) {
+  return mutation(request, (tx) => patch(request, context, tx));
+}
+async function patch(request: Request, context: Context, sql: Db) {
   await ready;
   const { path } = await context.params;
   try {
+    if (path[0] === "evals" && path[1] && path[2] === "materials" && path[3]) {
+      const input = await request.json();
+      const [draft] =
+        await sql`SELECT revision,status FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
+      if (
+        !draft ||
+        ![
+          "collecting",
+          "awaiting_answers",
+          "awaiting_plan_approval",
+          "ready",
+          "failed",
+        ].includes(draft.status)
+      )
+        return fail(
+          "IMMUTABLE_EVAL",
+          "Materials cannot change now",
+          "Clone an approved evaluation or wait for its job",
+          409,
+        );
+      if (Number(input.expectedRevision) !== Number(draft.revision))
+        return fail(
+          "STALE_REVISION",
+          "Evaluation changed",
+          "Refresh before editing",
+          409,
+        );
+      const rows =
+        input.remove === true
+          ? await sql`DELETE FROM eval_files WHERE id=${path[3]} AND eval_version_id=${path[1]} RETURNING id`
+          : await sql`UPDATE eval_files SET kind=${MaterialKindSchema.parse(input.kind)} WHERE id=${path[3]} AND eval_version_id=${path[1]} RETURNING id`;
+      if (!rows.length) return fail("NOT_FOUND", "Material not found", "", 404);
+      await sql`UPDATE eval_versions SET revision=revision+1,status='collecting',validation='{}' WHERE id=${path[1]}`;
+      return json({ resourceId: path[1] });
+    }
     if (path[0] === "evals" && path[1] && path[2] === "cases" && path[3]) {
+      const [draft] =
+        await sql`SELECT status,revision FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
+      if (!draft || !["ready", "failed"].includes(draft.status))
+        return fail(
+          "IMMUTABLE_EVAL",
+          "Clone this evaluation first",
+          "Approved evaluation contents cannot change",
+          409,
+        );
       const body = (await request.json()) as {
         enabled?: boolean;
         source?: unknown;
+        expectedRevision?: number;
       };
+      if (
+        body.expectedRevision !== undefined &&
+        body.expectedRevision !== Number(draft.revision)
+      )
+        return fail(
+          "STALE_REVISION",
+          "Evaluation changed",
+          "Refresh before editing",
+          409,
+        );
       const enabled = body.enabled ?? null;
       const source =
         body.source === undefined ? null : sql.json(body.source as never);
       const [row] =
         await sql`UPDATE eval_cases SET enabled=COALESCE(${enabled},enabled),source=COALESCE(${source},source) WHERE eval_version_id=${path[1]} AND case_id=${path[3]} RETURNING *`;
       if (!row) return fail("NOT_FOUND", "Case not found", "", 404);
-      await sql`UPDATE eval_versions SET revision=revision+1,status=CASE WHEN status='approved' THEN status ELSE 'generating' END,validation='{}' WHERE id=${path[1]}`;
-      return json(row);
+      await sql`UPDATE eval_versions SET revision=revision+1,status='generating',validation='{}' WHERE id=${path[1]}`;
+      const jobId = await enqueue(sql, "eval_generate", path[1], {
+        rebuild: true,
+      });
+      return json({ ...row, jobId }, 202);
     }
     return fail("NOT_FOUND", "Endpoint not found", "", 404);
   } catch (cause) {
+    if (
+      (cause as any)?.status === 409 ||
+      ["23514", "23505", "40001"].includes((cause as any)?.code)
+    )
+      return fail(
+        "STATE_CONFLICT",
+        "The resource changed; refresh before retrying",
+        cause instanceof Error ? cause.message : String(cause),
+        409,
+      );
     return fail(
       "INTERNAL",
       "Request failed",

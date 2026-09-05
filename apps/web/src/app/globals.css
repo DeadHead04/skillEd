@@ -1204,6 +1204,19 @@ input[type="file"]::file-selector-button {
   font-size: 12.5px;
   color: var(--text-2);
 }
+.job-stream {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--inset);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
 .empty {
   display: grid;
   justify-items: start;

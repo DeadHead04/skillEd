@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { apiFetch } from "../lib/client-request";
 import { useRouter } from "next/navigation";
 import { JobStream } from "./job-stream";
 
@@ -23,7 +24,7 @@ export function ApiAction({
   async function act() {
     setBusy(true);
     setError("");
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: body ? { "content-type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
@@ -88,7 +89,7 @@ export function CaseToggle({
       aria-pressed={enabled}
       onClick={async () => {
         setBusy(true);
-        await fetch(`/api/v1/evals/${evalId}/cases/${caseId}`, {
+        await apiFetch(`/api/v1/evals/${evalId}/cases/${caseId}`, {
           method: "PATCH",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ enabled: !enabled }),
@@ -102,7 +103,13 @@ export function CaseToggle({
   );
 }
 
-export function UploadForm({ compact = false }: { compact?: boolean }) {
+export function UploadForm({
+  compact = false,
+  skillId,
+}: {
+  compact?: boolean;
+  skillId?: string;
+}) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [roots, setRoots] = useState<string[]>([]),
@@ -114,8 +121,10 @@ export function UploadForm({ compact = false }: { compact?: boolean }) {
     setBusy(true);
     setError("");
     const form = new FormData(event.currentTarget);
-    if (root) form.set("selectedRoot", root);
-    const response = await fetch("/api/v1/skill/upload", {
+    if (roots.length)
+      form.set("selectedRoot", root === "__archive_root__" ? "" : root);
+    if (skillId) form.set("skillId", skillId);
+    const response = await apiFetch("/api/v1/skill/upload", {
       method: "POST",
       body: form,
     });
@@ -223,7 +232,7 @@ export function UploadForm({ compact = false }: { compact?: boolean }) {
           >
             <option value="">Select a root</option>
             {roots.map((value) => (
-              <option key={value} value={value}>
+              <option key={value} value={value || "__archive_root__"}>
                 {value || "Archive root"}
               </option>
             ))}
@@ -272,7 +281,7 @@ export function EvalQuestionsForm({
         String(form.get(question.id) ?? "").trim(),
       ]),
     );
-    const response = await fetch(`/api/v1/evals/${evalId}/answers`, {
+    const response = await apiFetch(`/api/v1/evals/${evalId}/answers`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ answers }),
@@ -335,7 +344,7 @@ export function ConversationForm({
     if (!message) return;
     setBusy(true);
     setError("");
-    const response = await fetch(url, {
+    const response = await apiFetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ message }),

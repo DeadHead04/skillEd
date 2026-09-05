@@ -5,8 +5,10 @@ import {
   readSkillFile,
   readTaskMaterial,
   skillRuns,
+  skillVersions,
   taskMaterials,
 } from "../../lib/data";
+import { NewEvaluationForm } from "../../components/workflow-forms";
 import { UploadForm, ApiAction } from "../../components/actions";
 import {
   FileView,
@@ -48,7 +50,7 @@ export default async function SkillPage({
     return (
       <Work>
         <Verdict
-          title="Bring one Skill package"
+          title="Add a Skill package"
           lede="Upload the ZIP you would hand to an agent, plus the material that decides whether its output is right. Nothing inside the archive is executed."
         />
         <div style={{ marginTop: 22 }}>
@@ -58,9 +60,10 @@ export default async function SkillPage({
     );
   }
 
-  const [runs, materials] = await Promise.all([
+  const [runs, materials, versions] = await Promise.all([
     skillRuns(skill.id),
     evaluation ? taskMaterials(evaluation.id) : Promise.resolve([]),
+    skillVersions(skill.id),
   ]);
   const entries = (version.manifest?.entries ?? []) as Array<{
     path: string;
@@ -114,6 +117,14 @@ export default async function SkillPage({
           />
         }
       />
+
+      {version.importedHistory && (
+        <p className="notice" role="status">
+          <b>Imported history</b>
+          This version's pointer is preserved history that was never reverified.
+          Run the evaluation pipeline before relying on it.
+        </p>
+      )}
 
       <dl className="kv" style={{ marginTop: 18 }}>
         <div>
@@ -281,12 +292,49 @@ export default async function SkillPage({
         </div>
       </section>
 
+      <section className="section">
+        <div className="section-head">
+          <h2>Versions</h2>
+          <span className="section-note num">
+            {versions.length} {versions.length === 1 ? "version" : "versions"}
+          </span>
+        </div>
+        <div className="rows">
+          {versions.map((entry: any) => (
+            <div className="row plain" key={entry.id}>
+              <span>
+                <span className="title">Version {entry.version}</span>
+                <span className="sub">
+                  {entry.id === skill.active_version_id
+                    ? "Active"
+                    : entry.status === "candidate"
+                      ? "Candidate"
+                      : "Inactive"}
+                  {entry.imported_history
+                    ? " — imported history, not reverified"
+                    : ""}
+                </span>
+              </span>
+              <a
+                className="btn quiet"
+                href={`/api/v1/skill/download/${entry.id}`}
+              >
+                Download
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <details className="section">
         <summary className="section-note" style={{ cursor: "pointer" }}>
-          Upload a new version
+          Start a new evaluation, or upload a new version
         </summary>
         <div style={{ marginTop: 16 }}>
-          <UploadForm compact />
+          <NewEvaluationForm skillId={skill.id} versions={versions} />
+          <div style={{ marginTop: 20 }}>
+            <UploadForm compact skillId={skill.id} />
+          </div>
         </div>
       </details>
 

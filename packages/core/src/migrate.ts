@@ -1,5 +1,5 @@
-import { db, ensureSchema } from "./db";
+import { db, migrate } from "./db";
 
-const sql = db();
-await ensureSchema(sql);
+const sql = db(process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL);
+await migrate(sql);
 await sql.end();

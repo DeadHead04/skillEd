@@ -1,0 +1,144 @@
+# Private team staging. Real execution remains blocked by image-specific acceptance evidence.
+previews:
+  generation: off
+projects:
+  - name: SkillEd private pilot
+    environments:
+      - name: staging
+        databases:
+          - name: skilled-pilot-db
+            databaseName: skilled
+            user: skilled_migrator
+            region: singapore
+            plan: basic-1gb
+            postgresMajorVersion: "17"
+            ipAllowList: []
+        services:
+          - type: web
+            name: skilled-pilot-web
+            runtime: docker
+            region: singapore
+            plan: standard
+            numInstances: 1
+            autoDeployTrigger: off
+            dockerfilePath: ./apps/web/Dockerfile
+            healthCheckPath: /api/v1/health
+            maxShutdownDelaySeconds: 100
+            envVars:
+              - key: DATABASE_URL
+                sync: false # Restricted skilled_web URL; never the database owner URL.
+              - key: SKILLED_AUTO_MIGRATE
+                value: "false"
+              - key: SKILLED_DEPLOYMENT
+                value: render
+              - key: SKILLED_HTTPS
+                value: "true"
+              - key: SKILLED_ADAPTER_MODE
+                value: fake
+              - key: SKILLED_SESSION_SECRET
+                generateValue: true
+              - key: SKILLED_ADMIN_PASSWORD
+                sync: false
+              - key: ARTIFACT_SIGNING_KEY
+                sync: false
+              - key: ARTIFACT_SERVICE_HOSTPORT
+                fromService:
+                  {
+                    type: pserv,
+                    name: skilled-pilot-artifacts,
+                    property: hostport,
+                  }
+          - type: worker
+            name: skilled-pilot-controller
+            runtime: docker
+            region: singapore
+            plan: starter
+            numInstances: 1
+            autoDeployTrigger: off
+            dockerfilePath: ./apps/worker/Dockerfile.service
+            maxShutdownDelaySeconds: 100
+            envVars:
+              - key: DATABASE_URL
+                sync: false # Restricted skilled_controller URL.
+              - key: SKILLED_AUTO_MIGRATE
+                value: "false"
+              - key: SKILLED_ADAPTER_MODE
+                value: fake
+              - key: ARTIFACT_ROOT
+                value: /data/artifacts
+              - key: WORK_ROOT
+                value: /data/work
+              - key: ARTIFACT_SIGNING_KEY
+                fromService:
+                  {
+                    type: web,
+                    name: skilled-pilot-web,
+                    envVarKey: ARTIFACT_SIGNING_KEY,
+                  }
+              - key: ARTIFACT_SERVICE_HOSTPORT
+                fromService:
+                  {
+                    type: pserv,
+                    name: skilled-pilot-artifacts,
+                    property: hostport,
+                  }
+              - key: EXECUTOR_SERVICE_HOSTPORT
+                fromService:
+                  {
+                    type: pserv,
+                    name: skilled-pilot-executor,
+                    property: hostport,
+                  }
+              - key: EXECUTOR_SERVICE_TOKEN
+                fromService:
+                  {
+                    type: pserv,
+                    name: skilled-pilot-executor,
+                    envVarKey: EXECUTOR_SERVICE_TOKEN,
+                  }
+          - type: pserv
+            name: skilled-pilot-artifacts
+            runtime: docker
+            region: singapore
+            plan: starter
+            numInstances: 1
+            autoDeployTrigger: off
+            dockerfilePath: ./apps/worker/Dockerfile.service
+            dockerCommand: node --import tsx apps/worker/src/artifact-service.ts
+            disk: { name: artifacts, mountPath: /data/artifacts, sizeGB: 20 }
+            envVars:
+              - key: PORT
+                value: "10000"
+              - key: ARTIFACT_ROOT
+                value: /data/artifacts
+              - key: ARTIFACT_VERIFY_KEY
+                sync: false
+          - type: pserv
+            name: skilled-pilot-executor
+            runtime: docker
+            region: singapore
+            plan: pro
+            numInstances: 1
+            autoDeployTrigger: off
+            dockerfilePath: ./apps/worker/Dockerfile
+            dockerCommand: node --import tsx apps/worker/src/executor-service.ts
+            disk:
+              { name: executor-session, mountPath: /data/executor, sizeGB: 10 }
+            envVars:
+              - key: PORT
+                value: "10000"
+              - key: EXECUTOR_SERVICE_TOKEN
+                generateValue: true
+              - key: EXECUTOR_STATE_ROOT
+                value: /data/executor
+              - key: CODEX_HOME
+                value: /data/executor/codex
+              - key: SKILLED_EXECUTION_EVIDENCE
+                value: /data/executor/acceptance.json
+              - key: ARTIFACT_SERVICE_HOSTPORT
+                fromService:
+                  {
+                    type: pserv,
+                    name: skilled-pilot-artifacts,
+                    property: hostport,
+                  }

@@ -13,6 +13,8 @@ import {
   Verdict,
   Work,
 } from "../../../components/ui";
+import { MaterialManager } from "../../../components/workflow-forms";
+import { JobStream } from "../../../components/job-stream";
 import { humanize } from "../../../lib/labels";
 
 export const dynamic = "force-dynamic";
@@ -115,6 +117,32 @@ export default async function EvalPage({
             <div className="evidence-text">{openCase.source.prompt}</div>
           </div>
         )}
+        {openCase.assertion_mapping &&
+          Object.keys(openCase.assertion_mapping).length > 0 && (
+            <div>
+              <div className="evidence-label">
+                Required assertions and the dimension each one proves
+              </div>
+              <div className="rows">
+                {Object.entries(
+                  openCase.assertion_mapping as Record<string, any>,
+                ).map(([text, meta]) => (
+                  <div className="row finding" key={text}>
+                    <span className="glyph" aria-hidden="true">
+                      ·
+                    </span>
+                    <span>
+                      <span className="title">{text}</span>
+                      <span className="sub">
+                        {meta?.dimension ?? "unmapped"}
+                        {meta?.required === false ? ", optional" : ", required"}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         <div>
           <div className="evidence-label">
             Exact file — <span className="mono">{openCase.yaml_path}</span>
@@ -167,6 +195,8 @@ export default async function EvalPage({
         }
       />
 
+      <JobStream jobId={evaluation.activeJob?.id} />
+
       <ol className="steps" style={{ marginTop: 20 }}>
         {STEPS.map((step, index) => (
           <li
@@ -183,6 +213,12 @@ export default async function EvalPage({
           </li>
         ))}
       </ol>
+
+      {status === "failed" && (
+        <div className="error-box" role="alert" style={{ marginBottom: 20 }}>
+          {evaluation.validation?.error ?? "Evaluation preparation stopped."}
+        </div>
+      )}
 
       {status === "collecting" ? (
         <div className="empty">
@@ -243,6 +279,19 @@ export default async function EvalPage({
               </div>
             </dl>
           </section>
+
+          <MaterialManager
+            evalId={evaluation.id}
+            revision={evaluation.revision}
+            files={evaluation.files ?? []}
+            editable={[
+              "collecting",
+              "awaiting_answers",
+              "awaiting_plan_approval",
+              "ready",
+              "failed",
+            ].includes(status)}
+          />
 
           <section className="section">
             <div className="section-head">
@@ -311,6 +360,17 @@ export default async function EvalPage({
 
       <div className="decision">
         <div>
+          {status === "failed" && (
+            <div
+              className="error-box"
+              role="alert"
+              style={{ marginBottom: 20 }}
+            >
+              {evaluation.validation?.error ??
+                "Evaluation preparation stopped."}
+            </div>
+          )}
+
           {status === "collecting" ? (
             <>
               <b>Start by reading the task</b>
@@ -372,12 +432,20 @@ export default async function EvalPage({
             />
           )}
           {status === "approved" && (
-            <Link
-              className="btn"
-              href={`/runs/current?skill=${evaluation.skill_id}`}
-            >
-              Configure run
-            </Link>
+            <>
+              <ApiAction
+                url={`/api/v1/evals/${evaluation.id}/clone`}
+                label="Clone as new draft"
+                kind="secondary"
+                navigateTo={`/evals/:resourceId?skill=${evaluation.skill_id}`}
+              />
+              <Link
+                className="btn"
+                href={`/runs/new?skill=${evaluation.skill_id}&eval=${evaluation.id}`}
+              >
+                Configure run
+              </Link>
+            </>
           )}
         </div>
       </div>

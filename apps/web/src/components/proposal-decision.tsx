@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "../lib/client-request";
 
 /**
  * Skill changes and eval changes are decided independently: rejecting an eval
@@ -10,10 +11,12 @@ import { useRouter } from "next/navigation";
  */
 export function ProposalDecision({
   proposalId,
+  expectedRevision,
   skillChangeCount,
   evalChangeCount,
 }: {
   proposalId: string;
+  expectedRevision: number;
   skillChangeCount: number;
   evalChangeCount: number;
 }) {
@@ -26,12 +29,13 @@ export function ProposalDecision({
   async function decide(approve: boolean) {
     setBusy(true);
     setError("");
-    const response = await fetch(`/api/v1/updates/${proposalId}/decide`, {
+    const response = await apiFetch(`/api/v1/updates/${proposalId}/decide`, {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         skillDecision: approve && skillApproved ? "approved" : "rejected",
         evalDecision: approve && evalApproved ? "approved" : "rejected",
+        expectedRevision,
       }),
     });
     const data = await response.json();

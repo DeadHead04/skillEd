@@ -10,3 +10,12 @@ outputs
 artifacts
 tmp
 skill-up/.git
+
+**/auth.json
+**/.codex
+**/.auth
+**/.env*
+**/*.pem
+**/*.key
+**/dist
+**/*.tsbuildinfo

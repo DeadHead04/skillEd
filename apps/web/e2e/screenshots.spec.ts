@@ -14,18 +14,18 @@ const routes = [
 ] as const;
 
 test("capture login", async ({ page }, testInfo) => {
-  await mkdir("docs/screenshots", { recursive: true });
+  await mkdir("/tmp/skilled-pilot-screenshots", { recursive: true });
   await page.goto("/login");
   await expect(page.getByRole("heading", { name: /Sign in/ })).toBeVisible();
   await page.screenshot({
-    path: `docs/screenshots/${testInfo.project.name}-login.png`,
+    path: `/tmp/skilled-pilot-screenshots/${testInfo.project.name}-login.png`,
     fullPage: true,
   });
 });
 
 for (const [name, route] of routes) {
   test(`capture ${name}`, async ({ page }, testInfo) => {
-    await mkdir("docs/screenshots", { recursive: true });
+    await mkdir("/tmp/skilled-pilot-screenshots", { recursive: true });
     await signIn(page);
     await page.goto(route);
     await page.waitForLoadState("networkidle");
@@ -51,7 +51,7 @@ for (const [name, route] of routes) {
     );
     expect(overflow.escaped, JSON.stringify(overflow)).toEqual([]);
     await page.screenshot({
-      path: `docs/screenshots/${testInfo.project.name}-${name}.png`,
+      path: `/tmp/skilled-pilot-screenshots/${testInfo.project.name}-${name}.png`,
       fullPage: true,
     });
   });

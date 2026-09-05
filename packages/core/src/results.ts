@@ -7,7 +7,14 @@ export type Assertion = {
   error?: string;
 };
 export function deriveResult(assertions: Assertion[]): Result {
-  if (assertions.some((a) => a.error || !a.dimension)) return "ERROR";
+  if (!assertions.length || !assertions.some((a) => a.required !== false))
+    return "ERROR";
+  if (
+    assertions.some(
+      (a) => a.error || !a.dimension || typeof a.passed !== "boolean",
+    )
+  )
+    return "ERROR";
   const failed = assertions.filter(
     (a) => a.required !== false && a.passed === false,
   );
@@ -22,6 +29,7 @@ const severity: Record<Result, number> = {
   ERROR: 3,
 };
 export function worstResult(results: Result[]) {
+  if (!results.length) return "ERROR";
   return results.reduce<Result>(
     (worst, value) => (severity[value] > severity[worst] ? value : worst),
     "PASS",

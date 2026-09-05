@@ -5,7 +5,9 @@ test("package intake has one clear primary action", async ({ page }) => {
   await signIn(page);
   await page.goto("/skill");
   await expect(
-    page.getByRole("heading", { name: /Bring one Skill|Active package/i }),
+    page.getByRole("heading", {
+      name: /Add a Skill package|Active package|Uploaded package/i,
+    }),
   ).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Primary" })).toBeVisible();
 });
@@ -27,7 +29,7 @@ test("protected workbench requires a named user session", async ({ page }) => {
   await expect(api.json()).resolves.toMatchObject({ code: "AUTH_REQUIRED" });
   await page.goto("/skill");
   await expect(page).toHaveURL(/\/login/);
-  await page.getByLabel("Login ID").fill("missing-user");
+  await page.getByLabel("Login ID").fill(`missing-user-${Date.now()}`);
   await page.getByLabel("Password", { exact: true }).fill("wrong-password");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.locator(".error-box[role=alert]")).toContainText(
@@ -49,29 +51,16 @@ test("sidebar exposes every Skill package with an honest latest-run count", asyn
   await expect(page.getByText(/Active v/).first()).toBeVisible();
   await expect(page.getByLabel(/of 10 cases passing/).first()).toBeVisible();
 
-  await page
-    .getByRole("navigation", { name: "Skill packages" })
-    .getByRole("link", { name: /jiomart-hindi-pdp-qc/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "jiomart-hindi-pdp-qc" }),
-  ).toBeVisible();
-  await expect(page.locator(".context")).toContainText("active v3");
-  await page.getByRole("link", { name: "Evals", exact: true }).click();
-  await expect(page.locator(".context")).toContainText("jiomart-hindi-pdp-qc");
-  await expect(page.getByText(/Hindi PDP content/).first()).toBeVisible();
-
-  await page
-    .getByRole("navigation", { name: "Skill packages" })
-    .getByRole("link", { name: /grounded-product-qc/ })
-    .click();
-  await expect(
-    page.getByRole("heading", { name: "grounded-product-qc" }),
-  ).toBeVisible();
-  await expect(page.locator(".context")).toContainText("active v2");
-  await page.getByRole("link", { name: "Evals", exact: true }).click();
-  await expect(page.locator(".context")).toContainText("grounded-product-qc");
-  await expect(
-    page.getByText(/authoritative source facts/).first(),
-  ).toBeVisible();
+  const skills = await (await page.request.get("/api/v1/skills")).json();
+  expect(skills.length).toBeGreaterThan(0);
+  for (const skill of skills.slice(0, 2)) {
+    await page
+      .getByRole("navigation", { name: "Skill packages" })
+      .locator(`a[href="/skill?skill=${skill.id}"]`)
+      .click();
+    await expect(page.locator(".context")).toContainText(skill.name);
+    await page.getByRole("link", { name: "Evals", exact: true }).click();
+    await expect(page.locator(".context")).toContainText(skill.name);
+    expect(new URL(page.url()).searchParams.get("skill")).toBe(skill.id);
+  }
 });

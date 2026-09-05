@@ -457,8 +457,8 @@ func TestBuildCodexResumeCmdWithLastMessage(t *testing.T) {
 	if !strings.HasPrefix(cmd, "codex exec resume --json --skip-git-repo-check") {
 		t.Fatalf("expected codex exec resume prefix, got %q", cmd)
 	}
-	if !strings.Contains(cmd, "--dangerously-bypass-approvals-and-sandbox") {
-		t.Fatalf("expected bypass flag, got %q", cmd)
+	if strings.Contains(cmd, "--dangerously-bypass-approvals-and-sandbox") {
+		t.Fatalf("resume must preserve the existing sandbox, got %q", cmd)
 	}
 	if !strings.Contains(cmd, "'sess-123'") {
 		t.Fatalf("expected session ID, got %q", cmd)

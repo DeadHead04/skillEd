@@ -9,6 +9,7 @@ import {
   Verdict,
   Work,
 } from "../../../components/ui";
+import { JobStream } from "../../../components/job-stream";
 import { humanize } from "../../../lib/labels";
 
 export const dynamic = "force-dynamic";
@@ -121,6 +122,8 @@ export default async function ImprovePage({
         }
       />
 
+      <JobStream jobId={proposal.activeJob?.id} />
+
       <section className="section" style={{ marginTop: 22 }}>
         <div className="section-head">
           <h2>Diagnosis</h2>
@@ -185,6 +188,43 @@ export default async function ImprovePage({
         </div>
       </section>
 
+      {proposal.candidate_version_id && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Candidate</h2>
+            <span className="section-note">Created, not active</span>
+          </div>
+          <div className="rows">
+            <a
+              className="row plain"
+              href={`/api/v1/skill/download/${proposal.candidate_version_id}`}
+            >
+              <span>
+                <span className="title">Download candidate package</span>
+                <span className="sub">Inspect it before activating</span>
+              </span>
+              <span className="chevron" aria-hidden="true">
+                ↓
+              </span>
+            </a>
+            <Link
+              className="row plain"
+              href={`/evals/${proposal.eval_version_id}?skill=${proposal.skill_id}`}
+            >
+              <span>
+                <span className="title">Review the verification suite</span>
+                <span className="sub">
+                  The same frozen eval both versions ran
+                </span>
+              </span>
+              <span className="chevron" aria-hidden="true">
+                ▸
+              </span>
+            </Link>
+          </div>
+        </section>
+      )}
+
       {comparison && (
         <section className="section">
           <div className="section-head">
@@ -237,6 +277,7 @@ export default async function ImprovePage({
           </div>
           <ProposalDecision
             proposalId={proposal.id}
+            expectedRevision={proposal.revision}
             skillChangeCount={skillChanges.length}
             evalChangeCount={evalChanges.length}
           />
@@ -281,15 +322,21 @@ export default async function ImprovePage({
             )}
           </div>
           <div className="decision-actions">
-            {status === "candidate_created" && (
+            {(status === "candidate_created" ||
+              (status === "failed" && proposal.candidate_version_id)) && (
               <ApiAction
                 url={`/api/v1/updates/${proposal.id}/verify`}
+                body={{ expectedRevision: proposal.revision }}
                 label="Verify candidate"
               />
             )}
             {status === "verified" && !activated && (
               <ApiAction
                 url={`/api/v1/updates/${proposal.id}/activate`}
+                body={{
+                  expectedRevision: proposal.revision,
+                  expectedActiveVersionId: proposal.activeVersionId,
+                }}
                 label="Activate candidate"
               />
             )}

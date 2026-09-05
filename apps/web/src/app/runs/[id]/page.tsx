@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { currentEval, currentRun, currentSkill } from "../../../lib/data";
 import { ApiAction } from "../../../components/actions";
+import { RunConfiguration } from "../../../components/workflow-forms";
 import { LiveRunProgress } from "../../../components/live-run-progress";
 import {
   Assertions,
@@ -33,16 +34,19 @@ export default async function RunPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{
     skill?: string;
+    eval?: string;
     case?: string;
     status?: string;
     dim?: string;
   }>;
 }) {
   const [route, query] = await Promise.all([params, searchParams]);
-  const run = await currentRun(route.id, query.skill);
+  // /runs/new always configures a fresh run rather than reopening the last one.
+  const run =
+    route.id === "new" ? null : await currentRun(route.id, query.skill);
   const skillId = run?.skill_id ?? query.skill;
   const [evaluation, skill] = await Promise.all([
-    currentEval(undefined, skillId),
+    currentEval(query.eval, skillId),
     currentSkill(skillId),
   ]);
 
@@ -113,20 +117,7 @@ export default async function RunPage({
             )}
           </div>
           <div className="decision-actions">
-            {ready ? (
-              <ApiAction
-                url="/api/v1/runs/launch"
-                body={{
-                  skillVersionId: (skill!.version as any).id,
-                  evalVersionId: evaluation!.id,
-                  model: "gpt-5.6-luna",
-                  iterations: 1,
-                  baseline: false,
-                }}
-                label="Start run"
-                navigateTo={`/runs/:resourceId?skill=${skill?.id}`}
-              />
-            ) : (
+            {!ready && (
               <Link
                 className="btn"
                 href={`/evals/current?skill=${skillId ?? ""}`}
@@ -136,6 +127,21 @@ export default async function RunPage({
             )}
           </div>
         </div>
+
+        {ready && (
+          <section className="section">
+            <div className="section-head">
+              <h2>Choose what to run</h2>
+              <span className="section-note">Pinned when the run starts</span>
+            </div>
+            <RunConfiguration
+              skillVersionId={(skill!.version as any).id}
+              evalVersionId={evaluation!.id}
+              skillId={skill!.id}
+              cases={evaluation!.cases}
+            />
+          </section>
+        )}
       </Work>
     );
   }
@@ -178,17 +184,22 @@ export default async function RunPage({
 
   /* ------------------------------------------------------------ results */
   const results = run.results as any[];
-  const perCase = [...new Set(results.map((r) => r.case_id))].map((caseId) => {
-    const samples = results.filter((r) => r.case_id === caseId);
-    const worst = [...samples].sort(
-      (a, b) => (severity[b.result] ?? 3) - (severity[a.result] ?? 3),
-    )[0];
-    return {
-      ...worst,
-      sampleCount: samples.length,
-      stable: new Set(samples.map((s) => s.result)).size === 1,
-    };
-  });
+  const skillSamples = results.filter((r) =>
+    ["skill", "with_skill"].includes(r.configuration),
+  );
+  const perCase = [...new Set(skillSamples.map((r) => r.case_id))].map(
+    (caseId) => {
+      const samples = skillSamples.filter((r) => r.case_id === caseId);
+      const worst = [...samples].sort(
+        (a, b) => (severity[b.result] ?? 3) - (severity[a.result] ?? 3),
+      )[0];
+      return {
+        ...worst,
+        sampleCount: samples.length,
+        stable: new Set(samples.map((s) => s.result)).size === 1,
+      };
+    },
+  );
   perCase.sort((a, b) => (severity[b.result] ?? 3) - (severity[a.result] ?? 3));
 
   const passing = perCase.filter((r) => r.result === "PASS").length;
@@ -373,6 +384,34 @@ export default async function RunPage({
         </div>
       </section>
 
+      {run.baseline && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Without the Skill</h2>
+            <span className="section-note">
+              Baseline, kept out of the score above
+            </span>
+          </div>
+          <div className="rows">
+            {results
+              .filter((sample) =>
+                ["baseline", "without_skill"].includes(sample.configuration),
+              )
+              .map((sample) => (
+                <div className="row case" key={sample.id}>
+                  <Status value={sample.result} label={sample.result} />
+                  <span>
+                    <span className="id">{sample.case_id}</span>
+                    <span className="sub">sample {sample.iteration}</span>
+                  </span>
+                  <span />
+                  <span />
+                </div>
+              ))}
+          </div>
+        </section>
+      )}
+
       <section className="section">
         <div className="section-head">
           <h2>Run</h2>
@@ -408,6 +447,12 @@ export default async function RunPage({
           <a className="btn quiet" href={`/api/v1/runs/${run.id}/download`}>
             Download raw report
           </a>
+          <Link
+            className="btn quiet"
+            href={`/runs/new?skill=${run.skill_id}&eval=${run.eval_version_id}`}
+          >
+            Start another run
+          </Link>
         </p>
       </section>
 
