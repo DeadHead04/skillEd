@@ -2,6 +2,7 @@ import { db } from "@skilled/core";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { UserManagement } from "../../components/user-management";
+import { Status, Verdict, Work } from "../../components/ui";
 import { authenticatedUser } from "../../lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -19,22 +20,20 @@ export default async function UsersPage() {
   const activeAdministrators = users.filter(
     (user) => user.active && user.role === "administrator",
   ).length;
+  const active = users.filter((user) => user.active).length;
 
   return (
-    <div className="content users-page">
-      <section className="hero compact-hero">
-        <div>
-          <div className="eyebrow">Access management · local accounts</div>
-          <h1>Control who can operate the workbench</h1>
-          <p className="lede">
-            Every person signs in with an individual login ID. Operators share
-            the Skill workspace; only administrators can manage accounts.
-          </p>
-        </div>
-        <span className="badge grounded">
-          {users.filter((user) => user.active).length} active
-        </span>
-      </section>
+    <Work>
+      <Verdict
+        title="Control who can operate the workbench"
+        lede="Everyone signs in with their own login ID. Operators share the same Skill packages; only administrators can change accounts."
+        status={
+          <Status
+            value="pass"
+            label={`${active} active ${active === 1 ? "account" : "accounts"}`}
+          />
+        }
+      />
       <UserManagement
         initialUsers={users.map((user) => ({
           id: String(user.id),
@@ -51,6 +50,6 @@ export default async function UsersPage() {
         currentUserId={currentUser.id}
         activeAdministrators={activeAdministrators}
       />
-    </div>
+    </Work>
   );
 }

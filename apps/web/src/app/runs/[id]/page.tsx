@@ -1,359 +1,450 @@
+import Link from "next/link";
 import { currentEval, currentRun, currentSkill } from "../../../lib/data";
 import { ApiAction } from "../../../components/actions";
 import { LiveRunProgress } from "../../../components/live-run-progress";
+import {
+  Assertions,
+  Inspector,
+  Metrics,
+  Status,
+  Verdict,
+  Work,
+} from "../../../components/ui";
+import {
+  dimensionLabels,
+  dimensionMetrics,
+  evidenceModeCopy,
+  humanize,
+} from "../../../lib/labels";
+
 export const dynamic = "force-dynamic";
+
+const severity: Record<string, number> = {
+  PASS: 0,
+  PARTIAL: 1,
+  FAIL: 2,
+  ERROR: 3,
+};
 
 export default async function RunPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ skill?: string }>;
+  searchParams: Promise<{
+    skill?: string;
+    case?: string;
+    status?: string;
+    dim?: string;
+  }>;
 }) {
   const [route, query] = await Promise.all([params, searchParams]);
-  const id = route.id;
-  const run = await currentRun(id, query.skill);
+  const run = await currentRun(route.id, query.skill);
   const skillId = run?.skill_id ?? query.skill;
   const [evaluation, skill] = await Promise.all([
     currentEval(undefined, skillId),
     currentSkill(skillId),
   ]);
+
+  /* ------------------------------------------------------------- launch */
   if (!run) {
     const ready = evaluation?.status === "approved" && skill?.version;
+    const cases = evaluation?.cases?.length ?? 0;
     return (
-      <div className="content">
-        <div className="page-head">
+      <Work>
+        <Verdict
+          title="Run a pinned evidence test"
+          lede="Every case starts a fresh agent. The tested Skill never sees the authoring conversation, the coverage plan, or any expected answer you uploaded."
+          status={
+            <Status
+              value={ready ? "pass" : "partial"}
+              label={ready ? "Ready to run" : "Blocked"}
+            />
+          }
+        />
+        <dl className="kv" style={{ marginTop: 20 }}>
           <div>
-            <div className="eyebrow">Evaluation</div>
-            <h1>Run a pinned evidence test</h1>
-            <p className="lede">
-              Every case starts fresh. The tested agent receives the selected
-              Skill, never the authoring conversation or hidden expected
-              answers.
-            </p>
+            <dt>Skill</dt>
+            <dd>
+              {skill?.name ?? "None selected"}
+              {skill?.version ? ` v${(skill.version as any).version}` : ""}
+            </dd>
+          </div>
+          <div>
+            <dt>Eval suite</dt>
+            <dd>
+              {evaluation?.version
+                ? `Approved v${evaluation.version}`
+                : "Approval required"}
+            </dd>
+          </div>
+          <div>
+            <dt>Engine</dt>
+            <dd>Codex, gpt-5.6-luna</dd>
+          </div>
+          <div>
+            <dt>Cases</dt>
+            <dd className="num">{cases}</dd>
+          </div>
+          <div>
+            <dt>Iterations</dt>
+            <dd className="num">1</dd>
+          </div>
+          <div>
+            <dt>Isolation</dt>
+            <dd>Fresh execution per case</dd>
+          </div>
+        </dl>
+        <div className="decision">
+          <div>
+            {ready ? (
+              <>
+                <b>This spends real model time</b>
+                <p>
+                  Skill and eval checksums are recorded, so the result stays
+                  reproducible.
+                </p>
+              </>
+            ) : (
+              <>
+                <b>Approve the eval suite first</b>
+                <p>A run can only pin to a frozen, validated suite.</p>
+              </>
+            )}
+          </div>
+          <div className="decision-actions">
+            {ready ? (
+              <ApiAction
+                url="/api/v1/runs/launch"
+                body={{
+                  skillVersionId: (skill!.version as any).id,
+                  evalVersionId: evaluation!.id,
+                  model: "gpt-5.6-luna",
+                  iterations: 1,
+                  baseline: false,
+                }}
+                label="Start run"
+                navigateTo={`/runs/:resourceId?skill=${skill?.id}`}
+              />
+            ) : (
+              <Link
+                className="btn"
+                href={`/evals/current?skill=${skillId ?? ""}`}
+              >
+                Open eval suite
+              </Link>
+            )}
           </div>
         </div>
-        <div className="grid">
-          <section className="panel">
-            <div className="panel-head">
-              <h2>Run configuration</h2>
-              <span className={`badge ${ready ? "pass" : "provisional"}`}>
-                {ready ? "Ready" : "Blocked"}
-              </span>
-            </div>
-            <div className="panel-body">
-              <dl className="facts">
-                <div className="fact">
-                  <dt>Skill</dt>
-                  <dd>
-                    {skill?.name ?? "Missing"}{" "}
-                    {skill?.version ? `v${(skill.version as any).version}` : ""}
-                  </dd>
-                </div>
-                <div className="fact">
-                  <dt>Eval</dt>
-                  <dd>
-                    {evaluation?.version
-                      ? `Approved v${evaluation.version}`
-                      : "Approval required"}
-                  </dd>
-                </div>
-                <div className="fact">
-                  <dt>Engine</dt>
-                  <dd>Codex · gpt-5.6-luna</dd>
-                </div>
-                <div className="fact">
-                  <dt>Isolation</dt>
-                  <dd>Fresh execution per case</dd>
-                </div>
-                <div className="fact">
-                  <dt>Parallelism</dt>
-                  <dd>1 · sequential</dd>
-                </div>
-                <div className="fact">
-                  <dt>Estimated calls</dt>
-                  <dd>{evaluation?.cases?.length ?? 0} agent + judges</dd>
-                </div>
-              </dl>
-            </div>
-            <div className="decision-bar">
-              <span>
-                {ready
-                  ? "Pinned checksums will be recorded."
-                  : "Approve the eval suite first."}
-              </span>
-              {ready && (
-                <ApiAction
-                  url="/api/v1/runs/launch"
-                  body={{
-                    skillVersionId: (skill!.version as any).id,
-                    evalVersionId: evaluation!.id,
-                    model: "gpt-5.6-luna",
-                    iterations: 1,
-                    baseline: false,
-                  }}
-                  label="Launch evaluation"
-                  navigateTo={`/runs/:resourceId?skill=${skill?.id}`}
-                />
-              )}
-            </div>
-          </section>
-          <aside className="panel">
-            <div className="panel-head">
-              <h2>Correctness policy</h2>
-            </div>
-            <div className="panel-body">
-              <ul className="list">
-                <li>No retry for correctness failure</li>
-                <li>One retry for classified infrastructure errors</li>
-                <li>Result JSON is authoritative</li>
-                <li>Unmapped required assertions become ERROR</li>
-                <li>Flakiness never averages into PASS</li>
-              </ul>
-            </div>
-          </aside>
-        </div>
-      </div>
+      </Work>
     );
   }
+
+  const finished = ["completed", "failed", "cancelled"].includes(run.status);
+  if (!finished)
+    return (
+      <Work>
+        <Verdict
+          title="Evaluation in progress"
+          lede="Results are written durably as each case finishes. Leaving this page does not stop the run."
+          status={<Status value="active" label={humanize(run.status)} />}
+        />
+        <LiveRunProgress runId={String(run.id)} />
+      </Work>
+    );
+
+  if (run.status !== "completed")
+    return (
+      <Work>
+        <Verdict
+          title={`Run ${humanize(run.status).toLowerCase()}`}
+          lede={
+            run.status === "cancelled"
+              ? "Cancellation stopped the remaining work. Case results recorded before it are kept and remain valid evidence."
+              : "The run stopped before producing a complete report. Durable progress up to that point is preserved."
+          }
+          status={<Status value="absent" label={humanize(run.status)} />}
+        />
+        <div className="empty">
+          <Link
+            className="btn secondary"
+            href={`/runs/current?skill=${run.skill_id}`}
+          >
+            Configure a new run
+          </Link>
+        </div>
+      </Work>
+    );
+
+  /* ------------------------------------------------------------ results */
   const results = run.results as any[];
-  const severity: Record<string, number> = {
-    PASS: 0,
-    PARTIAL: 1,
-    FAIL: 2,
-    ERROR: 3,
-  };
-  const displayResults = [
-    ...new Set(results.map((result) => result.case_id)),
-  ].map((caseId) => {
-    const samples = results.filter((result) => result.case_id === caseId);
+  const perCase = [...new Set(results.map((r) => r.case_id))].map((caseId) => {
+    const samples = results.filter((r) => r.case_id === caseId);
     const worst = [...samples].sort(
       (a, b) => (severity[b.result] ?? 3) - (severity[a.result] ?? 3),
     )[0];
     return {
       ...worst,
       sampleCount: samples.length,
-      stable: new Set(samples.map((sample) => sample.result)).size === 1,
+      stable: new Set(samples.map((s) => s.result)).size === 1,
     };
   });
-  const counts = Object.fromEntries(
-    ["PASS", "PARTIAL", "FAIL", "ERROR"].map((status) => [
-      status,
-      displayResults.filter((r) => r.result === status).length,
-    ]),
-  ) as Record<"PASS" | "PARTIAL" | "FAIL" | "ERROR", number>;
+  perCase.sort((a, b) => (severity[b.result] ?? 3) - (severity[a.result] ?? 3));
+
+  const passing = perCase.filter((r) => r.result === "PASS").length;
+  const actionable = perCase.filter((r) =>
+    ["FAIL", "PARTIAL"].includes(r.result),
+  ).length;
+  const metrics = dimensionMetrics(perCase);
   const tokens = results.reduce(
     (n, r) => n + Number(r.tokens?.input ?? 0) + Number(r.tokens?.output ?? 0),
     0,
   );
   const duration = results.reduce((n, r) => n + Number(r.duration_ms ?? 0), 0);
-  return (
-    <div className="content">
-      <div className="page-head">
+
+  const base = `/runs/${run.id}?skill=${run.skill_id}`;
+  const filter = (extra: string) => `${base}${extra}`;
+  const visible = perCase.filter(
+    (r) =>
+      (!query.status || r.result === query.status) &&
+      (!query.dim || r.dimensions?.[query.dim] === false),
+  );
+
+  const openCase = query.case
+    ? perCase.find((r) => r.case_id === query.case)
+    : null;
+  const inspector = openCase ? (
+    <Inspector
+      title={openCase.case_id}
+      subtitle={openCase.title ?? openCase.coverage_group}
+      closeHref={
+        base +
+        (query.status ? `&status=${query.status}` : "") +
+        (query.dim ? `&dim=${query.dim}` : "")
+      }
+    >
+      <Status
+        value={openCase.result}
+        label={openCase.result}
+        flaky={!openCase.stable}
+      />
+      {openCase.detail?.prompt && (
         <div>
-          <div className="eyebrow">
-            Run · {String(run.id).slice(0, 8)} ·{" "}
-            {run.evidenceMode === "real"
-              ? "Real Codex"
-              : run.evidenceMode === "demo"
-                ? "Demo adapter"
-                : "Unverified legacy"}
-          </div>
-          <h1>
-            {run.status === "completed"
-              ? "Evidence, without the false green"
-              : "Evaluation in progress"}
-          </h1>
-          <p className="lede">
-            Skill v{run.skill_version} and eval v{run.eval_version} are pinned
-            by checksum. Required dimensions stay separate all the way to the
-            case evidence.
-          </p>
+          <div className="evidence-label">Prompt</div>
+          <div className="evidence-text">{openCase.detail.prompt}</div>
         </div>
-        <span
-          className={`badge ${run.status === "completed" ? "pass" : "info"}`}
-        >
-          {run.status}
+      )}
+      {openCase.detail?.response && (
+        <div>
+          <div className="evidence-label">What the Skill answered</div>
+          <div className="evidence-text">{openCase.detail.response}</div>
+        </div>
+      )}
+      <div>
+        <div className="evidence-label">Assertions</div>
+        <Assertions assertions={(openCase.assertions ?? []) as any[]} />
+      </div>
+      <dl className="kv">
+        <div>
+          <dt>Samples</dt>
+          <dd className="num">{openCase.sampleCount}</dd>
+        </div>
+        <div>
+          <dt>Duration</dt>
+          <dd className="num">
+            {(Number(openCase.duration_ms ?? 0) / 1000).toFixed(1)}s
+          </dd>
+        </div>
+        <div>
+          <dt>Tokens</dt>
+          <dd className="num">
+            {(
+              Number(openCase.tokens?.input ?? 0) +
+              Number(openCase.tokens?.output ?? 0)
+            ).toLocaleString()}
+          </dd>
+        </div>
+        {openCase.error_class && (
+          <div>
+            <dt>Error class</dt>
+            <dd>{humanize(openCase.error_class)}</dd>
+          </div>
+        )}
+      </dl>
+    </Inspector>
+  ) : undefined;
+
+  return (
+    <Work inspector={inspector}>
+      <Verdict
+        title="What the evidence shows"
+        status={
+          <Status
+            value={actionable ? "fail" : "pass"}
+            label={actionable ? "Action needed" : "No Skill failures"}
+          />
+        }
+      />
+      <div className="headline-figure">
+        <b className="num">
+          {passing}/{perCase.length}
+        </b>
+        <span>
+          cases passing · Skill v{run.skill_version}, eval v{run.eval_version} ·{" "}
+          {evidenceModeCopy(run.evidenceMode).label}
         </span>
       </div>
-      {run.evidenceMode !== "real" && (
-        <div className="mode-banner demo" role="status">
-          <b>
-            {run.evidenceMode === "demo"
-              ? "Demo evidence"
-              : "Unverified legacy evidence"}
-          </b>
-          {run.evidenceMode === "demo"
-            ? "These results were generated by the deterministic test adapter, not by Codex."
-            : "This run predates adapter provenance, so SkillEd will not present it as a real Codex run."}
+
+      <Metrics items={metrics} />
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Cases</h2>
+          <span className="section-note num">
+            {visible.length} of {perCase.length} · {results.length} samples
+          </span>
         </div>
-      )}
-      {!["completed", "failed", "cancelled"].includes(run.status) ? (
-        <LiveRunProgress runId={String(run.id)} />
-      ) : run.status === "completed" ? (
-        <>
-          <div className="metric-row">
-            <div className="metric">
-              <span>Pass</span>
-              <b>{counts.PASS}</b>
-            </div>
-            <div className="metric">
-              <span>Partial</span>
-              <b>{counts.PARTIAL}</b>
-            </div>
-            <div className="metric">
-              <span>Fail</span>
-              <b>{counts.FAIL}</b>
-            </div>
-            <div className="metric">
-              <span>Error</span>
-              <b>{counts.ERROR}</b>
-            </div>
-            <div className="metric">
-              <span>Tokens</span>
-              <b>{tokens.toLocaleString()}</b>
-            </div>
-            <div className="metric">
-              <span>Duration</span>
-              <b>{(duration / 1000).toFixed(1)}s</b>
-            </div>
-          </div>
-          <div className="grid">
-            <section className="panel">
-              <div className="panel-head">
-                <h2>Failure-first case results</h2>
+
+        <div className="filters">
+          <Link
+            className={`filter ${!query.status && !query.dim ? "on" : ""}`}
+            href={base}
+          >
+            All
+          </Link>
+          {["FAIL", "PARTIAL", "ERROR", "PASS"].map((status) =>
+            perCase.some((r) => r.result === status) ? (
+              <Link
+                key={status}
+                className={`filter ${query.status === status ? "on" : ""}`}
+                href={filter(`&status=${status}`)}
+              >
+                {status.charAt(0) + status.slice(1).toLowerCase()}
+              </Link>
+            ) : null,
+          )}
+          {metrics
+            .filter((metric) => metric.measured > metric.passed)
+            .map((metric) => (
+              <Link
+                key={metric.key}
+                className={`filter ${query.dim === metric.key ? "on" : ""}`}
+                href={filter(`&dim=${metric.key}`)}
+              >
+                {metric.label} broke
+              </Link>
+            ))}
+        </div>
+
+        <div className="rows">
+          {visible.map((result) => {
+            const failed = Object.entries(result.dimensions ?? {})
+              .filter(([, ok]) => !ok)
+              .map(([dimension]) => dimensionLabels[dimension] ?? dimension);
+            return (
+              <Link
+                className={`row case ${query.case === result.case_id ? "selected" : ""}`}
+                key={result.id}
+                href={`${base}&case=${result.case_id}${query.status ? `&status=${query.status}` : ""}${query.dim ? `&dim=${query.dim}` : ""}`}
+              >
+                <Status
+                  value={result.result}
+                  label={result.result}
+                  flaky={!result.stable}
+                />
                 <span>
-                  {displayResults.length} cases · {results.length} samples
+                  <span className="id">{result.case_id}</span>
+                  <span className="sub">
+                    {result.title ?? result.coverage_group}
+                  </span>
                 </span>
-              </div>
-              <div className="panel-body" style={{ padding: 0 }}>
-                <table className="case-table">
-                  <thead>
-                    <tr>
-                      <th>Result</th>
-                      <th>Case</th>
-                      <th>Coverage group</th>
-                      <th>Failed dimensions</th>
-                      <th>Evidence</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayResults.map((result) => {
-                      const failed = Object.entries(result.dimensions ?? {})
-                        .filter(([, ok]) => !ok)
-                        .map(([d]) => d);
-                      return (
-                        <tr
-                          key={result.id}
-                          className={result.result !== "PASS" ? "failure" : ""}
-                        >
-                          <td data-label="Result">
-                            <span
-                              className={`badge ${String(result.result).toLowerCase()}`}
-                            >
-                              {result.result}
-                            </span>
-                          </td>
-                          <td data-label="Case">
-                            <div>
-                              <b>{result.case_id}</b>
-                              <br />
-                              {result.title} · {result.sampleCount} samples
-                              {!result.stable && (
-                                <>
-                                  <br />
-                                  <b>Flaky</b>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                          <td data-label="Coverage group">
-                            {result.coverage_group}
-                          </td>
-                          <td data-label="Failed dimensions">
-                            {failed.length ? failed.join(" · ") : "—"}
-                          </td>
-                          <td data-label="Evidence">
-                            {result.result === "PARTIAL" ? (
-                              <b>Target passed; scope failed</b>
-                            ) : (
-                              result.detail?.response
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <div className="decision-bar">
-                <span>
-                  {counts.FAIL + counts.PARTIAL > 0
-                    ? "Actionable Skill failures found."
-                    : "No actionable failures."}
+                <span className="file-kind">
+                  {failed.length ? failed.join(", ") : ""}
                 </span>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <a
-                    className="btn secondary"
-                    href={`/api/v1/runs/${run.id}/download`}
-                  >
-                    Raw report
-                  </a>
-                  {counts.FAIL + counts.PARTIAL > 0 && (
-                    <ApiAction
-                      url="/api/v1/updates/generate"
-                      body={{ runId: run.id }}
-                      label="Suggest update"
-                      navigateTo={`/improve/:resourceId?skill=${run.skill_id}`}
-                    />
-                  )}
-                </div>
-              </div>
-            </section>
-            <aside>
-              <section className="panel">
-                <div className="panel-head">
-                  <h2>Evidence boundaries</h2>
-                </div>
-                <div className="panel-body">
-                  <div className="callout">
-                    Agent, judge, timeout, cancellation, and ingestion errors
-                    remain distinct. A Python validator checks exact artifacts;
-                    it never performs the task on Codex’s behalf.
-                  </div>
-                </div>
-              </section>
-              <div style={{ height: 18 }} />
-              <section className="panel">
-                <div className="panel-head">
-                  <h2>Reproducibility</h2>
-                </div>
-                <div className="panel-body mono">
-                  model {run.model}
-                  <br />
-                  skill {String(run.skill_checksum).slice(0, 16)}
-                  <br />
-                  eval {String(run.eval_checksum).slice(0, 16)}
-                  <br />
-                  iterations {run.iterations}
-                  <br />
-                  parallelism 1
-                </div>
-              </section>
-            </aside>
+                <span className="chevron" aria-hidden="true">
+                  ▸
+                </span>
+              </Link>
+            );
+          })}
+          {visible.length === 0 && (
+            <p className="hint">No case matches this filter.</p>
+          )}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Run</h2>
+          <span className="section-note">Pinned and reproducible</span>
+        </div>
+        <dl className="kv" style={{ marginTop: 12 }}>
+          <div>
+            <dt>Model</dt>
+            <dd className="mono">{run.model}</dd>
           </div>
-        </>
-      ) : (
-        <section className="panel">
-          <div className="empty">
-            <h2>Evaluation {run.status}</h2>
-            <p>
-              Durable progress recorded before the run stopped remains available
-              from the run status endpoint.
-            </p>
+          <div>
+            <dt>Iterations</dt>
+            <dd className="num">{run.iterations}</dd>
           </div>
-        </section>
-      )}
-    </div>
+          <div>
+            <dt>Tokens</dt>
+            <dd className="num">{tokens.toLocaleString()}</dd>
+          </div>
+          <div>
+            <dt>Duration</dt>
+            <dd className="num">{(duration / 1000).toFixed(1)}s</dd>
+          </div>
+          <div>
+            <dt>Skill checksum</dt>
+            <dd className="mono">{String(run.skill_checksum).slice(0, 16)}</dd>
+          </div>
+          <div>
+            <dt>Eval checksum</dt>
+            <dd className="mono">{String(run.eval_checksum).slice(0, 16)}</dd>
+          </div>
+        </dl>
+        <p style={{ marginTop: 14 }}>
+          <a className="btn quiet" href={`/api/v1/runs/${run.id}/download`}>
+            Download raw report
+          </a>
+        </p>
+      </section>
+
+      <div className="decision">
+        <div>
+          {actionable ? (
+            <>
+              <b>
+                {actionable} case{actionable === 1 ? "" : "s"} the Skill should
+                have handled
+              </b>
+              <p>
+                Codex diagnoses them in a separate thread and proposes a patch
+                you review before anything changes.
+              </p>
+            </>
+          ) : (
+            <>
+              <b>No actionable Skill failures</b>
+              <p>
+                Errors, if any, are infrastructure and are not counted against
+                the Skill.
+              </p>
+            </>
+          )}
+        </div>
+        {actionable > 0 && (
+          <div className="decision-actions">
+            <ApiAction
+              url="/api/v1/updates/generate"
+              body={{ runId: run.id }}
+              label="Suggest update"
+              navigateTo={`/improve/:resourceId?skill=${run.skill_id}`}
+            />
+          </div>
+        )}
+      </div>
+    </Work>
   );
 }

@@ -1,290 +1,301 @@
-import { currentProposal, currentRun } from "../../../lib/data";
+import Link from "next/link";
+import { currentProposal } from "../../../lib/data";
 import { ApiAction, ConversationForm } from "../../../components/actions";
+import { ProposalDecision } from "../../../components/proposal-decision";
+import {
+  DiffViewer,
+  Inspector,
+  Status,
+  Verdict,
+  Work,
+} from "../../../components/ui";
+import { humanize } from "../../../lib/labels";
+
 export const dynamic = "force-dynamic";
+
 export default async function ImprovePage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ skill?: string }>;
+  searchParams: Promise<{ skill?: string; panel?: string }>;
 }) {
   const [route, query] = await Promise.all([params, searchParams]);
-  const proposal = await currentProposal(route.id, query.skill),
-    run = await currentRun(undefined, proposal?.skill_id ?? query.skill);
+  const proposal = await currentProposal(route.id, query.skill);
+
   if (!proposal)
     return (
-      <div className="content">
+      <Work>
+        <Verdict
+          title="No proposed change"
+          lede="Improvements start from evidence: run an approved suite, then ask Codex to diagnose the cases that failed."
+        />
         <div className="empty">
-          <h1>No update proposal</h1>
           <p>
-            Run an approved eval and select Suggest update from actionable
-            failures.
+            When a run reports a failing or partial case, Suggest update opens a
+            separate Codex thread bound to that exact run and Skill version.
           </p>
+          <Link
+            className="btn"
+            href={`/runs/current${query.skill ? `?skill=${query.skill}` : ""}`}
+          >
+            Go to runs
+          </Link>
         </div>
-      </div>
+      </Work>
     );
-  const summary = proposal.summary as any,
-    comparison = proposal.comparison as any;
+
+  const summary = proposal.summary as any;
+  const comparison = proposal.comparison as any;
+  const status = String(proposal.status);
+  const activated = Boolean(proposal.activated_at);
+  const skillChanges = (proposal.skill_changes ?? []) as any[];
+  const evalChanges = (proposal.eval_changes ?? []) as any[];
+  const base = `/improve/${proposal.id}?skill=${proposal.skill_id}`;
+
+  if (status === "generating")
+    return (
+      <Work>
+        <Verdict
+          title="Diagnosing the failed run"
+          lede="Codex receives the immutable base Skill and the selected failure evidence — not the authoring conversation, and no ability to edit files directly."
+          status={<Status value="active" label="Working" />}
+        />
+      </Work>
+    );
+
+  const inspector =
+    query.panel === "diff" ? (
+      <Inspector
+        title="Proposed changes"
+        subtitle={`Base v${proposal.base_version} · nothing applied yet`}
+        closeHref={base}
+      >
+        <DiffViewer patch={proposal.skillPatch} />
+        {proposal.evalPatch && (
+          <div>
+            <div className="evidence-label">Eval changes</div>
+            <DiffViewer patch={proposal.evalPatch} />
+          </div>
+        )}
+      </Inspector>
+    ) : query.panel === "conversation" ? (
+      <Inspector
+        title="Update conversation"
+        subtitle="A separate thread from authoring"
+        closeHref={base}
+      >
+        <div className="conversation">
+          {proposal.messages?.length ? (
+            proposal.messages.map((message: any) => (
+              <div className={`message ${message.role}`} key={message.id}>
+                <span className="who">
+                  {message.role === "assistant" ? "Codex" : "You"}
+                </span>
+                <p>{message.content}</p>
+              </div>
+            ))
+          ) : (
+            <p className="hint">No messages yet.</p>
+          )}
+        </div>
+        {status === "review" && (
+          <ConversationForm
+            url={`/api/v1/updates/${proposal.id}/messages`}
+            placeholder="Ask Codex to narrow the change, explain the risk, or revise the patch…"
+          />
+        )}
+      </Inspector>
+    ) : undefined;
+
   return (
-    <div className="content">
-      <div className="page-head">
-        <div>
-          <div className="eyebrow">
-            Improvement proposal · base v{proposal.base_version} ·{" "}
-            {proposal.evidenceMode === "real"
-              ? "Real Codex"
-              : proposal.evidenceMode === "demo"
-                ? "Demo adapter"
-                : "Unverified legacy"}
+    <Work inspector={inspector}>
+      <Verdict
+        title="Change the Skill, keep the evidence fixed"
+        lede="The proposal touches neither the active Skill nor the approved suite. Nothing takes effect until you approve it and the candidate is verified."
+        status={
+          <Status
+            value={status === "failed" ? "fail" : activated ? "pass" : "active"}
+            label={activated ? "Activated" : humanize(status)}
+          />
+        }
+      />
+
+      <section className="section" style={{ marginTop: 22 }}>
+        <div className="section-head">
+          <h2>Diagnosis</h2>
+          <Link className="section-note" href={`${base}&panel=conversation`}>
+            Conversation ▸
+          </Link>
+        </div>
+        <dl className="kv" style={{ marginTop: 12 }}>
+          <div>
+            <dt>Root cause</dt>
+            <dd>{summary?.rootCause}</dd>
           </div>
-          <h1>Change the Skill, keep the evidence fixed</h1>
-          <p className="lede">
-            The proposal is separate from both the active Skill and the approved
-            eval. Nothing activates until you approve the patch and verify the
-            candidate.
-          </p>
-        </div>
-        <span
-          className={`badge ${proposal.status === "failed" ? "fail" : "info"}`}
-        >
-          {String(proposal.status).replaceAll("_", " ")}
-        </span>
-      </div>
-      {proposal.evidenceMode !== "real" && (
-        <div className="mode-banner demo" role="status">
-          <b>
-            {proposal.evidenceMode === "demo"
-              ? "Demo proposal"
-              : "Unverified legacy proposal"}
-          </b>
-          {proposal.evidenceMode === "demo"
-            ? "The worker generated this deterministically. It is useful for testing approvals, not evidence that Codex diagnosed the failure."
-            : "This proposal predates conversation provenance and cannot be represented as a real Codex diagnosis."}
-        </div>
-      )}
-      {proposal.status === "generating" ? (
-        <div className="panel">
-          <div className="empty">
-            <h2>Analyzing the failed run</h2>
-            <p>
-              Codex receives only the immutable base Skill and selected failure
-              evidence.
-            </p>
+          <div>
+            <dt>Intended effect</dt>
+            <dd>{summary?.intendedEffect}</dd>
           </div>
+          <div>
+            <dt>Stated risk</dt>
+            <dd>{proposal.risks?.join(", ") || "None stated"}</dd>
+          </div>
+          <div>
+            <dt>How it gets verified</dt>
+            <dd>{summary?.verification}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <h2>Changed files</h2>
+          <Link className="section-note" href={`${base}&panel=diff`}>
+            Read the diff ▸
+          </Link>
         </div>
-      ) : (
-        <div className="grid">
-          <section>
-            <div className="panel">
-              <div className="panel-head">
-                <h2>Problem and intended effect</h2>
-                <span className="badge info">Structured proposal</span>
-              </div>
-              <div className="panel-body">
-                <dl className="facts">
-                  <div className="fact">
-                    <dt>Root cause</dt>
-                    <dd>{summary?.rootCause}</dd>
-                  </div>
-                  <div className="fact">
-                    <dt>Intended effect</dt>
-                    <dd>{summary?.intendedEffect}</dd>
-                  </div>
-                  <div className="fact">
-                    <dt>Risk</dt>
-                    <dd>{proposal.risks?.join(" · ")}</dd>
-                  </div>
-                  <div className="fact">
-                    <dt>Verification</dt>
-                    <dd>{summary?.verification}</dd>
-                  </div>
-                </dl>
-                <h2 style={{ marginTop: 24 }}>Skill patch</h2>
-                <pre className="diff">
-                  <span className="add">{proposal.skillPatch}</span>
-                </pre>
-                {proposal.evalPatch && (
-                  <>
-                    <h2 style={{ marginTop: 24 }}>Eval patch</h2>
-                    <pre className="diff">{proposal.evalPatch}</pre>
-                  </>
-                )}
-              </div>
-              {proposal.status === "review" && (
-                <div className="decision-bar">
-                  <span>Skill and eval decisions are independent.</span>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <ApiAction
-                      url={`/api/v1/updates/${proposal.id}/decide`}
-                      body={{
-                        skillDecision: "rejected",
-                        evalDecision: "rejected",
-                      }}
-                      label="Reject"
-                      kind="secondary"
-                    />
-                    <ApiAction
-                      url={`/api/v1/updates/${proposal.id}/decide`}
-                      body={{
-                        skillDecision: "approved",
-                        evalDecision: "rejected",
-                      }}
-                      label="Approve Skill only"
-                    />
-                    {proposal.evalPatch && (
-                      <ApiAction
-                        url={`/api/v1/updates/${proposal.id}/decide`}
-                        body={{
-                          skillDecision: "approved",
-                          evalDecision: "approved",
-                        }}
-                        label="Approve Skill + eval"
-                      />
-                    )}
-                  </div>
-                </div>
-              )}
-              {proposal.status === "candidate_created" && (
-                <div className="decision-bar">
-                  <span>Candidate created; active bytes are unchanged.</span>
-                  <ApiAction
-                    url={`/api/v1/updates/${proposal.id}/verify`}
-                    label="Verify candidate"
+        <div className="rows">
+          {skillChanges.map((change: any) => (
+            <Link
+              className="row plain"
+              href={`${base}&panel=diff`}
+              key={change.path}
+            >
+              <span>
+                <span className="title mono">{change.path}</span>
+                <span className="sub">{change.reason}</span>
+              </span>
+              <span className="file-kind">{change.action}</span>
+            </Link>
+          ))}
+          {evalChanges.map((change: any) => (
+            <Link
+              className="row plain"
+              href={`${base}&panel=diff`}
+              key={change.caseId}
+            >
+              <span>
+                <span className="title">{change.caseId}</span>
+                <span className="sub">{change.reason}</span>
+              </span>
+              <span className="file-kind">eval case</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {comparison && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Current against candidate</h2>
+            <Status
+              value={comparison.blocked ? "fail" : "pass"}
+              label={comparison.blocked ? "Activation blocked" : "Verified"}
+            />
+          </div>
+          <div className="rows">
+            {[...(comparison.cases ?? [])]
+              .sort((a: any, b: any) =>
+                a.category === "Regressed"
+                  ? -1
+                  : b.category === "Regressed"
+                    ? 1
+                    : 0,
+              )
+              .map((item: any) => (
+                <div className="row case" key={item.caseId}>
+                  <Status
+                    value={
+                      item.category === "Regressed"
+                        ? "fail"
+                        : item.category === "Fixed"
+                          ? "pass"
+                          : "absent"
+                    }
+                    label={item.category}
                   />
-                </div>
-              )}
-              {proposal.status === "verified" && !proposal.activated_at && (
-                <div className="decision-bar">
-                  <span>No new required-dimension regression.</span>
-                  <ApiAction
-                    url={`/api/v1/updates/${proposal.id}/activate`}
-                    label="Activate candidate"
-                  />
-                </div>
-              )}
-              {proposal.activated_at && (
-                <div className="decision-bar">
-                  <span>Candidate is the active Skill version.</span>
-                  <span className="badge pass">Activated</span>
-                </div>
-              )}
-            </div>
-            <div className="panel" style={{ marginTop: 18 }}>
-              <div className="panel-head">
-                <h2>Update conversation</h2>
-                <span className="badge info">Separate Codex thread</span>
-              </div>
-              <div className="panel-body conversation">
-                {proposal.messages?.map((message: any) => (
-                  <div className="message" key={message.id}>
-                    <strong>{message.role}</strong>
-                    {message.content}
-                  </div>
-                ))}
-                {proposal.status === "review" && (
-                  <ConversationForm
-                    url={`/api/v1/updates/${proposal.id}/messages`}
-                    placeholder="Ask Codex to narrow, explain, or revise this proposal…"
-                  />
-                )}
-              </div>
-            </div>
-            {comparison && (
-              <div className="panel" style={{ marginTop: 18 }}>
-                <div className="panel-head">
-                  <h2>Current vs candidate</h2>
-                  <span
-                    className={`badge ${comparison.blocked ? "fail" : "pass"}`}
-                  >
-                    {comparison.blocked ? "Activation blocked" : "Verified"}
+                  <span>
+                    <span className="id">{item.caseId}</span>
+                    <span className="sub">
+                      {item.current} → {item.candidate}
+                    </span>
                   </span>
+                  <span />
+                  <span />
                 </div>
-                <div className="panel-body">
-                  <table className="case-table">
-                    <thead>
-                      <tr>
-                        <th>Case</th>
-                        <th>Current</th>
-                        <th>Candidate</th>
-                        <th>Change</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comparison.cases?.map((item: any) => (
-                        <tr
-                          key={item.caseId}
-                          className={
-                            item.category === "Regressed" ? "failure" : ""
-                          }
-                        >
-                          <td data-label="Case">{item.caseId}</td>
-                          <td data-label="Current">{item.current}</td>
-                          <td data-label="Candidate">{item.candidate}</td>
-                          <td data-label="Change">
-                            <b>{item.category}</b>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              ))}
+          </div>
+        </section>
+      )}
+
+      {status === "review" ? (
+        <section className="section">
+          <div className="section-head">
+            <h2>Decide</h2>
+            <span className="section-note">Groups are independent</span>
+          </div>
+          <ProposalDecision
+            proposalId={proposal.id}
+            skillChangeCount={skillChanges.length}
+            evalChangeCount={evalChanges.length}
+          />
+        </section>
+      ) : (
+        <div className="decision">
+          <div>
+            {status === "candidate_created" ? (
+              <>
+                <b>Candidate created; active bytes unchanged</b>
+                <p>
+                  Verification runs the current and candidate Skills against the
+                  identical frozen suite.
+                </p>
+              </>
+            ) : status === "verified" && !activated ? (
+              <>
+                <b>Verified with no new regression</b>
+                <p>
+                  Activation switches which version future runs and downloads
+                  use. Base v{proposal.base_version} stays available.
+                </p>
+              </>
+            ) : status === "failed" ? (
+              <>
+                <b>Activation blocked</b>
+                <p>
+                  Verification found a regression or an errored case. The active
+                  Skill is unchanged.
+                </p>
+              </>
+            ) : activated ? (
+              <>
+                <b>Candidate is now the active Skill</b>
+                <p>Earlier versions and their evidence remain intact.</p>
+              </>
+            ) : (
+              <>
+                <b>{humanize(status)}</b>
+                <p>Nothing to decide at this stage.</p>
+              </>
             )}
-          </section>
-          <aside>
-            <section className="panel">
-              <div className="panel-head">
-                <h2>Version integrity</h2>
-              </div>
-              <div className="panel-body timeline">
-                <div>
-                  <b>Base v{proposal.base_version}</b>
-                  <br />
-                  <small>Immutable active package</small>
-                </div>
-                <div>
-                  <b>Proposed patch</b>
-                  <br />
-                  <small>Reviewable, not applied</small>
-                </div>
-                <div>
-                  <b>Candidate</b>
-                  <br />
-                  <small>
-                    {proposal.candidate_version_id
-                      ? "Immutable candidate created"
-                      : "Waiting for approval"}
-                  </small>
-                </div>
-                <div>
-                  <b>Activation</b>
-                  <br />
-                  <small>
-                    {proposal.activated_at
-                      ? "Candidate is active"
-                      : proposal.status === "verified"
-                        ? "Available explicitly"
-                        : "Blocked until verified"}
-                  </small>
-                </div>
-              </div>
-            </section>
-            <div style={{ height: 18 }} />
-            <section className="panel">
-              <div className="panel-head">
-                <h2>Bound evidence</h2>
-              </div>
-              <div className="panel-body mono">
-                source run {String(proposal.source_run_id).slice(0, 8)}
-                <br />
-                eval {String(proposal.eval_version_id).slice(0, 8)}
-                <br />
-                current run {run ? String(run.id).slice(0, 8) : "—"}
-              </div>
-            </section>
-          </aside>
+          </div>
+          <div className="decision-actions">
+            {status === "candidate_created" && (
+              <ApiAction
+                url={`/api/v1/updates/${proposal.id}/verify`}
+                label="Verify candidate"
+              />
+            )}
+            {status === "verified" && !activated && (
+              <ApiAction
+                url={`/api/v1/updates/${proposal.id}/activate`}
+                label="Activate candidate"
+              />
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </Work>
   );
 }

@@ -1,5 +1,11 @@
-import { ArtifactStore, db } from "@skilled/core";
-import { readFile } from "node:fs/promises";
+import {
+  ArtifactStore,
+  PREVIEW_LIMIT,
+  db,
+  readZipEntry,
+  type ZipEntryContent,
+} from "@skilled/core";
+import { readFile, stat } from "node:fs/promises";
 const sql = db();
 const ready = Promise.resolve();
 const severity: Record<string, number> = {
@@ -40,9 +46,33 @@ export async function listSkills(): Promise<any[]> {
       const results = run
         ? await sql`SELECT case_id,result FROM case_results WHERE run_id=${run.id}`
         : [];
+      // The workflow rail shows where this package actually stands, so the
+      // shell needs the latest eval and proposal alongside the latest run.
+      const [evaluation] =
+        await sql`SELECT ev.id,ev.status,ev.version FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${skill.id} ORDER BY ev.created_at DESC LIMIT 1`;
+      const [proposal] =
+        await sql`SELECT p.id,p.status,p.activated_at FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE sv.skill_id=${skill.id} ORDER BY p.created_at DESC LIMIT 1`;
+      const summary = run ? summarizeResults(results) : null;
       return {
         ...skill,
-        latestRun: run ? { ...run, summary: summarizeResults(results) } : null,
+        latestRun: run && summary ? { ...run, summary } : null,
+        stages: {
+          evals: {
+            id: evaluation ? String(evaluation.id) : null,
+            status: evaluation ? String(evaluation.status) : null,
+            version: evaluation?.version ? Number(evaluation.version) : null,
+          },
+          runs: {
+            id: run ? String(run.id) : null,
+            status: run ? String(run.status) : null,
+            summary,
+          },
+          improve: {
+            id: proposal ? String(proposal.id) : null,
+            status: proposal ? String(proposal.status) : null,
+            activated: Boolean(proposal?.activated_at),
+          },
+        },
       };
     }),
   );
@@ -149,6 +179,97 @@ export async function currentProposal(
         ? "demo"
         : "unknown",
   };
+}
+
+/**
+ * Deepest level of the drill-down: the actual bytes of a Skill file.
+ *
+ * Manifest paths are stored relative to the Skill root while the installable
+ * archive keeps that root directory, so the root is rejoined here. Traversal
+ * and size limits are enforced inside readZipEntry.
+ */
+export async function readSkillFile(
+  versionId: string,
+  path: string,
+): Promise<ZipEntryContent | null> {
+  await ready;
+  const [version] =
+    await sql`SELECT installable_key,original_key,selected_root FROM skill_versions WHERE id=${versionId}`;
+  if (!version) return null;
+  const key = version.installable_key ?? version.original_key;
+  if (!key) return null;
+  const inArchive = version.selected_root
+    ? `${version.selected_root}/${path}`
+    : path;
+  try {
+    return await readZipEntry(new ArtifactStore().path(key), inArchive);
+  } catch {
+    return null;
+  }
+}
+
+/** The exact generated eval file — eval.yaml, a case YAML, or a judge script. */
+export async function readEvalFile(
+  evalId: string,
+  path: string,
+): Promise<ZipEntryContent | null> {
+  await ready;
+  const [evaluation] =
+    await sql`SELECT bundle_key FROM eval_versions WHERE id=${evalId}`;
+  if (!evaluation?.bundle_key) return null;
+  try {
+    return await readZipEntry(
+      new ArtifactStore().path(evaluation.bundle_key),
+      path,
+    );
+  } catch {
+    return null;
+  }
+}
+
+/** Uploaded task material is a plain artifact rather than an archive entry. */
+export async function readTaskMaterial(
+  fileId: string,
+): Promise<(ZipEntryContent & { filename: string; kind: string }) | null> {
+  await ready;
+  const [file] =
+    await sql`SELECT id,kind,filename,artifact_key,metadata FROM eval_files WHERE id=${fileId}`;
+  if (!file) return null;
+  // The typed task description is stored inline rather than as a file.
+  if (!file.artifact_key)
+    return {
+      filename: String(file.filename),
+      kind: String(file.kind),
+      path: String(file.filename),
+      size: String(file.metadata?.text ?? "").length,
+      text: String(file.metadata?.text ?? ""),
+      binary: false,
+      truncated: false,
+    };
+  try {
+    const target = new ArtifactStore().path(file.artifact_key);
+    const size = (await stat(target)).size;
+    const bytes = await readFile(target);
+    const body = bytes.subarray(0, PREVIEW_LIMIT);
+    const binary = body.subarray(0, 8192).includes(0);
+    return {
+      filename: String(file.filename),
+      kind: String(file.kind),
+      path: String(file.filename),
+      size,
+      text: binary ? null : body.toString("utf8"),
+      binary,
+      truncated: size > PREVIEW_LIMIT,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Task material rows for the package file browser. */
+export async function taskMaterials(evalId: string): Promise<any[]> {
+  await ready;
+  return sql`SELECT id,kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${evalId} ORDER BY kind,filename`;
 }
 
 export async function skillRuns(skillId: string): Promise<any[]> {

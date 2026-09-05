@@ -106,6 +106,153 @@ export async function inspectZip(
   return { entries, roots, checksum: sha256(bytes) };
 }
 
+/** Largest single entry the UI will inline rather than offer as a download. */
+export const PREVIEW_LIMIT = 1024 * 1024;
+
+const TEXT_EXTENSIONS = new Set([
+  "md",
+  "markdown",
+  "txt",
+  "yaml",
+  "yml",
+  "json",
+  "jsonl",
+  "csv",
+  "tsv",
+  "sh",
+  "bash",
+  "zsh",
+  "py",
+  "rb",
+  "js",
+  "mjs",
+  "cjs",
+  "ts",
+  "tsx",
+  "jsx",
+  "go",
+  "rs",
+  "java",
+  "c",
+  "h",
+  "cpp",
+  "sql",
+  "toml",
+  "ini",
+  "cfg",
+  "conf",
+  "properties",
+  "xml",
+  "html",
+  "htm",
+  "css",
+  "svg",
+  "patch",
+  "diff",
+  "gitignore",
+  "dockerignore",
+  "license",
+]);
+
+export type ZipEntryContent = {
+  path: string;
+  size: number;
+  /** Decoded UTF-8 when the entry is safe to display inline. */
+  text: string | null;
+  /** True when the entry is binary or larger than PREVIEW_LIMIT. */
+  binary: boolean;
+  truncated: boolean;
+};
+
+/**
+ * Read one entry out of an archive for display.
+ *
+ * Everything the UI shows from an uploaded package flows through here, so the
+ * same traversal guard used at intake (`normalizedPath`) decides what a caller
+ * is allowed to name, and content is never executed — the caller receives
+ * decoded text and renders it inert.
+ */
+export async function readZipEntry(
+  file: string,
+  entryPath: string,
+): Promise<ZipEntryContent> {
+  const wanted = normalizedPath(entryPath);
+  const bytes = await new Promise<Buffer | null>((done, reject) =>
+    yauzl.open(
+      file,
+      { lazyEntries: true, decodeStrings: true },
+      (error, zip) => {
+        if (error || !zip) return reject(error ?? new Error("Malformed ZIP"));
+        let settled = false;
+        zip.readEntry();
+        zip.on("entry", (entry) => {
+          let path: string;
+          try {
+            path = normalizedPath(entry.fileName);
+          } catch {
+            return zip.readEntry();
+          }
+          if (path !== wanted) return zip.readEntry();
+          if (entry.generalPurposeBitFlag & 1) {
+            settled = true;
+            zip.close();
+            return reject(new Error(`Encrypted entry: ${path}`));
+          }
+          if (entry.uncompressedSize > ZIP_LIMITS.file) {
+            settled = true;
+            zip.close();
+            return reject(new Error(`Entry exceeds 100 MiB: ${path}`));
+          }
+          zip.openReadStream(entry, (streamError, stream) => {
+            if (streamError || !stream) {
+              settled = true;
+              zip.close();
+              return reject(streamError ?? new Error("Unreadable entry"));
+            }
+            const chunks: Buffer[] = [];
+            let total = 0;
+            stream.on("data", (chunk: Buffer) => {
+              total += chunk.length;
+              // Stop buffering past the preview cap; the caller offers a download.
+              if (total <= PREVIEW_LIMIT + 1) chunks.push(chunk);
+            });
+            stream.on("error", reject);
+            stream.on("end", () => {
+              settled = true;
+              zip.close();
+              done(Buffer.concat(chunks));
+            });
+          });
+        });
+        zip.on("end", () => {
+          if (!settled) done(null);
+        });
+        zip.on("error", reject);
+      },
+    ),
+  );
+
+  if (!bytes) throw new Error(`Entry not found: ${wanted}`);
+
+  const extension = wanted.includes(".")
+    ? wanted.split(".").pop()!.toLowerCase()
+    : wanted.split("/").pop()!.toLowerCase();
+  const truncated = bytes.length > PREVIEW_LIMIT;
+  const body = truncated ? bytes.subarray(0, PREVIEW_LIMIT) : bytes;
+  // A NUL byte in the head is the reliable signal that this is not text,
+  // whatever the extension claims.
+  const looksBinary = body.subarray(0, 8192).includes(0);
+  const displayable = TEXT_EXTENSIONS.has(extension) && !looksBinary;
+
+  return {
+    path: wanted,
+    size: bytes.length,
+    text: displayable ? body.toString("utf8") : null,
+    binary: !displayable,
+    truncated,
+  };
+}
+
 export async function extractZip(
   file: string,
   destination: string,

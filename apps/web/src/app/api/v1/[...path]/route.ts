@@ -11,6 +11,7 @@ import {
   extractZip,
   createZip,
   problem,
+  readZipEntry,
   sha256,
 } from "@skilled/core";
 import Busboy from "busboy";
@@ -89,6 +90,11 @@ const excluded = (path: string) =>
   /(^|\/)(evals?|runs?|outputs?|test-results|\.git|\.svn|\.hg|\.env|auth\.json|__MACOSX|node_modules)(\/|$)/i.test(
     path,
   ) || /(^|\/)(\.DS_Store|.*\.tmp)$/.test(path);
+/** A normalised URL can leave a non-id segment where an id belongs; that is a
+ * miss, not a server error. */
+const isId = (value: string | undefined) =>
+  !!value &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 
 export async function GET(request: Request, context: Context) {
   await ready;
@@ -129,6 +135,69 @@ export async function GET(request: Request, context: Context) {
       const skills =
         await sql`SELECT s.*,v.version active_version,v.description FROM skills s LEFT JOIN skill_versions v ON v.id=s.active_version_id ORDER BY s.updated_at DESC,s.name`;
       return json(skills);
+    }
+    // File reads come before the version/eval lookups below, which match on a
+    // shorter prefix and would otherwise swallow these paths.
+    if (
+      path[0] === "skill" &&
+      path[1] === "versions" &&
+      path[2] &&
+      path[3] === "files"
+    ) {
+      const entryPath = path.slice(4).join("/");
+      if (!entryPath)
+        return fail("BAD_REQUEST", "No file named", "Name a file to read.");
+      if (!isId(path[2]))
+        return fail("NOT_FOUND", "Version not found", "", 404);
+      const [version] =
+        await sql`SELECT installable_key,original_key,selected_root FROM skill_versions WHERE id=${path[2]}`;
+      if (!version) return fail("NOT_FOUND", "Version not found", "", 404);
+      const key = version.installable_key ?? version.original_key;
+      // Manifest paths are root-relative; the archive keeps the root directory.
+      const inArchive = version.selected_root
+        ? `${version.selected_root}/${entryPath}`
+        : entryPath;
+      try {
+        return json(await readZipEntry(store.path(key), inArchive));
+      } catch (cause) {
+        return fail(
+          "NOT_FOUND",
+          "File not readable",
+          cause instanceof Error
+            ? cause.message
+            : "The file could not be read.",
+          404,
+        );
+      }
+    }
+    if (path[0] === "evals" && path[1] && path[2] === "files") {
+      const entryPath = path.slice(3).join("/");
+      if (!entryPath)
+        return fail("BAD_REQUEST", "No file named", "Name a file to read.");
+      if (!isId(path[1])) return fail("NOT_FOUND", "Eval not found", "", 404);
+      const [evaluation] =
+        await sql`SELECT bundle_key FROM eval_versions WHERE id=${path[1]}`;
+      if (!evaluation?.bundle_key)
+        return fail(
+          "NOT_READY",
+          "No eval bundle yet",
+          "The eval suite has not been generated, so it has no files.",
+          409,
+        );
+      try {
+        return json(
+          await readZipEntry(store.path(evaluation.bundle_key), entryPath),
+        );
+      } catch (cause) {
+        return fail(
+          "NOT_FOUND",
+          "File not readable",
+          cause instanceof Error
+            ? cause.message
+            : "The file could not be read.",
+          404,
+        );
+      }
     }
     if (path[0] === "skill" && path[1] === "versions" && path[2]) {
       const [version] =

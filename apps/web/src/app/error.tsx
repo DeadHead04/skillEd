@@ -7,13 +7,15 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   return (
-    <div className="content">
-      <div className="error-box">
-        <h2>The workbench could not load</h2>
-        <p>{error.message}</p>
-        <button className="btn" onClick={reset}>
-          Try again
-        </button>
+    <div className="work">
+      <div className="content">
+        <div className="error-box" role="alert">
+          <h2>The workbench could not load</h2>
+          <p>{error.message}</p>
+          <button className="btn" onClick={reset}>
+            Try again
+          </button>
+        </div>
       </div>
     </div>
   );

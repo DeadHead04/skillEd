@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { JobStream } from "./job-stream";
+
 export function ApiAction({
   url,
   label,
@@ -29,7 +30,7 @@ export function ApiAction({
     });
     const data = await response.json();
     if (!response.ok) {
-      setError(data.detail ?? "Request failed");
+      setError(data.detail ?? "The request could not be completed.");
       setBusy(false);
       return;
     }
@@ -58,7 +59,50 @@ export function ApiAction({
   );
 }
 
-export function UploadForm() {
+/**
+ * Enable or disable one case in a draft suite. The API has always supported
+ * this; it simply had no control until now. Disabling is blocked once a suite
+ * is approved, because an approved version is immutable.
+ */
+export function CaseToggle({
+  evalId,
+  caseId,
+  enabled,
+  locked,
+}: {
+  evalId: string;
+  caseId: string;
+  enabled: boolean;
+  locked: boolean;
+}) {
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+  if (locked)
+    return (
+      <span className="file-kind">{enabled ? "enabled" : "disabled"}</span>
+    );
+  return (
+    <button
+      className="btn quiet"
+      disabled={busy}
+      aria-pressed={enabled}
+      onClick={async () => {
+        setBusy(true);
+        await fetch(`/api/v1/evals/${evalId}/cases/${caseId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ enabled: !enabled }),
+        });
+        setBusy(false);
+        router.refresh();
+      }}
+    >
+      {busy ? "Saving…" : enabled ? "Disable" : "Enable"}
+    </button>
+  );
+}
+
+export function UploadForm({ compact = false }: { compact?: boolean }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [roots, setRoots] = useState<string[]>([]),
@@ -78,12 +122,14 @@ export function UploadForm() {
     const data = await response.json();
     if (response.status === 409 && data.code === "ROOT_SELECTION_REQUIRED") {
       setRoots(data.candidates);
-      setError("Choose which SKILL.md is the package root, then upload again.");
+      setError(
+        "This archive contains more than one SKILL.md. Choose which one is the package root, then upload again.",
+      );
       setBusy(false);
       return;
     }
     if (!response.ok) {
-      setError(data.detail ?? "Upload failed");
+      setError(data.detail ?? "The package could not be read.");
       setBusy(false);
       return;
     }
@@ -95,88 +141,105 @@ export function UploadForm() {
     router.refresh();
   }
   return (
-    <form onSubmit={submit}>
-      <div className="upload">
-        <div className="eyebrow">Skill package</div>
-        <h2>Drop in one installable ZIP</h2>
-        <p>Archive contents are inspected without executing uploaded code.</p>
+    <form className="upload" onSubmit={submit}>
+      {!compact && (
+        <p className="lede">
+          The ZIP is inspected, never executed. Task material is what lets
+          SkillEd tell a correct answer from a confident one.
+        </p>
+      )}
+
+      <div className="dropzone">
+        <label htmlFor={compact ? "skill-new" : "skill-zip"}>
+          Skill package (.zip)
+        </label>
         <input
+          id={compact ? "skill-new" : "skill-zip"}
           required
           name="skill"
           type="file"
           accept=".zip,application/zip"
-          aria-label="Skill ZIP"
         />
-        <div className="field">
-          <label htmlFor="task">
-            What should this Skill reliably accomplish?
-          </label>
-          <textarea
-            id="task"
-            required
-            name="taskDescription"
-            placeholder="Describe the real task, required output, hard rules, and what a dangerous false PASS looks like."
-          />
-        </div>
-        <div className="field">
-          <label htmlFor="materials">
-            Task materials (dataset, authority, examples, or expected outputs)
-          </label>
-          <input
-            id="materials"
-            name="taskFile"
-            type="file"
-            multiple
-            onChange={(event) =>
-              setMaterials(
-                Array.from(event.target.files ?? []).map((file) => file.name),
-              )
-            }
-          />
-        </div>
-        {materials.map((filename) => (
-          <div className="field" key={filename}>
-            <label htmlFor={`kind-${filename}`}>{filename} provides</label>
-            <select
-              id={`kind-${filename}`}
-              name={`kind:${filename}`}
-              defaultValue="dataset"
-            >
-              <option value="dataset">Dataset / coverage</option>
-              <option value="authority">Authoritative rules</option>
-              <option value="expected">Expected outputs</option>
-              <option value="example">Behavioral examples</option>
-              <option value="past_failure">Recorded failures</option>
-            </select>
-          </div>
-        ))}
-        {roots.length > 0 && (
-          <div className="field">
-            <label htmlFor="root">Skill root</label>
-            <select
-              id="root"
-              value={root}
-              onChange={(e) => setRoot(e.target.value)}
-              required
-            >
-              <option value="">Select a root</option>
-              {roots.map((value) => (
-                <option key={value} value={value}>
-                  {value || "Archive root"}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {error && (
-          <div className="error-box" role="alert">
-            {error}
-          </div>
-        )}
-        <button className="btn" disabled={busy}>
-          {busy ? "Inspecting package…" : "Upload and inspect"}
-        </button>
       </div>
+
+      <div className="field">
+        <label htmlFor={compact ? "task-new" : "task"}>
+          What must this Skill get right?
+        </label>
+        <textarea
+          id={compact ? "task-new" : "task"}
+          required
+          name="taskDescription"
+          placeholder="Describe the real task, the required output, the rules that cannot be broken, and what a dangerous false pass would look like."
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor={compact ? "materials-new" : "materials"}>
+          Task material
+        </label>
+        <input
+          id={compact ? "materials-new" : "materials"}
+          name="taskFile"
+          type="file"
+          multiple
+          onChange={(event) =>
+            setMaterials(
+              Array.from(event.target.files ?? []).map((file) => file.name),
+            )
+          }
+        />
+        <small>
+          Datasets, authoritative rules, expected outputs, examples, or recorded
+          failures. Stronger material produces stronger evidence.
+        </small>
+      </div>
+
+      {materials.map((filename) => (
+        <div className="field" key={filename}>
+          <label htmlFor={`kind-${filename}`}>{filename} provides</label>
+          <select
+            id={`kind-${filename}`}
+            name={`kind:${filename}`}
+            defaultValue="dataset"
+          >
+            <option value="dataset">Dataset or coverage</option>
+            <option value="authority">Authoritative rules</option>
+            <option value="expected">Expected outputs</option>
+            <option value="example">Behavioural examples</option>
+            <option value="past_failure">Recorded failures</option>
+          </select>
+        </div>
+      ))}
+
+      {roots.length > 0 && (
+        <div className="field">
+          <label htmlFor={compact ? "root-new" : "root"}>Skill root</label>
+          <select
+            id={compact ? "root-new" : "root"}
+            value={root}
+            onChange={(event) => setRoot(event.target.value)}
+            required
+          >
+            <option value="">Select a root</option>
+            {roots.map((value) => (
+              <option key={value} value={value}>
+                {value || "Archive root"}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-box" role="alert">
+          {error}
+        </div>
+      )}
+
+      <button className="btn" disabled={busy}>
+        {busy ? "Inspecting package…" : "Upload and inspect"}
+      </button>
     </form>
   );
 }
@@ -215,19 +278,17 @@ export function EvalQuestionsForm({
       body: JSON.stringify({ answers }),
     });
     const data = await response.json();
-    if (!response.ok) setError(data.detail ?? "Answers could not be saved");
+    if (!response.ok)
+      setError(data.detail ?? "The answers could not be saved.");
     else setJob(data.jobId);
     setBusy(false);
   }
   return (
     <form className="question-form" onSubmit={submit}>
-      {questions.map((question, index) => (
+      {questions.map((question) => (
         <fieldset key={question.id}>
-          <legend>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {question.prompt}
-          </legend>
-          <p>{question.whyItMatters}</p>
+          <legend>{question.prompt}</legend>
+          <p className="why">{question.whyItMatters}</p>
           {question.answerType === "choice" && question.choices.length ? (
             <select name={question.id} required={question.required}>
               <option value="">Select an answer</option>
@@ -239,7 +300,7 @@ export function EvalQuestionsForm({
             <textarea
               name={question.id}
               required={question.required}
-              placeholder="Give the rule Codex should use when designing the evals."
+              placeholder="Give the rule Codex should apply when it designs the cases."
             />
           )}
         </fieldset>
@@ -250,7 +311,7 @@ export function EvalQuestionsForm({
         </div>
       )}
       <button className="btn" disabled={busy}>
-        {busy ? "Saving answers…" : "Save answers and build plan"}
+        {busy ? "Saving answers…" : "Save answers"}
       </button>
       <JobStream jobId={job} />
     </form>
@@ -280,7 +341,7 @@ export function ConversationForm({
       body: JSON.stringify({ message }),
     });
     const data = await response.json();
-    if (!response.ok) setError(data.detail ?? "Message failed");
+    if (!response.ok) setError(data.detail ?? "The message was not delivered.");
     else {
       form.reset();
       setJob(data.jobId);

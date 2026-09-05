@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Status } from "./ui";
 
 type ManagedUser = {
   id: string;
@@ -15,7 +16,7 @@ type ManagedUser = {
 };
 
 function date(value: string | null) {
-  return value ? value.slice(0, 10) : "Never";
+  return value ? value.slice(0, 10) : "never";
 }
 
 export function UserManagement({
@@ -37,7 +38,7 @@ export function UserManagement({
     url: string,
     method: string,
     body: unknown,
-    successMessage = "Access changes saved. Existing affected sessions were revoked.",
+    successMessage = "Saved. Any session belonging to that account was signed out.",
   ) {
     setBusy(url);
     setMessage("");
@@ -70,7 +71,7 @@ export function UserManagement({
         role: form.get("role"),
         password: form.get("password"),
       },
-      "Account created. The person can sign in with the new login ID and temporary password.",
+      "Account created. Share the temporary password outside SkillEd.",
     );
     if (succeeded) event.currentTarget.reset();
   }
@@ -80,27 +81,26 @@ export function UserManagement({
   }
 
   return (
-    <div className="users-grid">
-      <section className="panel user-list-panel">
-        <div className="panel-head">
-          <div>
-            <div className="eyebrow">Current access</div>
-            <h2>People</h2>
-          </div>
-          <span className="badge">
+    <>
+      {(message || error) && (
+        <div
+          className={error ? "error-box" : "success-box"}
+          role={error ? "alert" : "status"}
+          style={{ marginTop: 20 }}
+        >
+          {error || message}
+        </div>
+      )}
+
+      <section className="section" style={{ marginTop: 22 }}>
+        <div className="section-head">
+          <h2>People</h2>
+          <span className="section-note num">
             {initialUsers.length}{" "}
             {initialUsers.length === 1 ? "account" : "accounts"}
           </span>
         </div>
-        {(message || error) && (
-          <div
-            className={error ? "error-box" : "success-box"}
-            role={error ? "alert" : "status"}
-          >
-            {error || message}
-          </div>
-        )}
-        <div className="user-rows">
+        <div className="rows">
           {initialUsers.map((user) => {
             const self = user.id === currentUserId;
             const lastAdministrator =
@@ -123,17 +123,20 @@ export function UserManagement({
                     <p>@{user.loginId}</p>
                   </div>
                 </div>
+
                 <div className="user-facts">
-                  <span className={`badge ${user.active ? "grounded" : ""}`}>
-                    {user.active ? "Active" : "Inactive"}
-                  </span>
+                  <Status
+                    value={user.active ? "pass" : "absent"}
+                    label={user.active ? "Active" : "Inactive"}
+                  />
                   <span>
                     {user.role === "administrator"
                       ? "Administrator"
                       : "Operator"}
                   </span>
-                  <span>Last sign-in: {date(user.lastLoginAt)}</span>
+                  <span>Last sign-in {date(user.lastLoginAt)}</span>
                 </div>
+
                 <div className="user-actions">
                   <button
                     className="btn secondary"
@@ -162,7 +165,7 @@ export function UserManagement({
                       if (
                         user.active &&
                         !window.confirm(
-                          `Deactivate ${user.displayName}? Their active sessions will stop working immediately.`,
+                          `Deactivate ${user.displayName}? Their sessions stop working immediately.`,
                         )
                       )
                         return;
@@ -172,24 +175,29 @@ export function UserManagement({
                     {user.active ? "Deactivate" : "Reactivate"}
                   </button>
                 </div>
+
                 <details className="password-reset">
                   <summary>Reset password</summary>
                   <div className="inline-reset">
-                    <label htmlFor={`password-${user.id}`}>New password</label>
-                    <input
-                      id={`password-${user.id}`}
-                      type="password"
-                      minLength={12}
-                      maxLength={128}
-                      autoComplete="new-password"
-                      value={passwords[user.id] ?? ""}
-                      onChange={(event) =>
-                        setPasswords((current) => ({
-                          ...current,
-                          [user.id]: event.target.value,
-                        }))
-                      }
-                    />
+                    <div>
+                      <label htmlFor={`password-${user.id}`}>
+                        New password
+                      </label>
+                      <input
+                        id={`password-${user.id}`}
+                        type="password"
+                        minLength={12}
+                        maxLength={128}
+                        autoComplete="new-password"
+                        value={passwords[user.id] ?? ""}
+                        onChange={(event) =>
+                          setPasswords((current) => ({
+                            ...current,
+                            [user.id]: event.target.value,
+                          }))
+                        }
+                      />
+                    </div>
                     <button
                       className="btn"
                       disabled={
@@ -205,7 +213,7 @@ export function UserManagement({
                           }));
                       }}
                     >
-                      Reset and revoke sessions
+                      Reset and sign out
                     </button>
                   </div>
                 </details>
@@ -215,12 +223,10 @@ export function UserManagement({
         </div>
       </section>
 
-      <aside className="panel create-user-panel">
-        <div className="panel-head">
-          <div>
-            <div className="eyebrow">Administrator action</div>
-            <h2>Add account</h2>
-          </div>
+      <section className="section">
+        <div className="section-head">
+          <h2>Add account</h2>
+          <span className="section-note">Administrator action</span>
         </div>
         <form className="create-user-form" onSubmit={create}>
           <div className="field">
@@ -265,20 +271,17 @@ export function UserManagement({
               autoComplete="new-password"
               required
             />
-            <small>12-128 characters. Share it outside SkillEd.</small>
+            <small>12 to 128 characters. Share it outside SkillEd.</small>
           </div>
           <button className="btn" disabled={busy !== ""}>
             {busy === "/api/v1/users" ? "Creating…" : "Create account"}
           </button>
         </form>
-        <div className="evidence-note">
-          <b>Shared workspace</b>
-          <p>
-            Operators can run and improve every Skill package. They cannot add,
-            deactivate, promote, or reset users.
-          </p>
-        </div>
-      </aside>
-    </div>
+        <p className="hint" style={{ marginTop: 16, maxWidth: 380 }}>
+          Operators can run and improve every Skill package. They cannot add,
+          deactivate, promote, or reset accounts.
+        </p>
+      </section>
+    </>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiAction } from "./actions";
+import { Status } from "./ui";
 import { type RunStatusExecution } from "../lib/run-progress";
 import { createRunStatusPoller } from "../lib/run-status-poller";
 
@@ -16,28 +17,28 @@ type Snapshot = {
   executions: RunStatusExecution[];
 };
 
-const stages = ["queued", "preparing", "running", "finalizing", "completed"];
-const statusCopy: Record<string, string> = {
-  PASS: "Reported pass",
-  FAIL: "Reported fail",
-  ERROR: "Reported error",
-  SKIP: "Reported skip",
-};
+// The known stage sequence. No percentage is invented from it.
+const STAGES = ["queued", "preparing", "running", "judging", "completed"];
 
-function executionStatus(execution: RunStatusExecution) {
-  if (!execution.provisional && execution.result) return execution.result;
+function executionState(execution: RunStatusExecution) {
+  if (!execution.provisional && execution.result)
+    return { value: execution.result.toLowerCase(), label: execution.result };
   if (execution.reportedStatus)
-    return statusCopy[execution.reportedStatus] ?? execution.reportedStatus;
-  if (execution.state === "active") return "Running";
-  if (execution.state === "completed") return "Completed";
-  return "Pending";
+    return {
+      value: "active",
+      label: `reported ${execution.reportedStatus.toLowerCase()}`,
+    };
+  if (execution.state === "active")
+    return { value: "active", label: "running" };
+  if (execution.state === "completed")
+    return { value: "active", label: "completed" };
+  return { value: "absent", label: "pending" };
 }
 
 export function LiveRunProgress({ runId }: { runId: string }) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [delayed, setDelayed] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
-  const [refreshCycle, setRefreshCycle] = useState(0);
   const pollerRef = useRef<ReturnType<
     typeof createRunStatusPoller<Snapshot>
   > | null>(null);
@@ -61,7 +62,6 @@ export function LiveRunProgress({ runId }: { runId: string }) {
       },
       onDelayed: () => setDelayed(true),
       onTerminal: () => router.refresh(),
-      onScheduled: () => setRefreshCycle((cycle) => cycle + 1),
     });
     pollerRef.current = poller;
     poller.start();
@@ -79,111 +79,94 @@ export function LiveRunProgress({ runId }: { runId: string }) {
   const stage = snapshot?.stage ?? "queued";
   const stageIndex = Math.max(
     0,
-    stages.indexOf(stage === "cancelling" ? "running" : stage),
+    STAGES.indexOf(stage === "cancelling" ? "running" : stage),
   );
+  const manyIterations = Boolean(
+    snapshot?.executions.some((item) => item.iteration > 1),
+  );
+
   return (
-    <section className="panel live-run" aria-labelledby="live-run-title">
-      <div className="panel-head">
-        <div>
-          <h2 id="live-run-title">Live execution progress</h2>
-          <span className="progress-count">
+    <>
+      <ol className="steps" style={{ marginTop: 20 }}>
+        {STAGES.map((item, index) => (
+          <li
+            key={item}
+            className={
+              index < stageIndex ? "done" : index === stageIndex ? "now" : ""
+            }
+            aria-current={index === stageIndex ? "step" : undefined}
+          >
+            <span className="glyph" aria-hidden="true">
+              {index < stageIndex ? "✓" : index + 1}
+            </span>
+            {item}
+          </li>
+        ))}
+      </ol>
+
+      {delayed && (
+        <p className="notice" role="status">
+          <b>Waiting</b>
+          The worker has not answered the last status check. Retrying.
+        </p>
+      )}
+
+      <section className="section">
+        <div className="progress-head">
+          <h2>Executions</h2>
+          <span className="section-note num">
             {snapshot
-              ? `${snapshot.completed} of ${snapshot.total} executions complete`
-              : "Loading durable progress…"}
+              ? `${snapshot.completed} of ${snapshot.total} complete`
+              : "reading durable progress…"}
           </span>
         </div>
-        <span className="badge info">● {snapshot?.status ?? "Connecting"}</span>
-      </div>
-      <div className="panel-body">
-        <ol className="stage-rail" aria-label="Run stages">
-          {stages.map((item, index) => {
-            const state =
-              index < stageIndex
-                ? "done"
-                : index === stageIndex
-                  ? "current"
-                  : "next";
+        <div className="rows" aria-live="polite">
+          {snapshot?.executions.map((execution) => {
+            const state = executionState(execution);
             return (
-              <li
-                key={item}
-                className={state}
-                aria-current={state === "current" ? "step" : undefined}
+              <div
+                className="row case"
+                key={`${execution.caseId}-${execution.configuration}-${execution.iteration}`}
               >
                 <span aria-hidden="true">
-                  {state === "done" ? "✓" : index + 1}
-                </span>
-                {item}
-              </li>
-            );
-          })}
-        </ol>
-        {delayed && (
-          <div className="callout warn" role="status">
-            Status update delayed; retrying
-          </div>
-        )}
-        <div className="refresh-timer" aria-label="Automatic refresh timer">
-          <div>
-            <b>Auto-refresh</b>
-            <span>Next status check in 15 seconds</span>
-          </div>
-          <div className="refresh-track" aria-hidden="true">
-            <span key={refreshCycle} />
-          </div>
-        </div>
-        <div className="execution-list" aria-live="polite">
-          {snapshot?.executions.map((execution) => {
-            const label = executionStatus(execution);
-            const key = `${execution.caseId}-${execution.configuration}-${execution.iteration}`;
-            return (
-              <div className={`execution-row ${execution.state}`} key={key}>
-                <span className="execution-state" aria-hidden="true">
-                  {execution.state === "completed" ? (
+                  {execution.state === "active" ? (
+                    <span className="spinner" />
+                  ) : execution.state === "completed" ? (
                     "✓"
-                  ) : execution.state === "active" ? (
-                    <span className="execution-spinner">
-                      <span />
-                    </span>
                   ) : (
                     "○"
                   )}
                 </span>
-                <div>
-                  <b>{execution.caseId}</b>
-                  <small>
-                    {execution.configuration === "with_skill"
-                      ? "With Skill"
-                      : execution.configuration === "without_skill"
-                        ? "Baseline · without Skill"
-                        : "Configuration unknown"}
-                    {snapshot &&
-                    snapshot.executions.some((item) => item.iteration > 1)
-                      ? ` · iteration ${execution.iteration}`
-                      : ""}
-                  </small>
-                </div>
-                <span
-                  className={`badge ${execution.provisional ? "provisional" : String(execution.result ?? "info").toLowerCase()}`}
-                >
-                  {label}
+                <span>
+                  <span className="id">{execution.caseId}</span>
+                  <span className="sub">
+                    {execution.configuration === "without_skill"
+                      ? "Baseline, without the Skill"
+                      : "With the Skill installed"}
+                    {manyIterations ? `, sample ${execution.iteration}` : ""}
+                  </span>
                 </span>
+                <Status value={state.value} label={state.label} />
+                <span />
               </div>
             );
           })}
           {snapshot && snapshot.executions.length === 0 && (
-            <p className="progress-empty">
-              No enabled executions are planned for this run.
-            </p>
+            <p className="hint">This run has no enabled executions planned.</p>
           )}
         </div>
-      </div>
-      <div className="decision-bar">
-        <span>
-          {refreshedAt
-            ? `Last refreshed ${refreshedAt.toLocaleTimeString()}`
-            : "Progress is reconstructed from durable worker events."}
-        </span>
-        <div className="run-progress-actions">
+      </section>
+
+      <div className="decision">
+        <div>
+          <b>Running</b>
+          <p>
+            {refreshedAt
+              ? `Last checked ${refreshedAt.toLocaleTimeString()}. Progress is rebuilt from durable worker events.`
+              : "Progress is rebuilt from durable worker events."}
+          </p>
+        </div>
+        <div className="decision-actions">
           <button
             className="btn secondary"
             type="button"
@@ -198,6 +181,6 @@ export function LiveRunProgress({ runId }: { runId: string }) {
           />
         </div>
       </div>
-    </section>
+    </>
   );
 }
