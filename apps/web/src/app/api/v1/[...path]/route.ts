@@ -1,5 +1,6 @@
 import {
   ArtifactStore,
+  canonicalSkillChangePath,
   ConversationMessageSchema,
   EvalAnswersSchema,
   RunLaunchSchema,
@@ -650,7 +651,10 @@ export async function POST(request: Request, context: Context) {
         )
           throw new Error("Unsafe Skill root");
         for (const change of p.skill_changes as Array<Record<string, any>>) {
-          const changePath = String(change.path ?? "");
+          const changePath = canonicalSkillChangePath(
+            String(change.path ?? ""),
+            p.selected_root,
+          );
           const target = resolve(skillRoot, changePath);
           const rel = relative(skillRoot, target);
           if (

@@ -1,9 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { z } from "zod";
 import {
   AuthoringIntakeSchema,
+  canonicalScriptJudgePath,
+  canonicalSkillChangePath,
   evidenceLevel,
+  GeneratedEvalCaseSchema,
   GeneratedEvalSuiteSchema,
+  matchesCanonicalScriptJudgePath,
+  SCRIPT_JUDGE_BASE_PATH,
   CreateUserSchema,
   ProblemSchema,
   UpdateProposalOutputSchema,
@@ -80,6 +86,67 @@ describe("shared contracts", () => {
       }).success,
       false,
     );
+  });
+  it("exposes the uppercase generated case ID contract to structured output", () => {
+    const jsonSchema = z.toJSONSchema(GeneratedEvalCaseSchema) as {
+      properties?: { id?: { pattern?: string } };
+    };
+
+    assert.equal(jsonSchema.properties?.id?.pattern, "^[A-Z][A-Z0-9_-]{2,63}$");
+    assert.equal(
+      GeneratedEvalCaseSchema.shape.id.safeParse("grounded-commercial-math")
+        .success,
+      false,
+    );
+    assert.equal(
+      GeneratedEvalCaseSchema.shape.id.safeParse("GROUNDED-COMMERCIAL-MATH")
+        .success,
+      true,
+    );
+  });
+  it("canonicalizes generated Skill paths relative to the selected root", () => {
+    assert.equal(
+      canonicalSkillChangePath(
+        "base-skill/incident-postmortem-narrator/SKILL.md",
+        "incident-postmortem-narrator",
+      ),
+      "SKILL.md",
+    );
+    assert.equal(
+      canonicalSkillChangePath(
+        "incident-postmortem-narrator/references/checklist.md",
+        "incident-postmortem-narrator",
+      ),
+      "references/checklist.md",
+    );
+    assert.equal(
+      canonicalSkillChangePath("references/checklist.md", "skill"),
+      "references/checklist.md",
+    );
+    assert.throws(() => canonicalSkillChangePath("../auth.json", "skill"));
+  });
+  it("derives and validates canonical script judge paths from case IDs", () => {
+    assert.equal(
+      canonicalScriptJudgePath(SCRIPT_JUDGE_BASE_PATH, "I1-FG-01"),
+      "evals/fixtures/scripts/i1-fg-01.sh",
+    );
+    assert.equal(
+      matchesCanonicalScriptJudgePath(
+        "script: /data/work/run-1/skill/evals/fixtures/scripts/i1-fg-01.sh",
+        SCRIPT_JUDGE_BASE_PATH,
+        "I1-FG-01",
+      ),
+      true,
+    );
+    assert.equal(
+      matchesCanonicalScriptJudgePath(
+        "script: /data/work/run-1/skill/evals/fixtures/scripts/i1-fg-02.sh",
+        SCRIPT_JUDGE_BASE_PATH,
+        "I1-FG-01",
+      ),
+      false,
+    );
+    assert.throws(() => canonicalScriptJudgePath("../scripts", "I1-FG-01"));
   });
   it("normalizes safe login IDs and rejects weak account data", () => {
     assert.equal(

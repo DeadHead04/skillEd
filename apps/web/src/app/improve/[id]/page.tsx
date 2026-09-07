@@ -64,12 +64,11 @@ export default async function ImprovePage({
       )}
       {proposal.status === "generating" ? (
         <div className="panel">
-          <div className="empty">
-            <h2>Analyzing the failed run</h2>
-            <p>
-              Codex receives only the immutable base Skill and selected failure
-              evidence.
-            </p>
+          <div className="empty" role="status" aria-live="polite">
+            <span className="execution-spinner" aria-hidden="true">
+              <span />
+            </span>
+            <p>Preparing your improvement proposal…</p>
           </div>
         </div>
       ) : (

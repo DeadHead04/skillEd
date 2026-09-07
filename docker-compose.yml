@@ -40,6 +40,11 @@ services:
     build:
       context: .
       dockerfile: apps/worker/Dockerfile
+    # Codex keeps its workspace-write sandbox inside this container. Allow its
+    # Bubblewrap process to create the nested user namespace without granting
+    # the worker broad capabilities such as SYS_ADMIN or privileged mode.
+    security_opt:
+      - seccomp=unconfined
     environment:
       DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled
       ARTIFACT_ROOT: /data/artifacts

@@ -3,8 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiAction } from "./actions";
-import { type RunStatusExecution } from "../lib/run-progress";
-import { createRunStatusPoller } from "../lib/run-status-poller";
+import {
+  runConfigurationLabel,
+  type RunStatusExecution,
+} from "../lib/run-progress";
+import {
+  createRunStatusPoller,
+  RUN_STATUS_POLL_INTERVAL_MS,
+} from "../lib/run-status-poller";
 
 type Snapshot = {
   runId: string;
@@ -125,13 +131,25 @@ export function LiveRunProgress({ runId }: { runId: string }) {
         <div className="refresh-timer" aria-label="Automatic refresh timer">
           <div>
             <b>Auto-refresh</b>
-            <span>Next status check in 15 seconds</span>
+            <span>
+              Next status check in {RUN_STATUS_POLL_INTERVAL_MS / 1_000} seconds
+            </span>
           </div>
           <div className="refresh-track" aria-hidden="true">
-            <span key={refreshCycle} />
+            <span
+              key={refreshCycle}
+              style={{
+                animationDuration: `${RUN_STATUS_POLL_INTERVAL_MS}ms`,
+              }}
+            />
           </div>
         </div>
         <div className="execution-list" aria-live="polite">
+          <div className="execution-list-head" aria-hidden="true">
+            <span>Execution</span>
+            <span>Configuration</span>
+            <span>Status</span>
+          </div>
           {snapshot?.executions.map((execution) => {
             const label = executionStatus(execution);
             const key = `${execution.caseId}-${execution.configuration}-${execution.iteration}`;
@@ -148,20 +166,25 @@ export function LiveRunProgress({ runId }: { runId: string }) {
                     "○"
                   )}
                 </span>
-                <div>
+                <div className="execution-identity">
                   <b>{execution.caseId}</b>
-                  <small>
-                    {execution.configuration === "with_skill"
-                      ? "With Skill"
-                      : execution.configuration === "without_skill"
-                        ? "Baseline · without Skill"
-                        : "Configuration unknown"}
-                    {snapshot &&
-                    snapshot.executions.some((item) => item.iteration > 1)
-                      ? ` · iteration ${execution.iteration}`
-                      : ""}
-                  </small>
+                  {snapshot &&
+                    snapshot.executions.some((item) => item.iteration > 1) && (
+                      <small>Iteration {execution.iteration}</small>
+                    )}
                 </div>
+                <span
+                  className={`configuration-label ${execution.configuration.replace("_", "-")}`}
+                >
+                  <span aria-hidden="true">
+                    {execution.configuration === "with_skill"
+                      ? "+"
+                      : execution.configuration === "without_skill"
+                        ? "−"
+                        : "?"}
+                  </span>
+                  {runConfigurationLabel(execution.configuration)}
+                </span>
                 <span
                   className={`badge ${execution.provisional ? "provisional" : String(execution.result ?? "info").toLowerCase()}`}
                 >

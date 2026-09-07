@@ -8,6 +8,14 @@ export type RunStatusExecution = {
   provisional?: boolean;
 };
 
+export function runConfigurationLabel(
+  configuration: RunStatusExecution["configuration"],
+) {
+  if (configuration === "with_skill") return "With Skill";
+  if (configuration === "without_skill") return "Without Skill";
+  return "Unknown configuration";
+}
+
 type RunRow = {
   id: string;
   status: string;

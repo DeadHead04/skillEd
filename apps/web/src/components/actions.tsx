@@ -8,12 +8,14 @@ export function ApiAction({
   body,
   kind = "primary",
   navigateTo,
+  loadingLabel,
 }: {
   url: string;
   label: string;
   body?: unknown;
   kind?: "primary" | "secondary" | "danger";
   navigateTo?: string;
+  loadingLabel?: string;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -47,11 +49,21 @@ export function ApiAction({
         </div>
       )}
       <button
-        className={`btn ${kind === "secondary" ? "secondary" : kind === "danger" ? "danger" : ""}`}
+        className={`btn ${kind === "secondary" ? "secondary" : kind === "danger" ? "danger" : ""} ${busy && loadingLabel ? "is-loading" : ""}`}
         disabled={busy}
         onClick={act}
+        aria-busy={busy}
       >
-        {busy ? "Working…" : label}
+        {busy ? (
+          <>
+            {loadingLabel && (
+              <span className="button-spinner" aria-hidden="true" />
+            )}
+            {loadingLabel ?? "Working…"}
+          </>
+        ) : (
+          label
+        )}
       </button>
       <JobStream jobId={job} />
     </>

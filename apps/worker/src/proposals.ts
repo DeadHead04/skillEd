@@ -1,5 +1,6 @@
 import {
   ArtifactStore,
+  canonicalSkillChangePath,
   UpdateProposalOutputSchema,
   emit,
   extractZip,
@@ -110,6 +111,13 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     );
     output = UpdateProposalOutputSchema.parse(turn.structured);
   }
+  output = {
+    ...output,
+    skillChanges: output.skillChanges.map((change) => ({
+      ...change,
+      path: canonicalSkillChangePath(change.path, proposal.selected_root),
+    })),
+  };
   const patch = unifiedPatch(output.skillChanges);
   const skillKey = `proposals/${proposal.id}/skill.patch`;
   const evalKey = output.evalChanges.length

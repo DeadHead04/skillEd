@@ -1,9 +1,12 @@
 import {
   ArtifactStore,
+  canonicalScriptJudgePath,
   createZip,
   emit,
   deriveResult,
   extractZip,
+  matchesCanonicalScriptJudgePath,
+  SCRIPT_JUDGE_BASE_PATH,
   type Db,
 } from "@skilled/core";
 import { spawn } from "node:child_process";
@@ -385,26 +388,49 @@ export async function persistSkillUpCaseResult(
     await sql`SELECT * FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND case_id=${value.case_id}`;
   if (!caseMeta)
     throw new Error(`Unclassified case in report: ${value.case_id}`);
-  const mapped =
-    value.grading?.assertion_results?.map((assertion: any) => {
-      const meta = caseMeta.assertion_mapping?.[assertion.text];
-      return {
-        id: assertion.text,
-        dimension: meta?.dimension,
-        required: meta?.required !== false,
-        passed: Boolean(assertion.passed),
-        evidence: assertion.evidence,
-      };
-    }) ??
-    (caseMeta.judge_type === "script"
+  const reportedAssertions = value.grading?.assertion_results ?? [];
+  const mapped: any[] =
+    caseMeta.judge_type === "script"
       ? (caseMeta.required_dimensions as string[]).map((dimension) => ({
           id: `${value.case_id}-${dimension}`,
           dimension,
           required: true,
-          passed: value.status === "PASS",
-          evidence: value.error,
+          passed:
+            value.status === "PASS" &&
+            reportedAssertions.every((assertion: any) => assertion.passed),
+          evidence: reportedAssertions
+            .map((assertion: any) => assertion.evidence)
+            .filter(Boolean)
+            .join("\n"),
         }))
-      : []);
+      : reportedAssertions.map((assertion: any) => {
+          const meta = caseMeta.assertion_mapping?.[assertion.text];
+          return {
+            id: assertion.text,
+            dimension: meta?.dimension,
+            required: meta?.required !== false,
+            passed: Boolean(assertion.passed),
+            evidence: assertion.evidence,
+          };
+        });
+  if (
+    caseMeta.judge_type === "script" &&
+    reportedAssertions.some(
+      (assertion: any) =>
+        !matchesCanonicalScriptJudgePath(
+          String(assertion.text ?? ""),
+          SCRIPT_JUDGE_BASE_PATH,
+          String(value.case_id),
+        ),
+    )
+  )
+    mapped.push({
+      id: "script-path-contract",
+      dimension: "stability",
+      required: true,
+      passed: false,
+      error: `Script judge path did not match ${canonicalScriptJudgePath(SCRIPT_JUDGE_BASE_PATH, String(value.case_id))}`,
+    });
   if (value.status === "ERROR")
     mapped.push({
       id: "infrastructure",

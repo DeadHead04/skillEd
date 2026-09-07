@@ -79,6 +79,54 @@ export const DimensionSchema = z.enum([
   "stability",
 ]);
 
+export const EvalCaseIdSchema = z
+  .string()
+  .trim()
+  .regex(/^[A-Za-z0-9][A-Za-z0-9_-]{2,63}$/);
+
+const RelativeArtifactBasePathSchema = z
+  .string()
+  .min(1)
+  .refine((value) => {
+    const normalized = value
+      .replaceAll("\\", "/")
+      .replace(/^(\.\/)+/, "")
+      .replace(/^\/+|\/+$/g, "");
+    return (
+      normalized.length > 0 &&
+      !value.startsWith("/") &&
+      !value.startsWith("\\") &&
+      !normalized.split("/").some((part) => part === "." || part === "..")
+    );
+  }, "Artifact base path must remain relative");
+
+export const SCRIPT_JUDGE_BASE_PATH = "evals/fixtures/scripts";
+
+/**
+ * Script judges use one canonical bundle path derived from their case ID.
+ * Runtime work directories may prepend this path, but may not rename it.
+ */
+export function canonicalScriptJudgePath(basePath: string, caseId: string) {
+  const base = RelativeArtifactBasePathSchema.parse(basePath)
+    .replaceAll("\\", "/")
+    .replace(/^(\.\/)+/, "")
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\/{2,}/g, "/");
+  const name = EvalCaseIdSchema.parse(caseId).toLowerCase();
+  return `${base}/${name}.sh`;
+}
+
+export function matchesCanonicalScriptJudgePath(
+  assertionId: string,
+  basePath: string,
+  caseId: string,
+) {
+  const expected = canonicalScriptJudgePath(basePath, caseId);
+  const reported = assertionId.replace(/^script:\s*/, "").replaceAll("\\", "/");
+  if (reported.split("/").includes("..")) return false;
+  return reported === expected || reported.endsWith(`/${expected}`);
+}
+
 export const TaskUnderstandingSchema = z.object({
   inputs: z.array(z.string()),
   outputs: z.array(z.string()),
@@ -116,7 +164,10 @@ export const CoveragePlanSchema = z.object({
   ),
 });
 export const GeneratedEvalCaseSchema = z.object({
-  id: z.string().regex(/^[A-Z][A-Z0-9_-]{2,63}$/),
+  id: z
+    .string()
+    .trim()
+    .regex(/^[A-Z][A-Z0-9_-]{2,63}$/),
   title: z.string().min(1),
   coverageGroup: z.string().min(1),
   purpose: z.string().min(1),
@@ -188,6 +239,32 @@ export const SkillFileChangeSchema = z.object({
   content: z.string().max(1_000_000),
   reason: z.string().min(1),
 });
+
+/**
+ * Codex sees the extracted package under `base-skill`, so it can occasionally
+ * return a path relative to that workspace instead of the selected Skill root.
+ * Persist and apply one canonical representation: relative to the Skill root.
+ */
+export function canonicalSkillChangePath(
+  changePath: string,
+  selectedRoot: string,
+) {
+  const slashPath = (value: string) =>
+    value.replaceAll("\\", "/").replace(/^(\.\/)+/, "");
+  const root = slashPath(selectedRoot).replace(/^\/+|\/+$/g, "");
+  let canonical = slashPath(changePath);
+
+  const workspacePrefix = root ? `base-skill/${root}/` : "base-skill/";
+  const archivePrefix = root ? `${root}/` : null;
+  if (canonical.startsWith(workspacePrefix)) {
+    canonical = canonical.slice(workspacePrefix.length);
+  } else if (archivePrefix && canonical.startsWith(archivePrefix)) {
+    canonical = canonical.slice(archivePrefix.length);
+  }
+
+  return SkillFileChangeSchema.shape.path.parse(canonical);
+}
+
 export const EvalCaseChangeSchema = z.object({
   caseId: z.string().min(1),
   reason: z.string().min(1),

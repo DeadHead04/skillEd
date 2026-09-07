@@ -86,6 +86,7 @@ export default async function EvalPage({
             <ApiAction
               url={`/api/v1/evals/${evaluation.id}/author`}
               label="Start understanding"
+              loadingLabel="Starting understanding…"
             />
           </div>
         </div>

@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { reconstructRunStatus } from "./run-progress.js";
+import { reconstructRunStatus, runConfigurationLabel } from "./run-progress.js";
+
+test("presents every Skill-Up configuration explicitly", () => {
+  assert.equal(runConfigurationLabel("with_skill"), "With Skill");
+  assert.equal(runConfigurationLabel("without_skill"), "Without Skill");
+  assert.equal(runConfigurationLabel("unknown"), "Unknown configuration");
+});
 
 test("reconstructs pending, active, and completed executions for one run", () => {
   const snapshot = reconstructRunStatus(

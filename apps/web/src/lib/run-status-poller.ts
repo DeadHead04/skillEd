@@ -1,6 +1,8 @@
 import { isTerminalRunStatus } from "./run-progress";
 
-export const RUN_STATUS_POLL_INTERVAL_MS = 15_000;
+// TODO(live-updates): Replace this temporary run-status poll with the durable
+// app-wide job event subscription when live updates are implemented.
+export const RUN_STATUS_POLL_INTERVAL_MS = 5_000;
 
 export function createRunStatusPoller<T extends { status: string }>(options: {
   fetchSnapshot: (signal: AbortSignal) => Promise<T>;

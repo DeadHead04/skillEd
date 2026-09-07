@@ -4,10 +4,12 @@ import { promisify } from "node:util";
 import { basename, join } from "node:path";
 import {
   ArtifactStore,
+  canonicalScriptJudgePath,
   AuthoringIntakeSchema,
   ConversationReplySchema,
   CoveragePlanSchema,
   GeneratedEvalSuiteSchema,
+  SCRIPT_JUDGE_BASE_PATH,
   TaskUnderstandingSchema,
   createZip,
   emit,
@@ -20,7 +22,7 @@ import { codexAppServer as appServer } from "./app-server.js";
 
 const execute = promisify(execFile);
 
-export const MAX_NUM_TEST_CASES = 5;
+export const MAX_NUM_TEST_CASES = 2;
 
 const LimitedGeneratedEvalSuiteSchema = GeneratedEvalSuiteSchema.extend({
   cases: GeneratedEvalSuiteSchema.shape.cases.max(MAX_NUM_TEST_CASES),
@@ -650,7 +652,10 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
             }
           : {
               type: "script",
-              script_path: `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
+              script_path: canonicalScriptJudgePath(
+                SCRIPT_JUDGE_BASE_PATH,
+                caseId,
+              ),
               timeout_seconds: 30,
             };
       const spec = {
@@ -681,7 +686,10 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       if (judge === "script") {
         const scriptDir = join(root, "evals/fixtures/scripts");
         await mkdir(scriptDir, { recursive: true });
-        const script = join(scriptDir, `${caseId.toLowerCase()}.sh`);
+        const script = join(
+          root,
+          canonicalScriptJudgePath(SCRIPT_JUDGE_BASE_PATH, caseId),
+        );
         const checks = JSON.stringify(definition.deterministicChecks);
         await writeFile(
           script,
@@ -758,9 +766,8 @@ print(json.dumps({"passed": True, "checks": len(checks)}))
       ),
       ...caseSet
         .filter(({ judgeType }) => judgeType === "script")
-        .map(
-          ({ id: caseId }) =>
-            `evals/fixtures/scripts/${caseId.toLowerCase()}.sh`,
+        .map(({ id: caseId }) =>
+          canonicalScriptJudgePath(SCRIPT_JUDGE_BASE_PATH, caseId),
         ),
     ];
     const bundle = join(root, "bundle.zip");

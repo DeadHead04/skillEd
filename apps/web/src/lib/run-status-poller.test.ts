@@ -5,7 +5,7 @@ import {
   RUN_STATUS_POLL_INTERVAL_MS,
 } from "./run-status-poller.js";
 
-test("polls every 15 seconds without overlapping requests", async () => {
+test("polls every 5 seconds without overlapping requests", async () => {
   const delays: number[] = [];
   const callbacks: Array<() => void> = [];
   let calls = 0;

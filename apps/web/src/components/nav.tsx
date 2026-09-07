@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { AutoRefresh } from "./auto-refresh";
 
 type SkillSummary = {
   id: string;
@@ -56,6 +57,7 @@ export function AppShell({
 
   return (
     <div className="app">
+      <AutoRefresh />
       <aside className="sidebar">
         <Link className="brand" href={`/skill${query}`}>
           <span className="brand-mark">S</span>SkillEd

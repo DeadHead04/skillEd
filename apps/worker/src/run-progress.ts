@@ -31,7 +31,7 @@ export function createSkillUpProgressParser(options: {
 }) {
   let buffered = "";
   let iteration = 1;
-  let completedIndexes = new Set<number>();
+  let completedExecutions = new Set<string>();
   let writes = Promise.resolve();
   let writeError: unknown;
 
@@ -48,29 +48,60 @@ export function createSkillUpProgressParser(options: {
     );
   };
 
-  const identity = (index: number, total: number, reportedCaseId: string) => {
+  const identity = (
+    index: number,
+    total: number,
+    reportedCaseId: string,
+    reportedConfiguration?: ExecutionSlot["configuration"],
+  ) => {
     const slot = options.slots[index - 1];
+    const reportedSlot = reportedConfiguration
+      ? options.slots.find(
+          (candidate) =>
+            candidate.caseId === reportedCaseId &&
+            candidate.configuration === reportedConfiguration,
+        )
+      : undefined;
+    const resolvedSlot = reportedConfiguration ? reportedSlot : slot;
     const consistent =
-      total === options.slots.length && slot?.caseId === reportedCaseId;
+      total === options.slots.length &&
+      resolvedSlot?.caseId === reportedCaseId &&
+      (!reportedConfiguration ||
+        resolvedSlot.configuration === reportedConfiguration);
     return {
-      caseId: consistent ? slot.caseId : reportedCaseId,
-      configuration: consistent ? slot.configuration : "unknown",
+      caseId: consistent ? resolvedSlot.caseId : reportedCaseId,
+      configuration: consistent
+        ? (reportedConfiguration ?? resolvedSlot.configuration)
+        : "unknown",
     } as const;
   };
 
   const parseLine = (line: string) => {
     const completed = line.match(
-      /\[(\d+)\/(\d+)\]\s+([^:]+):\s+(PASS|FAIL|ERROR|SKIP)\b/,
+      /\[(\d+)\/(\d+)\]\s+(?:\[(WITH-SKILL|WITHOUT-SKILL)\]\s+)?([^:]+):\s+(PASS|FAIL|ERROR|SKIP)\b/,
     );
     const started = completed
       ? null
-      : line.match(/\[(\d+)\/(\d+)\]\s+([^:]+):\s*.*\.\.\.\s*$/);
+      : line.match(
+          /\[(\d+)\/(\d+)\]\s+(?:\[(WITH-SKILL|WITHOUT-SKILL)\]\s+)?([^:]+):\s*.*\.\.\.\s*$/,
+        );
     const match = completed ?? started;
     if (!match || iteration > options.iterations) return;
     const index = Number(match[1]);
     const total = Number(match[2]);
-    const reportedCaseId = match[3]!.trim();
-    const resolved = identity(index, total, reportedCaseId);
+    const reportedConfiguration =
+      match[3] === "WITH-SKILL"
+        ? "with_skill"
+        : match[3] === "WITHOUT-SKILL"
+          ? "without_skill"
+          : undefined;
+    const reportedCaseId = match[4]!.trim();
+    const resolved = identity(
+      index,
+      total,
+      reportedCaseId,
+      reportedConfiguration,
+    );
     const base = {
       ...resolved,
       index,
@@ -81,13 +112,19 @@ export function createSkillUpProgressParser(options: {
     if (completed) {
       queue({
         type: "case_completed",
-        data: { ...base, reportedStatus: completed[4] as RunProgressStatus },
+        data: { ...base, reportedStatus: completed[5] as RunProgressStatus },
       });
-      if (total === options.slots.length && index >= 1 && index <= total) {
-        completedIndexes.add(index);
-        if (completedIndexes.size === options.slots.length) {
+      if (
+        resolved.configuration !== "unknown" &&
+        index >= 1 &&
+        index <= total
+      ) {
+        completedExecutions.add(
+          `${resolved.caseId}\u0000${resolved.configuration}`,
+        );
+        if (completedExecutions.size === options.slots.length) {
           iteration++;
-          completedIndexes = new Set();
+          completedExecutions = new Set();
         }
       }
     } else {
