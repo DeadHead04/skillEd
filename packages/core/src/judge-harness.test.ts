@@ -107,3 +107,71 @@ test("artifact validators distinguish task failures, protected-field drift and i
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("two validators in one task area bind independently by assertion ID", async () => {
+  const root = await mkdtemp(join(tmpdir(), "skilled-explicit-judge-"));
+  try {
+    const harness = await readFile(
+      new URL("./judge-harness.py", import.meta.url),
+      "utf8",
+    );
+    await writeFile(
+      join(root, "output.json"),
+      JSON.stringify({ first: 10, second: 20 }),
+    );
+    const spec = {
+      assertions: [
+        { id: "A", dimension: "amounts" },
+        { id: "B", dimension: "amounts" },
+      ],
+      checks: [
+        {
+          assertionId: "A",
+          dimension: "amounts",
+          kind: "equals",
+          file: "output.json",
+          format: "json",
+          selector: "/first",
+          value: 10,
+        },
+        {
+          assertionId: "B",
+          dimension: "amounts",
+          kind: "equals",
+          file: "output.json",
+          format: "json",
+          selector: "/second",
+          value: 30,
+        },
+      ],
+      truth: {},
+    };
+    async function grade(value: unknown) {
+      await writeFile(
+        join(root, "judge.py"),
+        `${harness}\nsys.exit(run_checks(json.loads(${JSON.stringify(JSON.stringify(value))})))\n`,
+      );
+      const result = await execute("python3", ["judge.py"], {
+        cwd: root,
+      }).catch((e) => e);
+      return JSON.parse(result.stdout);
+    }
+    const result = await grade(spec);
+    assert.equal(result.error, null);
+    assert.deepEqual(
+      result.assertions.map((a: any) => [a.id, a.passed]),
+      [
+        ["A", true],
+        ["B", false],
+      ],
+    );
+    assert.equal(result.assertions[1].observations[0].actual, "20");
+    const invalid = await grade({
+      ...spec,
+      checks: spec.checks.map(({ assertionId, ...check }) => check),
+    });
+    assert.equal(invalid.error.code, "VALIDATOR_ERROR");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

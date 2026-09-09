@@ -1,0 +1,39 @@
+{
+  "mode": "demo",
+  "skillId": "73c18135-4cd0-4bd4-9461-c1d8205abf08",
+  "versionId": "a553c943-07cf-431f-a613-e690d19a8eb3",
+  "evalId": "a3dd160c-3773-4e10-9a8c-914394922c56",
+  "runId": "5089cc17-614d-45f8-b15b-af761d56b8af",
+  "proposalId": "7021b745-61c6-4f88-b487-6596170e26f7",
+  "activeVersionId": null,
+  "areas": [
+    {
+      "id": "decision-accuracy",
+      "label": "Decision accuracy"
+    },
+    {
+      "id": "warning-coverage",
+      "label": "Warning coverage"
+    },
+    {
+      "id": "citation-support",
+      "label": "Citation support"
+    },
+    {
+      "id": "protected-fields",
+      "label": "Protected fields"
+    },
+    {
+      "id": "output-structure",
+      "label": "Output structure"
+    }
+  ],
+  "sampleCount": 40,
+  "approvalState": "Proposal left for user review; no new activation",
+  "urls": {
+    "package": "/skill?skill=73c18135-4cd0-4bd4-9461-c1d8205abf08&version=a553c943-07cf-431f-a613-e690d19a8eb3",
+    "plan": "/evals/a3dd160c-3773-4e10-9a8c-914394922c56?skill=73c18135-4cd0-4bd4-9461-c1d8205abf08",
+    "results": "/runs/5089cc17-614d-45f8-b15b-af761d56b8af?skill=73c18135-4cd0-4bd4-9461-c1d8205abf08",
+    "improve": "/improve/7021b745-61c6-4f88-b487-6596170e26f7?skill=73c18135-4cd0-4bd4-9461-c1d8205abf08"
+  }
+}

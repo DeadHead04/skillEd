@@ -1,0 +1,4 @@
+Review a product card against its authoritative source facts. Return PASS or FAIL,
+list every unsupported claim or material omission, cite the supplied fact used for
+each finding, and report any change to protected fields. A fluent answer without
+traceable evidence is a dangerous false PASS.

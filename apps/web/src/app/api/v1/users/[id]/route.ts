@@ -1,5 +1,6 @@
 import { UpdateUserSchema, db, problem } from "@skilled/core";
 import { authenticatedUser } from "../../../../../lib/auth";
+import { hashPassword } from "../../../../../lib/passwords";
 
 export const runtime = "nodejs";
 const sql = db();
@@ -23,7 +24,9 @@ export async function PATCH(request: Request, context: Context) {
       "Only an administrator can manage SkillEd users.",
       403,
     );
-  const parsed = UpdateUserSchema.safeParse(await request.json());
+  const parsed = UpdateUserSchema.safeParse(
+    await request.json().catch(() => null),
+  );
   if (!parsed.success)
     return responseProblem(
       "VALIDATION",
@@ -34,6 +37,9 @@ export async function PATCH(request: Request, context: Context) {
   const { id } = await context.params;
   const input = parsed.data;
   try {
+    const passwordHash = input.password
+      ? await hashPassword(input.password)
+      : null;
     const user = await sql.begin(async (tx) => {
       const [current] = await tx`SELECT * FROM users WHERE id=${id} FOR UPDATE`;
       if (!current) return null;
@@ -66,12 +72,16 @@ export async function PATCH(request: Request, context: Context) {
         role !== current.role ||
         active !== current.active;
       const [updated] = input.password
-        ? await tx`UPDATE users SET display_name=${displayName},role=${role},active=${active},password_hash=crypt(${input.password},gen_salt('bf',12)),password_changed_at=now(),session_version=session_version+1,updated_at=now() WHERE id=${id}
+        ? await tx`UPDATE users SET display_name=${displayName},role=${role},active=${active},password_hash=${passwordHash},password_change_required=true,password_changed_at=now(),session_version=session_version+1,updated_at=now() WHERE id=${id}
             RETURNING id,login_id,display_name,role,active,last_login_at,password_changed_at,created_at,updated_at`
         : await tx`UPDATE users SET display_name=${displayName},role=${role},active=${active},session_version=session_version+${revokeSessions ? 1 : 0},updated_at=now() WHERE id=${id}
             RETURNING id,login_id,display_name,role,active,last_login_at,password_changed_at,created_at,updated_at`;
       if (input.password)
         await tx`DELETE FROM auth_login_attempts WHERE login_id=${current.login_id}`;
+      if (revokeSessions)
+        await tx`UPDATE account_tokens SET revoked_at=now() WHERE target_user_id=${id} AND used_at IS NULL AND revoked_at IS NULL`;
+      if (!active || role !== "administrator")
+        await tx`UPDATE account_tokens SET revoked_at=now() WHERE created_by=${id} AND used_at IS NULL AND revoked_at IS NULL`;
       await tx`INSERT INTO user_audit_events(actor_user_id,target_user_id,action,detail)
         VALUES(${actor.id},${id},'user_updated',${tx.json({ displayNameChanged: displayName !== current.display_name, role: role !== current.role ? role : undefined, active: active !== current.active ? active : undefined, passwordReset: input.password !== undefined, sessionsRevoked: revokeSessions })})`;
       return updated;

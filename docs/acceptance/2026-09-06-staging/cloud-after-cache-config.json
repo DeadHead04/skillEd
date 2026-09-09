@@ -1,0 +1,50 @@
+{
+  "health": {
+    "status": "ready",
+    "execution": "demo",
+    "database": "ready",
+    "worker": {
+      "status": "ready",
+      "lastSeenAt": "2026-09-06T07:43:28.500Z",
+      "versions": {
+        "node": "v24.13.0",
+        "codex": "unavailable",
+        "skillUp": "skill-up version skilled-v2",
+        "skillUpSource": "vendored"
+      },
+      "readiness": {
+        "skillUp": true,
+        "appServer": true,
+        "execution": "demo",
+        "codexLogin": "fake-ready"
+      }
+    },
+    "artifacts": "writable-on-demand"
+  },
+  "loginStatus": 200,
+  "upload": {
+    "status": 409,
+    "body": {
+      "code": "PACKAGE_EXISTS",
+      "title": "Package already exists",
+      "detail": "Open this package and use Upload new version, or give the new package a different name.",
+      "retryable": false,
+      "correlationId": "c50702ef-8ff7-42c5-a961-81a1ce3f768d",
+      "resourceId": "aaa1b592-5968-425f-92bf-7496624af94e"
+    }
+  },
+  "preview": {
+    "status": 200,
+    "body": {
+      "path": "SKILL.md",
+      "size": 96,
+      "text": "---\nname: cloud-topology-audit\ndescription: Synthetic deployment fixture.\n---\nRead the fixture.\n",
+      "binary": false,
+      "truncated": false
+    }
+  },
+  "download": {
+    "status": 200,
+    "contentType": "application/zip"
+  }
+}

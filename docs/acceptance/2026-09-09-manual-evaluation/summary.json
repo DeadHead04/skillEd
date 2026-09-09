@@ -1,0 +1,92 @@
+{
+  "checkedAt": "2026-09-09T05:29:51.127Z",
+  "mode": "demo",
+  "realModelCalls": false,
+  "skillId": "73c18135-4cd0-4bd4-9461-c1d8205abf08",
+  "evalId": "1d6b8393-df25-4bb7-9048-0d612b8a5040",
+  "runId": "818c74cc-057e-4cd5-b824-5e759a4aa336",
+  "proposalId": "b38dc457-b9ee-4fbf-9cac-48846eb512e2",
+  "evaluation": {
+    "status": "approved",
+    "cases": 10
+  },
+  "run": {
+    "status": "completed",
+    "samples": 40,
+    "counts": {
+      "skill": {
+        "FAIL": 6,
+        "PARTIAL": 2,
+        "PASS": 12
+      },
+      "baseline": {
+        "FAIL": 6,
+        "PARTIAL": 2,
+        "PASS": 12
+      }
+    }
+  },
+  "verification": [
+    {
+      "kind": "current",
+      "id": "4adb7a03-18d0-44b1-b60f-216cd4024897",
+      "status": "completed",
+      "iterations": 3,
+      "samples": 30,
+      "counts": {
+        "FAIL": 9,
+        "PARTIAL": 3,
+        "PASS": 18
+      }
+    },
+    {
+      "kind": "candidate",
+      "id": "7228fd1d-b00c-41f5-ac98-7c9618077803",
+      "status": "completed",
+      "iterations": 3,
+      "samples": 30,
+      "counts": {
+        "PASS": 30
+      }
+    }
+  ],
+  "activeVersionId": null,
+  "materials": [
+    {
+      "name": "product-cards.json",
+      "bytes": 3172,
+      "sha256": "2b896ac18be3472aeec569a22e641360d51ed8bfd247010dfc7f225565550ccd",
+      "integrity": "matched"
+    },
+    {
+      "name": "authority.md",
+      "bytes": 340,
+      "sha256": "b971f49150e37f42c8ef4a413233bba96ebee8743eaf8b64e3aa2965cfb82bd9",
+      "integrity": "matched"
+    },
+    {
+      "name": "past-failures.md",
+      "bytes": 290,
+      "sha256": "44ed8e3ea79524feffe4a9b98b67fa24f4b8ba0a7dd3db924c2c37a5406cbd17",
+      "integrity": "matched"
+    },
+    {
+      "name": "expected-review.json",
+      "bytes": 700,
+      "sha256": "d49fa4820f3253eab9ea05eb5534dcc25b8f37420db8cb811b6060c8dbdf2f67",
+      "integrity": "matched"
+    }
+  ],
+  "downloads": [
+    {
+      "name": "demo-run-report.zip",
+      "bytes": 3416,
+      "sha256": "9516d466a825fc109a658970f22c5ea676a6536807952a4a430fc8aa2724faf5"
+    },
+    {
+      "name": "demo-candidate-v2.zip",
+      "bytes": 723,
+      "sha256": "81a28ec63f6b220dc124d61d8cf75e1084cfbb691f27e23e1fe38d8328563b0a"
+    }
+  ]
+}

@@ -15,7 +15,11 @@ import { randomUUID } from "node:crypto";
 import { fencedDatabase, reconcileJobs } from "./jobs.js";
 import { stopExecutions } from "./process.js";
 import { codexAppServer } from "./app-server.js";
-import { realExecutionReady, requireExecutionReady } from "./readiness.js";
+import {
+  realExecutionReady,
+  requireExecutionReady,
+  executionReadiness,
+} from "./readiness.js";
 const sql = db();
 const workerId = `worker-${randomUUID()}`;
 const run = promisify(execFile);
@@ -72,9 +76,17 @@ async function heartbeat() {
     process.env.SKILLED_ADAPTER_MODE === "fake"
       ? "fake-ready"
       : await version(process.env.CODEX_BIN ?? "codex", ["login", "status"]);
+  const acceptance =
+    process.env.SKILLED_ADAPTER_MODE === "fake"
+      ? {
+          ready: true,
+          code: "DEMO",
+          detail: "Demo evidence: deterministic execution without model calls.",
+        }
+      : await executionReadiness();
   const loggedIn =
     process.env.SKILLED_ADAPTER_MODE === "fake" || /logged in/i.test(login);
-  await sql`INSERT INTO worker_heartbeats(worker_id,versions,readiness,last_seen_at) VALUES(${workerId},${sql.json(versions)},${sql.json({ codexLogin: login, appServer: loggedIn && (process.env.SKILLED_ADAPTER_MODE === "fake" || (await realExecutionReady())), execution: process.env.SKILLED_ADAPTER_MODE === "fake" ? "demo" : (await realExecutionReady()) ? "ready" : "blocked", skillUp: versions.skillUp !== "unavailable" })},now()) ON CONFLICT(worker_id) DO UPDATE SET versions=excluded.versions,readiness=excluded.readiness,last_seen_at=now()`;
+  await sql`INSERT INTO worker_heartbeats(worker_id,versions,readiness,last_seen_at) VALUES(${workerId},${sql.json(versions)},${sql.json({ detail: acceptance.detail, code: acceptance.code, codexLogin: process.env.SKILLED_ADAPTER_MODE === "fake" ? "fake-ready" : loggedIn ? "available" : "unavailable", appServer: loggedIn && (process.env.SKILLED_ADAPTER_MODE === "fake" || (await realExecutionReady())), execution: process.env.SKILLED_ADAPTER_MODE === "fake" ? "demo" : (await realExecutionReady()) ? "ready" : "blocked", skillUp: versions.skillUp !== "unavailable" })},now()) ON CONFLICT(worker_id) DO UPDATE SET versions=excluded.versions,readiness=excluded.readiness,last_seen_at=now()`;
 }
 let busy = false;
 let stopping = false;

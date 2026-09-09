@@ -1,0 +1,13 @@
+{
+  "plan": {
+    "databases": ["skilled-pilot-db"],
+    "services": [
+      "skilled-pilot-artifacts",
+      "skilled-pilot-web",
+      "skilled-pilot-executor",
+      "skilled-pilot-controller"
+    ],
+    "totalActions": 6
+  },
+  "valid": true
+}

@@ -62,6 +62,13 @@ print(${JSON.stringify(JSON.stringify(envelope))})\nraise SystemExit(${values.ev
         );
         await execute(binary!, ["debug", "judge", input, "--output", output], {
           cwd: dir,
+          // Only trusted, generated validator fixtures run here, without model
+          // calls or credential mounts. Isolation has a separate fail-closed gate.
+          env: {
+            PATH: process.env.PATH,
+            HOME: dir,
+            SKILLED_SCRIPT_SANDBOX: "",
+          },
           timeout: 10_000,
         });
         const grading = JSON.parse(await readFile(output, "utf8"));
@@ -97,6 +104,13 @@ print(${JSON.stringify(JSON.stringify(envelope))})\nraise SystemExit(${values.ev
         );
         await execute(binary!, ["debug", "judge", input, "--output", output], {
           cwd: dir,
+          // Only trusted, generated validator fixtures run here, without model
+          // calls or credential mounts. Isolation has a separate fail-closed gate.
+          env: {
+            PATH: process.env.PATH,
+            HOME: dir,
+            SKILLED_SCRIPT_SANDBOX: "",
+          },
           timeout: 10_000,
         });
         const grading = JSON.parse(await readFile(output, "utf8"));

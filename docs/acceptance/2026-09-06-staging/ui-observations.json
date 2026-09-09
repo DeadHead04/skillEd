@@ -1,0 +1,68 @@
+{
+  "interrupted": {
+    "heading": "Evaluation in progress",
+    "metrics": [],
+    "unstableLabels": 0,
+    "downloads": [],
+    "retry": null
+  },
+  "failed": {
+    "heading": "Run failed",
+    "metrics": [],
+    "unstableLabels": 0,
+    "downloads": [],
+    "retry": "/runs/current?skill=142e713a-790d-4026-9d8f-b51944acb1c2"
+  },
+  "cancelled": {
+    "heading": "Run cancelled",
+    "metrics": [],
+    "unstableLabels": 0,
+    "downloads": [],
+    "retry": "/runs/current?skill=142e713a-790d-4026-9d8f-b51944acb1c2"
+  },
+  "completed": {
+    "heading": "What the evidence shows",
+    "metrics": [
+      "Task correctness\n1/1\nheld\nSemantic quality\n\u2014\nnot measured\nSource preservation\n1/1\nheld\nScope preservation\n0/1\nbroke\nArtifact validity\n\u2014\nnot measured\nStability\n\u2014\nnot measured"
+    ],
+    "unstableLabels": 0,
+    "downloads": [
+      {
+        "text": "Download raw report",
+        "href": "/api/v1/runs/3c3ccc7a-81aa-4d31-af51-cdf8f4805e98/download"
+      }
+    ],
+    "retry": null
+  },
+  "error": {
+    "heading": "What the evidence shows",
+    "metrics": [
+      "Task correctness\n\u2014\nnot measured\nSemantic quality\n\u2014\nnot measured\nSource preservation\n\u2014\nnot measured\nScope preservation\n\u2014\nnot measured\nArtifact validity\n\u2014\nnot measured\nStability\n0/1\nbroke"
+    ],
+    "unstableLabels": 0,
+    "downloads": [
+      {
+        "text": "Download raw report",
+        "href": "/api/v1/runs/ce800994-779d-4608-8ec9-efee81a40e4c/download"
+      }
+    ],
+    "retry": null
+  },
+  "inactivePackage": {
+    "activeHeading": 1,
+    "labels": [
+      "ce800994\nSkill v1, eval v \u2014 completed\n\u2715\n0/1 passing",
+      "3c3ccc7a\nSkill v1, eval v \u2014 completed\n\u25b2\n0/1 passing",
+      "e1656b2a\nSkill v1, eval v \u2014 cancelled\n\u25b2\n0/1 passing",
+      "46ebc86f\nSkill v1, eval v \u2014 failed\n\u25b2\n0/1 passing",
+      "e7a301f5\nSkill v1, eval v \u2014 interrupted\n\u25b2\n0/1 passing",
+      "Installable ZIP\nExactly what the agent receives\n\u2193",
+      "Original upload\nThe bytes you sent, untouched\n\u2193",
+      "Version 1\nInactive\nDownload"
+    ]
+  },
+  "mobile": {
+    "viewport": 390,
+    "scrollWidth": 390
+  }
+}

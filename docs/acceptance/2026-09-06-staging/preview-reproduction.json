@@ -1,0 +1,24 @@
+{
+  "preview": {
+    "actualSize": 2097159,
+    "reportedSize": 1048576,
+    "truncated": false,
+    "previewLength": 1048576,
+    "expectedTruncated": true
+  },
+  "fixture": {
+    "jobId": null,
+    "resourceId": "8a0ee7b6-7c57-40fe-b867-07e6bdbe723e",
+    "skillId": "142e713a-790d-4026-9d8f-b51944acb1c2",
+    "evalId": "4be7cb60-705d-4585-8c22-74cc57733720",
+    "identical": false
+  },
+  "inactiveLabel": {
+    "activePackageHeading": true,
+    "skillId": "142e713a-790d-4026-9d8f-b51944acb1c2"
+  },
+  "previewApi": {
+    "status": 200
+  },
+  "unauthorizedFiles": 401
+}

@@ -14,3 +14,4 @@ export * from "./capabilities";
 export * from "./service-config";
 export * from "./storage-budget";
 export * from "./material-references";
+export * from "./studio";

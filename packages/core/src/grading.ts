@@ -1,12 +1,14 @@
 import { z } from "zod";
-import { DimensionSchema, ResultSchema } from "./contracts";
+import { DimensionSchema, ResultSchema, OutcomeRoleSchema } from "./contracts";
 import { deriveResult, worstResult } from "./results";
 
-export const NORMALIZATION_VERSION = "skilled-grading-v2";
+export const NORMALIZATION_VERSION = "skilled-grading-v3";
 export const AssertionDefinitionSchema = z.object({
   id: z.string().min(1),
   text: z.string().min(1),
   dimension: DimensionSchema,
+  areaId: DimensionSchema.optional(),
+  role: OutcomeRoleSchema.optional(),
   required: z.boolean().default(true),
 });
 export type AssertionDefinition = z.infer<typeof AssertionDefinitionSchema>;
@@ -17,6 +19,19 @@ export const GradingEnvelopeSchema = z.object({
       id: z.string().min(1),
       passed: z.boolean(),
       evidence: z.string().min(1),
+      observations: z
+        .array(
+          z.object({
+            file: z.string(),
+            selector: z.string(),
+            protected: z.boolean().optional(),
+            format: z.string().optional(),
+            allowedPaths: z.array(z.string()).optional(),
+            expected: z.unknown(),
+            actual: z.unknown(),
+          }),
+        )
+        .optional(),
     }),
   ),
   error: z.object({ code: z.string(), detail: z.string() }).nullable(),
@@ -40,7 +55,9 @@ export function definitionsFromMapping(
     AssertionDefinitionSchema.parse({
       id: meta.id ?? text,
       text,
-      dimension: meta.dimension,
+      dimension: meta.areaId ?? meta.dimension,
+      areaId: meta.areaId,
+      role: meta.role,
       required: meta.required !== false,
     }),
   );
@@ -130,7 +147,12 @@ export function normalizeGrading(
       if (definition.required && !seen.has(definition.id))
         throw new Error(`Missing required assertion: ${definition.id}`);
     const derived = deriveResult(assertions);
-    if ((raw.status === "PASS") !== (derived === "PASS"))
+    if (
+      (raw.status === "PASS" && derived !== "PASS") ||
+      (raw.status === "FAIL" &&
+        derived === "PASS" &&
+        !assertions.some((a) => !a.required && !a.passed))
+    )
       throw new Error("Backend status contradicts assertion evidence");
   } catch (cause) {
     errorClass ??= "invalid_grading";

@@ -1,0 +1,58 @@
+{
+  "mode": "demo",
+  "runId": "5089cc17-614d-45f8-b15b-af761d56b8af",
+  "samples": 40,
+  "reportSha256": "b114be948b5294bc62578f50e16fa1a36cb0c545baae59afeb9a7b249387a624",
+  "areas": [
+    {
+      "id": "decision-accuracy",
+      "label": "Decision accuracy",
+      "expected": 16,
+      "pass": 10,
+      "failed": 6,
+      "error": 0,
+      "missing": 0
+    },
+    {
+      "id": "warning-coverage",
+      "label": "Warning coverage",
+      "expected": 8,
+      "pass": 8,
+      "failed": 0,
+      "error": 0,
+      "missing": 0
+    },
+    {
+      "id": "citation-support",
+      "label": "Citation support",
+      "expected": 10,
+      "pass": 10,
+      "failed": 0,
+      "error": 0,
+      "missing": 0
+    },
+    {
+      "id": "protected-fields",
+      "label": "Protected fields",
+      "expected": 4,
+      "pass": 2,
+      "failed": 2,
+      "error": 0,
+      "missing": 0
+    },
+    {
+      "id": "output-structure",
+      "label": "Output structure",
+      "expected": 4,
+      "pass": 4,
+      "failed": 0,
+      "error": 0,
+      "missing": 0
+    }
+  ],
+  "reconciled": [
+    "API results",
+    "downloaded result.json",
+    "rendered area totals"
+  ]
+}

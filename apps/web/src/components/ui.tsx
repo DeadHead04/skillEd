@@ -1,4 +1,6 @@
+import { InspectorFocus } from "./inspector-focus";
 import Link from "next/link";
+import { ObservationComparison } from "./artifact-preview";
 import { resultCopy } from "../lib/labels";
 
 /* -------------------------------------------------------------------------
@@ -146,7 +148,7 @@ export function Inspector({
   children: React.ReactNode;
 }) {
   return (
-    <aside className="inspector" aria-label="Evidence">
+    <InspectorFocus closeHref={closeHref}>
       <div className="inspector-head">
         <div>
           <h2>{title}</h2>
@@ -171,7 +173,7 @@ export function Inspector({
         </nav>
       )}
       <div className="inspector-body">{children}</div>
-    </aside>
+    </InspectorFocus>
   );
 }
 
@@ -227,6 +229,13 @@ export function Assertions({
 }: {
   assertions: Array<{
     id?: string;
+    text?: string;
+    observations?: Array<{
+      file: string;
+      selector: string;
+      expected: unknown;
+      actual: unknown;
+    }>;
     dimension?: string;
     passed?: boolean;
     evidence?: string;
@@ -246,7 +255,15 @@ export function Assertions({
             {assertion.passed ? "✓" : "✕"}
           </span>
           <div>
-            <p>{assertion.id ?? assertion.dimension ?? "Assertion"}</p>
+            <p>
+              {assertion.text?.replace(/^\[[^\]]+\]\s*/, "") ??
+                assertion.id ??
+                assertion.dimension ??
+                "Assertion"}
+            </p>
+            {assertion.observations?.map((item, index) => (
+              <ObservationComparison item={item} key={index} />
+            ))}
             {(assertion.evidence || assertion.error) && (
               <div className="evidence">
                 {assertion.error ?? assertion.evidence}

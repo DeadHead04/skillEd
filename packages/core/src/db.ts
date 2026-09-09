@@ -30,7 +30,7 @@ export function db(
 export async function ensureSchema(sql: Db) {
   if (process.env.SKILLED_AUTO_MIGRATE === "false") {
     const [row] = await sql`SELECT max(version) version FROM schema_migrations`;
-    if (Number(row?.version) < 5)
+    if (Number(row?.version) < 7)
       throw new Error("Database migration required");
     return;
   }
@@ -87,6 +87,28 @@ export async function migrate(sql: Db) {
         ),
       );
       await tx`INSERT INTO schema_migrations(version) VALUES(5)`;
+    }
+    if (!versions.has(6)) {
+      await tx.unsafe(
+        await readFile(
+          fileURLToPath(
+            new URL("./migrations/006_account_access.sql", import.meta.url),
+          ),
+          "utf8",
+        ),
+      );
+      await tx`INSERT INTO schema_migrations(version) VALUES(6)`;
+    }
+    if (!versions.has(7)) {
+      await tx.unsafe(
+        await readFile(
+          fileURLToPath(
+            new URL("./migrations/007_evaluation_studio.sql", import.meta.url),
+          ),
+          "utf8",
+        ),
+      );
+      await tx`INSERT INTO schema_migrations(version) VALUES(7)`;
     }
   });
 }

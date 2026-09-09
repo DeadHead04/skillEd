@@ -1,5 +1,6 @@
 import { CreateUserSchema, db, problem } from "@skilled/core";
 import { authenticatedUser } from "../../../../lib/auth";
+import { hashPassword } from "../../../../lib/passwords";
 
 export const runtime = "nodejs";
 const sql = db();
@@ -27,7 +28,9 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const actor = authenticatedUser(request);
   if (actor?.role !== "administrator") return forbidden();
-  const parsed = CreateUserSchema.safeParse(await request.json());
+  const parsed = CreateUserSchema.safeParse(
+    await request.json().catch(() => null),
+  );
   if (!parsed.success)
     return Response.json(
       problem(
@@ -39,10 +42,11 @@ export async function POST(request: Request) {
     );
   const { loginId, displayName, role, password } = parsed.data;
   try {
+    const passwordHash = await hashPassword(password);
     const [user] = await sql.begin(async (tx) => {
       const rows =
-        await tx`INSERT INTO users(login_id,display_name,role,password_hash)
-        VALUES(${loginId},${displayName},${role},crypt(${password},gen_salt('bf',12)))
+        await tx`INSERT INTO users(login_id,display_name,role,password_hash,password_change_required)
+        VALUES(${loginId},${displayName},${role},${passwordHash},true)
         RETURNING id,login_id,display_name,role,active,last_login_at,password_changed_at,created_at,updated_at`;
       await tx`INSERT INTO user_audit_events(actor_user_id,target_user_id,action,detail)
         VALUES(${actor.id},${rows[0]?.id},'user_created',${tx.json({ loginId, role })})`;

@@ -35,7 +35,7 @@ def main():
             resource.setrlimit(resource.RLIMIT_NOFILE, (256, 256))
             resource.setrlimit(resource.RLIMIT_FSIZE, (250 * 1024**2, 250 * 1024**2))
             resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
-        return subprocess.run(['codex', 'sandbox', 'linux', '--permissions-profile', 'skilled-judge', 'sh', '-c', command], cwd=workspace, env=environment, timeout=30, preexec_fn=limits).returncode
+        return subprocess.run(['/usr/local/bin/skilled-codex', 'sandbox', 'linux', '--permissions-profile', 'skilled-judge', 'sh', '-c', command], cwd=workspace, env=environment, timeout=30, preexec_fn=limits).returncode
     finally:
         shutil.rmtree(config, ignore_errors=True)
 

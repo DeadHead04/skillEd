@@ -30,7 +30,7 @@ try {
         `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${role}`,
       );
     }
-    await tx`GRANT INSERT,UPDATE,DELETE ON skills,eval_versions,eval_files,eval_cases,conversations,conversation_messages,jobs,runs,update_proposals,users,auth_login_attempts TO skilled_web`;
+    await tx`GRANT INSERT,UPDATE,DELETE ON skills,eval_versions,eval_files,eval_cases,conversations,conversation_messages,jobs,runs,update_proposals,users,auth_login_attempts,account_tokens TO skilled_web`;
     await tx`GRANT INSERT ON skill_versions,decision_records,user_audit_events,job_events,request_receipts TO skilled_web`;
     await tx`GRANT INSERT,UPDATE,DELETE ON eval_versions,eval_cases,conversations,conversation_messages,jobs,runs,case_results,update_proposals,worker_heartbeats TO skilled_controller`;
     await tx`GRANT INSERT ON job_events,decision_records TO skilled_controller`;

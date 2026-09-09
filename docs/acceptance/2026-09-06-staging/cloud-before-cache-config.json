@@ -1,0 +1,56 @@
+{
+  "health": {
+    "status": "ready",
+    "execution": "demo",
+    "database": "ready",
+    "worker": {
+      "status": "ready",
+      "lastSeenAt": "2026-09-06T07:40:56.654Z",
+      "versions": {
+        "node": "v24.13.0",
+        "codex": "unavailable",
+        "skillUp": "skill-up version skilled-v2",
+        "skillUpSource": "vendored"
+      },
+      "readiness": {
+        "skillUp": true,
+        "appServer": true,
+        "execution": "demo",
+        "codexLogin": "fake-ready"
+      }
+    },
+    "artifacts": "writable-on-demand"
+  },
+  "loginStatus": 200,
+  "upload": {
+    "status": 201,
+    "body": {
+      "jobId": null,
+      "resourceId": "aaa1b592-5968-425f-92bf-7496624af94e",
+      "skillId": "a6b75957-a606-4fcf-85a9-5de5ed3c35ec",
+      "evalId": "ad603bf6-b34d-4670-9334-57007fc4f9e5",
+      "identical": false
+    }
+  },
+  "preview": {
+    "status": 404,
+    "body": {
+      "code": "NOT_FOUND",
+      "title": "File not readable",
+      "detail": "EACCES: permission denied, mkdir '/app/apps/web/artifacts'",
+      "retryable": false,
+      "correlationId": "876ea294-7e06-4a55-bc33-5a49903f51e1"
+    }
+  },
+  "download": {
+    "status": 500,
+    "contentType": "application/json",
+    "body": {
+      "code": "INTERNAL",
+      "title": "Request failed",
+      "detail": "EACCES: permission denied, mkdir '/app/apps/web/artifacts'",
+      "retryable": true,
+      "correlationId": "1a411ae8-ce02-4b1f-9923-27561220c813"
+    }
+  }
+}

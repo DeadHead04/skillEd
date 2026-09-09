@@ -45,7 +45,10 @@ def run_checks(spec):
     envelope = {"schemaVersion": "skilled-grading-v1", "assertions": [], "error": None}
     try:
         for check in spec["checks"]:
-            definition = next(a for a in spec["assertions"] if a["dimension"] == check.get("dimension", "correctness"))
+            matches = [a for a in spec["assertions"] if a["id"] == check["assertionId"]] if check.get("assertionId") else [a for a in spec["assertions"] if a["dimension"] == check.get("dimension", "correctness")]
+            if len(matches) != 1:
+                raise ValueError("Validator requires one explicit assertion ID")
+            definition = matches[0]
             if check.get("file"):
                 root = pathlib.Path.cwd().resolve()
                 path = (root / check["file"]).resolve()
@@ -85,12 +88,13 @@ def run_checks(spec):
                     passed = expected not in actual
                 else:
                     raise ValueError("Unknown deterministic check")
-            grouped[definition["id"]].append((passed, kind + " check " + ("passed" if passed else "failed")))
+            observation = {"protected": kind == "unchanged", "format": check.get("format", "text"), "allowedPaths": check.get("allowedPaths", []), "file": check.get("file", "final message"), "selector": check.get("selector", ""), "expected": json.dumps(expected, ensure_ascii=False)[:2000], "actual": json.dumps(actual, ensure_ascii=False)[:2000]}
+            grouped[definition["id"]].append((passed, kind + " check " + ("passed" if passed else "failed"), observation))
         for definition in spec["assertions"]:
             checks = grouped[definition["id"]]
             if not checks:
                 raise ValueError("Required assertion has no concrete validator: " + definition["id"])
-            envelope["assertions"].append({"id": definition["id"], "passed": all(c[0] for c in checks), "evidence": "; ".join(c[1] for c in checks)})
+            envelope["assertions"].append({"id": definition["id"], "passed": all(c[0] for c in checks), "evidence": "; ".join(c[1] for c in checks), "observations": [c[2] for c in checks if len(c) > 2]})
     except Exception as error:
         envelope["error"] = {"code": "VALIDATOR_ERROR", "detail": str(error)}
     print(json.dumps(envelope, ensure_ascii=False, separators=(",", ":")), flush=True)

@@ -17,6 +17,8 @@ import {
   type Db,
   MaterialKindSchema,
   GeneratedEvalCaseSchema,
+  validateCoverage,
+  materialVisibility,
 } from "@skilled/core";
 import { z } from "zod";
 import { codexAppServer as appServer } from "./app-server.js";
@@ -79,7 +81,17 @@ async function stageAuthorWorkspace(
     await sql`SELECT id,kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${evalId} ORDER BY created_at`;
   const manifest = [];
   for (const file of files) {
-    if (!file.artifact_key) continue;
+    if (!file.artifact_key) {
+      manifest.push({
+        id: file.id,
+        kind: file.kind,
+        filename: file.filename,
+        path: null,
+        metadata: file.metadata,
+        preview: String(file.metadata?.text ?? "").slice(0, 64000),
+      });
+      continue;
+    }
     MaterialKindSchema.parse(file.kind);
     const relative = `${file.kind}/${file.id}-${safeName(file.filename)}`;
     const target = join(materialDir, relative);
@@ -164,7 +176,7 @@ export const DEFAULT_PLAN = CoveragePlanSchema.parse({
         "Verify protected fields, structure, and unrelated content remain unchanged",
       caseCount: 2,
       judge: "script",
-      dimensions: ["scope", "artifact"],
+      dimensions: ["semantic", "scope", "artifact"],
       provenance: ["task invariants"],
       iterations: 1,
     },
@@ -348,6 +360,42 @@ function isProductQcTask(value: unknown) {
   return text.includes("product card") || text.includes("source fact");
 }
 
+function taskPlan(product: boolean) {
+  const labels = product
+    ? [
+        ["decision-accuracy", "Decision accuracy"],
+        ["warning-coverage", "Warning coverage"],
+        ["citation-support", "Citation support"],
+        ["protected-fields", "Protected fields"],
+        ["output-structure", "Output structure"],
+      ]
+    : [
+        ["task-outcome", "Task outcome"],
+        ["instruction-coverage", "Instruction coverage"],
+        ["source-grounding", "Source grounding"],
+        ["change-boundaries", "Change boundaries"],
+        ["output-contract", "Output contract"],
+      ];
+  const legacy = ["correctness", "semantic", "source", "scope", "artifact"];
+  const ids = Object.fromEntries(
+    legacy.map((name, i) => [name, labels[i]![0]!]),
+  );
+  return CoveragePlanSchema.parse({
+    areas: labels.map(([id, label], i) => ({
+      id,
+      label,
+      description: `${label}: check the requested task against its supplied evidence.`,
+      role: i === 0 ? "task_success" : "constraint",
+      required: true,
+      sourceReferences: [],
+    })),
+    groups: DEFAULT_PLAN.groups.map((g) => ({
+      ...g,
+      dimensions: g.dimensions.map((d) => ids[d]),
+    })),
+  });
+}
+
 export async function authorEval(sql: Db, job: Record<string, any>) {
   const phase = String(job.payload?.phase ?? "initial");
   await emit(sql, job.id, "stage_changed", { stage: phase });
@@ -364,7 +412,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
   let understanding = isProductQcTask(context.metadata?.text)
       ? PRODUCT_UNDERSTANDING
       : DEFAULT_UNDERSTANDING,
-    plan = DEFAULT_PLAN,
+    plan = taskPlan(isProductQcTask(context.metadata?.text)),
     questions: Array<Record<string, any>> = [],
     codexThreadId: string | undefined = conversation.codex_thread_id;
   const materials =
@@ -383,6 +431,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
         "Demo revision prepared. Review the proposed task understanding and coverage before applying it.",
         {
           reply: "Demo revision",
+          baseRevision: context.revision,
           revision: {
             understanding: {
               ...context.task_understanding,
@@ -424,13 +473,10 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
         },
       );
       const reply = AuthoringRevisionSchema.parse(turn.structured);
-      await persistMessage(
-        sql,
-        conversation.id,
-        "assistant",
-        reply.reply,
-        reply,
-      );
+      await persistMessage(sql, conversation.id, "assistant", reply.reply, {
+        ...reply,
+        baseRevision: context.revision,
+      });
     }
     await emit(sql, job.id, "completed", {
       resourceId: job.resource_id,
@@ -496,12 +542,15 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
     const answerText = JSON.stringify(context.answers ?? {});
     const second = await appServer.structuredTurn(
       cwd,
-      `${contract}\nUser answers: ${answerText}. Create a sophisticated coverage plan with named false-green/adversarial coverage, mixed deterministic and agent judges, provenance, dimensions, and iteration rationale. The sum of caseCount across every coverage group must not exceed ${MAX_NUM_TEST_CASES}.`,
+      `${contract}\nUser answers: ${answerText}. Propose task-specific judging areas with stable lowercase IDs, short labels, descriptions of at most two lines, outcome roles (task_success, constraint, informational), required flags and exact source references. Define at least one required task_success area. Use these IDs as dimensions in coverage groups. Do not use a fixed generic taxonomy. Plan normal, boundary and adversarial cases with concrete outputs and provenance. The sum of caseCount across every coverage group must not exceed ${MAX_NUM_TEST_CASES}.`,
       z.toJSONSchema(CoveragePlanSchema),
       codexThreadId,
       hooks,
     );
     plan = CoveragePlanSchema.parse(second.structured);
+    if (!plan.areas.length)
+      throw new Error("Codex must propose task-specific judging areas");
+    validateCoverage(plan);
     await persistMessage(
       sql,
       conversation.id,
@@ -552,7 +601,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
       plan,
     );
   }
-  await sql`UPDATE eval_versions SET status='planning',coverage_plan=${sql.json(plan as never)} WHERE id=${job.resource_id}`;
+  await sql`UPDATE eval_versions SET status='planning',coverage_plan=${sql.json(plan as never)},validation=${sql.json({ valid: false, adapter: process.env.SKILLED_ADAPTER_MODE === "fake" ? "fake" : "codex" })} WHERE id=${job.resource_id}`;
   await sql`UPDATE eval_versions SET status='awaiting_plan_approval' WHERE id=${job.resource_id}`;
   await emit(sql, job.id, "completed", {
     resourceId: job.resource_id,
@@ -571,6 +620,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
   let generationNotes: string[] = [];
   let caseSet: Array<z.infer<typeof GeneratedEvalCaseSchema>> = fallback.map(
     ([caseId, title, group, judge, dimensions]) => ({
+      assertions: [],
       id: caseId,
       title,
       coverageGroup: group,
@@ -613,7 +663,7 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     const { cwd } = await stageAuthorWorkspace(sql, id, context.original_key);
     const turn = await appServer.structuredTurn(
       cwd,
-      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate exactly the approved coverage counts, up to ${MAX_NUM_TEST_CASES}. If coverage cannot be satisfied, return a validation error rather than truncate. Each required dimension needs its own criterion. Deterministic checks may inspect text, JSON, CSV or XLSX artifacts using file, format and JSON-pointer selector. unchanged checks use expectedMaterialId and explicitly allowedPaths. Map every check to its dimension. Dataset files are staged under inputs/<material-id>-<filename>; expected and authority files are judge-only. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Include sourceReferences with exact material IDs from the material manifest and a concrete rule/cell/section location for each case. Use a script judge when concrete file or final-message checks cover every required dimension. Artifact dimensions must inspect a named output file. Otherwise use an agent judge; never use a mere non-empty-output check.`,
+      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate exactly the approved coverage counts, up to ${MAX_NUM_TEST_CASES}. If coverage cannot be satisfied, return a validation error rather than truncate. Each case must include explicit assertions with globally unique stable IDs, areaId from the approved areas, text, required flag and the exact approved outcome role. Each required area must have coverage. More than one assertion may belong to an area. Populate dimensions with its distinct area IDs, and criteria with assertion text. Deterministic checks may inspect text, JSON, CSV or XLSX artifacts using file, format and JSON-pointer selector. unchanged checks use expectedMaterialId and explicitly allowedPaths. Map every deterministic check to its exact assertionId and area ID. Every script assertion must have a concrete validator. Include thresholds in the criterion text. Files marked agent_input in metadata (datasets by default) are staged under inputs/<material-id>-<filename>. Use approved public rules as task instructions. Expected answers always remain judge-only. Other materials are judge-only unless explicitly approved for the tested agent. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Include sourceReferences with exact material IDs from the material manifest and a concrete rule/cell/section location for each case. Use a script judge when concrete file or final-message checks cover every required dimension. Artifact dimensions must inspect a named output file. Otherwise use an agent judge; never use a mere non-empty-output check.`,
       z.toJSONSchema(LimitedGeneratedEvalSuiteSchema),
       conversation.codex_thread_id,
       {
@@ -643,6 +693,37 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       suite,
     );
   }
+  const approvedPlan = CoveragePlanSchema.parse(context.coverage_plan);
+  if (
+    process.env.SKILLED_ADAPTER_MODE === "fake" &&
+    !job.payload?.rebuild &&
+    approvedPlan.areas.length
+  ) {
+    const oldIds = ["correctness", "semantic", "source", "scope", "artifact"];
+    const map = Object.fromEntries(
+      oldIds.map((id, i) => [id, approvedPlan.areas[i]!.id]),
+    );
+    caseSet = caseSet.map((item) => ({
+      ...item,
+      dimensions: item.dimensions.map((d) => map[d]!),
+      assertions: item.dimensions.map((d, i) => ({
+        id: `${item.id}-${map[d]}`,
+        areaId: map[d]!,
+        text: item.criteria[i]!,
+        required: true,
+        role:
+          d === "correctness"
+            ? ("task_success" as const)
+            : ("constraint" as const),
+      })),
+      deterministicChecks: item.deterministicChecks.map((c) => ({
+        ...c,
+        dimension: map[c.dimension]!,
+        assertionId: `${item.id}-${map[c.dimension]}`,
+      })),
+    }));
+  }
+  validateCoverage(approvedPlan, caseSet);
   if (
     caseSet.length > MAX_NUM_TEST_CASES ||
     new Set(caseSet.map((c) => c.id)).size !== caseSet.length
@@ -667,14 +748,23 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
     await mkdir(evalDir, { recursive: true });
     await sql`UPDATE eval_versions SET status='generating' WHERE id=${id}`;
     await emit(sql, job.id, "stage_changed", { stage: "generating" });
-    const manifest: any = { schemaVersion: 2, cases: {}, fixtures: [] };
+    const manifest: any = {
+      schemaVersion: 3,
+      profile: approvedPlan,
+      cases: {},
+      fixtures: [],
+    };
     for (const file of materials) {
       MaterialKindSchema.parse(file.kind);
       const bytes = await readFile(
         await new ArtifactStore().materialize(file.artifact_key),
       );
       truth[file.id] = bytes.toString("base64");
-      if (file.kind !== "dataset") continue;
+      if (
+        materialVisibility(file.kind, file.metadata?.visibility) !==
+        "agent_input"
+      )
+        continue;
       const relativePath = `evals/fixtures/inputs/${file.id}-${safeName(file.filename)}`;
       await mkdir(join(root, "evals/fixtures/inputs"), { recursive: true });
       await writeFile(join(root, relativePath), bytes);
@@ -739,17 +829,29 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         );
       const judge = requestedJudge;
       if (
-        definition.criteria.length !== dimensions.length ||
-        new Set(dimensions).size !== dimensions.length ||
-        new Set(definition.criteria).size !== definition.criteria.length
+        !definition.assertions.length &&
+        (definition.criteria.length !== dimensions.length ||
+          new Set(dimensions).size !== dimensions.length ||
+          new Set(definition.criteria).size !== definition.criteria.length)
       )
         throw new Error(`Invalid dimension/criteria mapping: ${caseId}`);
-      const assertions = dimensions.map((dimension, index) => ({
-        id: `${caseId}-${dimension}`,
-        text: `[${caseId}-${dimension}] ${definition.criteria[index]!}`,
-        dimension,
-        required: true,
-      }));
+      const assertions = definition.assertions.length
+        ? definition.assertions.map((a) => ({
+            ...a,
+            text: `[${a.id}] ${a.text}`,
+            dimension: a.areaId,
+          }))
+        : dimensions.map((dimension, index) => ({
+            id: `${caseId}-${dimension}`,
+            text: `[${caseId}-${dimension}] ${definition.criteria[index]!}`,
+            dimension,
+            required: true,
+            areaId: dimension,
+            role:
+              dimension === "correctness"
+                ? ("task_success" as const)
+                : ("constraint" as const),
+          }));
       const prompt = definition.prompt;
       const judgeConfig =
         judge === "agent"
@@ -795,7 +897,13 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         assertions: Object.fromEntries(
           assertions.map((a) => [
             a.text,
-            { id: a.id, dimension: a.dimension, required: true },
+            {
+              id: a.id,
+              dimension: a.dimension,
+              areaId: a.areaId,
+              role: a.role,
+              required: a.required,
+            },
           ]),
         ),
       };

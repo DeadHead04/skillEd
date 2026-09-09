@@ -108,7 +108,7 @@ test(
         },
       );
       for (const id of ["FG-001", "CASE-2"])
-        await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,required_dimensions,yaml_path) VALUES(${ev!.id},${id},${id},'group','script','["correctness","scope"]','test.yaml')`;
+        await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,required_dimensions,yaml_path,assertion_mapping) VALUES(${ev!.id},${id},${id},'group','script','["correctness","scope"]','test.yaml',${sql.json({ correct: { id: `${id}-correctness`, dimension: "correctness", required: true }, scope: { id: `${id}-scope`, dimension: "scope", required: true } })})`;
       await sql`UPDATE eval_versions SET status='approved' WHERE id=${ev!.id}`;
       await t.test(
         "approved contents and decisions are immutable at the database boundary",

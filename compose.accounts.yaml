@@ -1,0 +1,8 @@
+# Disposable account-flow review. Use with compose.test.yaml and its own project name.
+services:
+  web:
+    ports: !override
+      - 127.0.0.1:3400:3000
+  postgres:
+    ports:
+      - 127.0.0.1:35434:5432

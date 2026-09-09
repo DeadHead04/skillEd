@@ -1,5 +1,7 @@
 import {
   ArtifactStore,
+  assessPackage,
+  type PackageAssessment,
   PREVIEW_LIMIT,
   db,
   readZipEntry,
@@ -38,7 +40,7 @@ function summarizeResults(results: any[]) {
 export async function listSkills(): Promise<any[]> {
   await ready;
   const skills =
-    await sql`SELECT s.*,v.id displayed_version_id,v.version active_version,v.description,v.status version_status FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC,s.name`;
+    await sql`SELECT s.*,v.id displayed_version_id,v.version active_version,v.description,v.manifest,v.status version_status,(SELECT latest.version FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1) latest_version,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1) latest_version_id FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC,s.name`;
   // Every lookup below is batched: the rail renders on every page, so a
   // per-skill query loop here would cost a round trip per package per render.
   const ids = skills.map((s) => s.displayed_version_id).filter(Boolean);
@@ -91,11 +93,20 @@ export async function listSkills(): Promise<any[]> {
   });
 }
 
-export async function currentSkill(skillId?: string): Promise<any> {
+export async function currentSkill(
+  skillId?: string,
+  versionId?: string,
+): Promise<any> {
   await ready;
   const [skill] = skillId
     ? await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) WHERE s.id=${skillId}`
     : await sql`SELECT s.*,row_to_json(v.*) version FROM skills s LEFT JOIN skill_versions v ON v.id=COALESCE(s.active_version_id,(SELECT latest.id FROM skill_versions latest WHERE latest.skill_id=s.id ORDER BY latest.version DESC LIMIT 1)) ORDER BY s.updated_at DESC LIMIT 1`;
+  if (skill && versionId) {
+    const [version] =
+      await sql`SELECT * FROM skill_versions WHERE id=${versionId} AND skill_id=${skill.id}`;
+    if (!version) return null;
+    skill.version = version;
+  }
   if (skill?.version)
     skill.version.importedHistory = Boolean(
       (
@@ -104,14 +115,20 @@ export async function currentSkill(skillId?: string): Promise<any> {
     );
   return skill ?? null;
 }
-export async function currentEval(id?: string, skillId?: string): Promise<any> {
+export async function currentEval(
+  id?: string,
+  skillId?: string,
+  versionId?: string,
+): Promise<any> {
   await ready;
   const [evaluation] =
     id && id !== "current"
       ? await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE ev.id=${id}`
-      : skillId
-        ? await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${skillId} ORDER BY ev.created_at DESC LIMIT 1`
-        : await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id ORDER BY ev.created_at DESC LIMIT 1`;
+      : versionId
+        ? await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE ev.skill_version_id=${versionId} ORDER BY ev.created_at DESC LIMIT 1`
+        : skillId
+          ? await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE sv.skill_id=${skillId} ORDER BY ev.created_at DESC LIMIT 1`
+          : await sql`SELECT ev.*,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id ORDER BY ev.created_at DESC LIMIT 1`;
   if (!evaluation) return null;
   const cases =
     await sql`SELECT * FROM eval_cases WHERE eval_version_id=${evaluation.id} ORDER BY case_id`;
@@ -167,6 +184,16 @@ export async function currentProposal(
         ? await sql`SELECT p.*,sv.version base_version,sv.skill_id FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE sv.skill_id=${skillId} ORDER BY p.created_at DESC LIMIT 1`
         : await sql`SELECT p.*,sv.version base_version,sv.skill_id FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id ORDER BY p.created_at DESC LIMIT 1`;
   if (!p) return null;
+  const sourceResults =
+    await sql`SELECT cr.case_id,cr.assertions,ec.title FROM case_results cr JOIN runs r ON r.id=cr.run_id JOIN eval_cases ec ON ec.eval_version_id=r.eval_version_id AND ec.case_id=cr.case_id WHERE cr.run_id=${p.source_run_id} AND cr.configuration IN ('skill','with_skill')`;
+  const targetedEvidence = Object.fromEntries(
+    sourceResults.flatMap((r) =>
+      (r.assertions ?? []).map((a: any) => [
+        a.id,
+        { caseId: r.case_id, title: r.title, text: a.text ?? a.id },
+      ]),
+    ),
+  );
   let skillPatch = "Patch artifact is unavailable.";
   if (p.skill_patch_key) {
     try {
@@ -202,6 +229,7 @@ export async function currentProposal(
         await sql`SELECT active_version_id FROM skills WHERE id=${p.skill_id}`
       )[0]?.active_version_id ?? null,
     activeJob,
+    targetedEvidence,
     skillPatch,
     evalPatch,
     messages,
@@ -327,4 +355,62 @@ export async function skillRuns(skillId: string): Promise<any[]> {
 
 export async function skillVersions(skillId: string): Promise<any[]> {
   return sql`SELECT sv.*,EXISTS(SELECT 1 FROM history_assessments h WHERE h.resource_id=sv.id) imported_history FROM skill_versions sv WHERE skill_id=${skillId} ORDER BY version DESC`;
+}
+
+export async function packageAssessment(
+  version: any,
+): Promise<PackageAssessment> {
+  if (
+    version.package_assessment?.schemaVersion ===
+    "skilled-package-assessment-v1"
+  )
+    return version.package_assessment;
+  const entries = version.manifest?.entries ?? [];
+  const candidates = entries.filter((e: any) =>
+    /\.md$|^agents\/openai\.yaml$/i.test(e.path),
+  );
+  const texts: Record<string, string> = {};
+  const omitted: string[] = [];
+  for (const entry of candidates.slice(0, 100)) {
+    const file = await readSkillFile(version.id, entry.path);
+    if (file?.text && !file.truncated) texts[entry.path] = file.text;
+    else omitted.push(entry.path);
+  }
+  const result = assessPackage({
+    name: version.name,
+    selectedRoot: version.selected_root,
+    packageHash: version.installable_checksum ?? version.checksum,
+    entries,
+    texts,
+    excluded: version.manifest?.excluded ?? [],
+  });
+  if (candidates.length > 100 || omitted.length)
+    result.findings.push({
+      code: "INSPECTION_LIMIT",
+      category: "advice",
+      severity: "advisory",
+      message: "Some files could not be inspected within preview limits.",
+      action:
+        "Download the package and inspect large or unavailable files before relying on this assessment.",
+    });
+  return result;
+}
+export async function studioHealth() {
+  const [worker] =
+    await sql`SELECT last_seen_at,readiness FROM worker_heartbeats ORDER BY last_seen_at DESC LIMIT 1`;
+  const [queue] =
+    await sql`SELECT count(*) FILTER(WHERE status='queued') queued,count(*) FILTER(WHERE status='running') running FROM jobs`;
+  return {
+    execution:
+      worker && Date.now() - new Date(worker.last_seen_at).getTime() < 30000
+        ? (worker.readiness?.execution ?? "blocked")
+        : "blocked",
+    queue,
+  };
+}
+
+export async function latestRunForVersion(versionId: string) {
+  const [run] =
+    await sql`SELECT id,status,engine_versions FROM runs WHERE skill_version_id=${versionId} ORDER BY created_at DESC LIMIT 1`;
+  return run ?? null;
 }

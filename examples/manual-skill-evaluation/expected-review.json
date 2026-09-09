@@ -1,0 +1,29 @@
+{
+  "purpose": "Human review reference and future real-evaluation truth; not proof of model execution.",
+  "expected": [
+    {
+      "id": "supported",
+      "decision": "PASS",
+      "must_flag": []
+    },
+    {
+      "id": "unsupported-claim",
+      "decision": "FAIL",
+      "must_flag": [
+        "Unsupported clinical/health claim; F2 establishes testing only."
+      ]
+    },
+    {
+      "id": "missing-warning",
+      "decision": "FAIL",
+      "must_flag": ["Missing peanut warning required by F3."]
+    },
+    {
+      "id": "protected-drift",
+      "decision": "FAIL",
+      "must_flag": [
+        "SKU differs from source.protected_fields.sku: DEMO-001 became DEMO-002."
+      ]
+    }
+  ]
+}

@@ -7,7 +7,9 @@ import { ApiAction } from "./actions";
 export function NewEvaluationForm({
   versions,
   skillId,
+  selectedVersionId,
 }: {
+  selectedVersionId?: string;
   versions: Array<{ id: string; version: number }>;
   skillId: string;
 }) {
@@ -34,7 +36,11 @@ export function NewEvaluationForm({
     >
       <div className="field">
         <label htmlFor="evaluation-version">Skill version</label>
-        <select id="evaluation-version" name="skillVersionId">
+        <select
+          id="evaluation-version"
+          name="skillVersionId"
+          defaultValue={selectedVersionId}
+        >
           {versions.map((v) => (
             <option key={v.id} value={v.id}>
               Version {v.version}
@@ -225,6 +231,23 @@ export function MaterialManager({
                     <option key={kind}>{kind}</option>
                   ))}
                 </select>
+                <label>
+                  Who can read this file?
+                  <select
+                    aria-label={`Visibility for ${file.filename}`}
+                    value={
+                      file.metadata?.visibility ??
+                      (file.kind === "dataset" ? "agent_input" : "judge_only")
+                    }
+                    disabled={busy || file.kind === "expected"}
+                    onChange={(e) =>
+                      change(file.id, { visibility: e.target.value })
+                    }
+                  >
+                    <option value="agent_input">Tested agent and judges</option>
+                    <option value="judge_only">Judges only</option>
+                  </select>
+                </label>
                 <button
                   className="btn secondary"
                   disabled={busy}

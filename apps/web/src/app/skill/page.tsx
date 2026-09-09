@@ -4,9 +4,10 @@ import {
   currentEval,
   readSkillFile,
   readTaskMaterial,
-  skillRuns,
   skillVersions,
   taskMaterials,
+  packageAssessment,
+  latestRunForVersion,
 } from "../../lib/data";
 import { NewEvaluationForm } from "../../components/workflow-forms";
 import { UploadForm, ApiAction } from "../../components/actions";
@@ -18,81 +19,57 @@ import {
   Work,
   bytes,
 } from "../../components/ui";
-import { humanize } from "../../lib/labels";
+import { FileTree, PackageFindings, ReadMore } from "../../components/studio";
 
 export const dynamic = "force-dynamic";
-
-const MATERIAL_LABEL: Record<string, string> = {
-  task: "Task description",
-  authority: "Authoritative rules",
-  expected: "Expected output",
-  example: "Behavioural example",
-  dataset: "Dataset",
-  past_failure: "Recorded failure",
-};
-
 export default async function SkillPage({
   searchParams,
 }: {
   searchParams: Promise<{
     skill?: string;
+    version?: string;
     new?: string;
     file?: string;
     material?: string;
   }>;
 }) {
   const query = await searchParams;
-  const skill = query.new ? null : await currentSkill(query.skill);
-  const evaluation = skill ? await currentEval(undefined, skill.id) : null;
-  const version = skill?.version as any;
-
-  if (!skill || !version) {
+  const skill = query.new
+    ? null
+    : await currentSkill(query.skill, query.version);
+  if (!skill?.version)
     return (
       <Work>
+        <div className="eyebrow">START A WORKSPACE</div>
         <Verdict
           title="Add a Skill package"
-          lede="Upload the ZIP you would hand to an agent, plus the material that decides whether its output is right. Nothing inside the archive is executed."
+          lede="Bring a Skill ZIP, a task, and the files it needs to work with."
         />
-        <div style={{ marginTop: 22 }}>
-          <UploadForm />
-        </div>
+        <UploadForm />
       </Work>
     );
-  }
-
-  const [runs, materials, versions] = await Promise.all([
-    skillRuns(skill.id),
-    evaluation ? taskMaterials(evaluation.id) : Promise.resolve([]),
+  const version = skill.version;
+  const [evaluation, versions, assessment, latestRun] = await Promise.all([
+    currentEval(undefined, skill.id, version.id),
     skillVersions(skill.id),
+    packageAssessment(version),
+    latestRunForVersion(version.id),
   ]);
-  const entries = (version.manifest?.entries ?? []) as Array<{
-    path: string;
-    size: number;
-  }>;
-  const findings = (version.readiness?.findings ?? []) as Array<{
-    message?: string;
-    path?: string;
-  }>;
-  const ready = Boolean(version.readiness?.ready);
-  const base = `/skill?skill=${skill.id}`;
-
-  // The inspector is the one level deeper: the actual bytes of a file.
+  const materials = evaluation ? await taskMaterials(evaluation.id) : [];
+  const entries = version.manifest?.entries ?? [];
+  const base = `/skill?skill=${skill.id}&version=${version.id}`;
   const openFile = query.file
     ? await readSkillFile(version.id, query.file)
     : null;
-  const openMaterial = query.material
-    ? await readTaskMaterial(query.material)
-    : null;
-
+  const openMaterial =
+    query.material && materials.some((m) => m.id === query.material)
+      ? await readTaskMaterial(query.material)
+      : null;
   const inspector =
     query.file || query.material ? (
       <Inspector
         title={query.file ?? openMaterial?.filename ?? "File"}
-        subtitle={
-          query.file
-            ? `Installed with the Skill · ${bytes(openFile?.size ?? 0)}`
-            : `${MATERIAL_LABEL[openMaterial?.kind ?? ""] ?? "Task material"} · ${bytes(openMaterial?.size ?? 0)}`
-        }
+        subtitle={`Version ${version.version} · ${bytes((openFile ?? openMaterial)?.size ?? 0)}`}
         closeHref={base}
       >
         <FileView
@@ -101,277 +78,229 @@ export default async function SkillPage({
         />
       </Inspector>
     ) : undefined;
-
+  const selectedActive = version.id === skill.active_version_id;
   return (
     <Work inspector={inspector}>
+      <div className="eyebrow">
+        PACKAGE WORKSPACE · VERSION {version.version}
+      </div>
       <Verdict
         title={skill.name}
-        lede={
-          version.description ||
-          "These are the exact bytes the tested agent receives. Open any file to read it."
-        }
         status={
           <Status
-            value={ready ? "pass" : "partial"}
-            label={ready ? "Ready to test" : "Needs attention"}
+            value={selectedActive ? "pass" : "absent"}
+            label={
+              selectedActive
+                ? `Active v${version.version}`
+                : version.status === "candidate"
+                  ? `Candidate v${version.version}`
+                  : `Uploaded v${version.version}`
+            }
           />
         }
       />
-
+      <ReadMore text={version.description} />
       {version.importedHistory && (
         <p className="notice" role="status">
-          <b>Imported history</b>
-          This version's pointer is preserved history that was never reverified.
-          Run the evaluation pipeline before relying on it.
+          <b>Imported history — not reverified</b> Original version history is
+          preserved. Run approved tests before relying on it.
         </p>
       )}
-
-      <dl className="kv" style={{ marginTop: 18 }}>
+      <div className="assessment-strip">
         <div>
-          <dt>Version</dt>
-          <dd className="num">v{version.version}</dd>
-        </div>
-        <div>
-          <dt>Skill root</dt>
-          <dd>{version.selected_root || "Archive root"}</dd>
-        </div>
-        <div>
-          <dt>Checksum</dt>
-          <dd className="mono">{String(version.checksum).slice(0, 12)}</dd>
+          <small>PACKAGE VALIDITY</small>
+          <strong>
+            {!assessment.valid
+              ? "Needs attention"
+              : assessment.inspectionComplete === false
+                ? "Partial inspection"
+                : "Structure checked"}
+          </strong>
         </div>
         <div>
-          <dt>Task evidence</dt>
-          <dd>{evaluation?.evidence_level ?? "Provisional"}</dd>
+          <small>RUNTIME</small>
+          <strong>
+            {assessment.runtime === "unsupported"
+              ? "Unsupported dependency"
+              : "Check at launch"}
+          </strong>
         </div>
-      </dl>
-
-      <section className="section" style={{ marginTop: 28 }}>
-        <div className="section-head">
-          <h2>Active package</h2>
-          <span className="section-note num">
-            {entries.length} {entries.length === 1 ? "file" : "files"}
-          </span>
+        <div>
+          <small>TASK COVERAGE</small>
+          <strong>
+            {evaluation?.status === "approved"
+              ? "Approved test plan"
+              : "Approval needed"}
+          </strong>
         </div>
-        <div className="rows">
-          {entries.map((entry) => (
-            <Link
-              className={`row file ${query.file === entry.path ? "selected" : ""}`}
-              href={`${base}&file=${encodeURIComponent(entry.path)}`}
-              key={entry.path}
-            >
-              <span className="chevron" aria-hidden="true">
-                ▸
-              </span>
-              <span className="title mono">{entry.path}</span>
-              <span className="file-kind">
-                {entry.path.endsWith("SKILL.md") ? "instructions" : "file"}
-              </span>
-              <span className="file-size">{bytes(Number(entry.size))}</span>
+        <div>
+          <small>PERFORMANCE</small>
+          {latestRun ? (
+            <Link href={`/runs/${latestRun.id}?skill=${skill.id}`}>
+              {latestRun.engine_versions?.adapter === "demo"
+                ? "Inspect demo results"
+                : "Inspect run evidence"}{" "}
+              ↗
             </Link>
-          ))}
-        </div>
-      </section>
-
-      {materials.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>Task material</h2>
-            <span className="section-note">What decides a correct answer</span>
-          </div>
-          <div className="rows">
-            {materials.map((material) => (
-              <Link
-                className={`row file ${query.material === String(material.id) ? "selected" : ""}`}
-                href={`${base}&material=${material.id}`}
-                key={String(material.id)}
-              >
-                <span className="chevron" aria-hidden="true">
-                  ▸
-                </span>
-                <span className="title">{material.filename}</span>
-                <span className="file-kind">
-                  {MATERIAL_LABEL[String(material.kind)] ?? material.kind}
-                </span>
-                <span className="file-size" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {findings.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>Findings</h2>
-            <span className="section-note num">{findings.length}</span>
-          </div>
-          <div className="rows">
-            {findings.map((finding, index) => (
-              <div className="row finding" key={index}>
-                <span className="glyph" aria-hidden="true">
-                  !
-                </span>
-                <span>
-                  <span className="title">{finding.message}</span>
-                  {finding.path && (
-                    <span className="sub mono">{finding.path}</span>
-                  )}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {runs.length > 0 && (
-        <section className="section">
-          <div className="section-head">
-            <h2>Evidence runs</h2>
-            <span className="section-note num">{runs.length} retained</span>
-          </div>
-          <div className="rows">
-            {runs.map((run) => (
-              <Link
-                className="row plain"
-                href={`/runs/${run.id}?skill=${skill.id}`}
-                key={run.id}
-              >
-                <span>
-                  <span className="id">{String(run.id).slice(0, 8)}</span>
-                  <span className="sub">
-                    Skill v{run.skill_version}, eval v{run.eval_version} —{" "}
-                    {humanize(run.status).toLowerCase()}
-                  </span>
-                </span>
-                <Status
-                  value={
-                    run.summary.fail || run.summary.error
-                      ? "fail"
-                      : run.summary.partial
-                        ? "partial"
-                        : "pass"
-                  }
-                  label={`${run.summary.pass}/${run.summary.total} passing`}
-                />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Package files</h2>
-          <span className="section-note">Downloads</span>
-        </div>
-        <div className="rows">
-          <a
-            className="row plain"
-            href={`/api/v1/skill/download/${version.id}`}
-          >
-            <span>
-              <span className="title">Installable ZIP</span>
-              <span className="sub">Exactly what the agent receives</span>
-            </span>
-            <span className="chevron" aria-hidden="true">
-              ↓
-            </span>
-          </a>
-          <a
-            className="row plain"
-            href={`/api/v1/skill/download/${version.id}?kind=original`}
-          >
-            <span>
-              <span className="title">Original upload</span>
-              <span className="sub">The bytes you sent, untouched</span>
-            </span>
-            <span className="chevron" aria-hidden="true">
-              ↓
-            </span>
-          </a>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-head">
-          <h2>Versions</h2>
-          <span className="section-note num">
-            {versions.length} {versions.length === 1 ? "version" : "versions"}
-          </span>
-        </div>
-        <div className="rows">
-          {versions.map((entry: any) => (
-            <div className="row plain" key={entry.id}>
-              <span>
-                <span className="title">Version {entry.version}</span>
-                <span className="sub">
-                  {entry.id === skill.active_version_id
-                    ? "Active"
-                    : entry.status === "candidate"
-                      ? "Candidate"
-                      : "Inactive"}
-                  {entry.imported_history
-                    ? " — imported history, not reverified"
-                    : ""}
-                </span>
-              </span>
-              <a
-                className="btn quiet"
-                href={`/api/v1/skill/download/${entry.id}`}
-              >
-                Download
-              </a>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <details className="section">
-        <summary className="section-note" style={{ cursor: "pointer" }}>
-          Start a new evaluation, or upload a new version
-        </summary>
-        <div style={{ marginTop: 16 }}>
-          <NewEvaluationForm skillId={skill.id} versions={versions} />
-          <div style={{ marginTop: 20 }}>
-            <UploadForm compact skillId={skill.id} />
-          </div>
-        </div>
-      </details>
-
-      <div className="decision">
-        <div>
-          {evaluation?.status === "collecting" ? (
-            <>
-              <b>Next: build the eval suite</b>
-              <p>
-                Codex reads this package and your task material, then asks only
-                what it cannot infer.
-              </p>
-            </>
           ) : (
-            <>
-              <b>Eval suite {humanize(evaluation?.status).toLowerCase()}</b>
-              <p>Open it to continue where the workflow stopped.</p>
-            </>
+            <span>Not evaluated</span>
           )}
         </div>
+      </div>
+      <div className="package-layout">
+        <section className="studio-panel">
+          <div className="panel-heading">
+            <h2>Package contents</h2>
+            <span className="section-note">{entries.length} files</span>
+          </div>
+          <FileTree entries={entries} base={base} />
+          <div className="chart-caption">
+            Optional folders are assessed only when the task needs them.
+          </div>
+          <a
+            className="btn quiet"
+            href={`/api/v1/skill/download/${version.id}`}
+          >
+            Download package ↓
+          </a>
+        </section>
+        <PackageFindings assessment={assessment} base={base} />
+      </div>
+      <section className="section">
+        <div className="section-head">
+          <h2>Task material</h2>
+          <span className="section-note">
+            Inputs, rules, and expected results
+          </span>
+        </div>
+        {materials.length ? (
+          <div className="rows">
+            {materials.map((m) => (
+              <Link
+                className="row plain"
+                key={m.id}
+                href={`${base}&material=${m.id}`}
+              >
+                <span className="title">{m.filename}</span>
+                <span className="file-kind">
+                  {m.kind === "expected"
+                    ? "Judge-only expected output"
+                    : m.kind}
+                </span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="hint">Add task material when creating an evaluation.</p>
+        )}
+      </section>
+      <div className="decision">
+        <div>
+          <b>
+            {evaluation?.status === "collecting"
+              ? "Next: define what good looks like"
+              : evaluation?.status === "approved"
+                ? "Next: run the approved checks"
+                : "Continue your test plan"}
+          </b>
+          <p>
+            Codex proposes judging areas and checks. You review them before
+            execution.
+          </p>
+        </div>
         <div className="decision-actions">
-          {evaluation?.status === "collecting" ? (
+          {evaluation?.status === "approved" ? (
+            <Link
+              className="btn"
+              href={`/runs/new?skill=${skill.id}&eval=${evaluation.id}`}
+            >
+              New run
+            </Link>
+          ) : !evaluation ? (
+            <a className="btn" href="#new-evaluation">
+              Create test plan
+            </a>
+          ) : evaluation?.status === "collecting" ? (
             <ApiAction
               url={`/api/v1/evals/${evaluation.id}/author`}
               label="Create evals"
-              navigateTo="/evals/:resourceId"
+              navigateTo={`/evals/:resourceId?skill=${skill.id}`}
             />
           ) : (
             <Link
               className="btn"
               href={`/evals/${evaluation?.id ?? "current"}?skill=${skill.id}`}
             >
-              Open evals
+              Open test plan
             </Link>
           )}
         </div>
       </div>
+      <section className="section">
+        <div className="section-head">
+          <h2>Versions</h2>
+          <Link className="section-note" href={`/release?skill=${skill.id}`}>
+            Release history ↗
+          </Link>
+        </div>
+        <div className="filters">
+          {versions.map((v) => (
+            <Link
+              key={v.id}
+              className={`filter ${v.id === version.id ? "on" : ""}`}
+              href={`/skill?skill=${skill.id}&version=${v.id}`}
+            >
+              v{v.version}
+              {v.id === skill.active_version_id
+                ? " · active"
+                : v.status === "candidate"
+                  ? " · candidate"
+                  : " · uploaded"}
+            </Link>
+          ))}
+        </div>
+      </section>
+      <details className="section" id="new-evaluation" open={!evaluation}>
+        <summary>New evaluation</summary>
+        <div style={{ marginTop: 16 }}>
+          <NewEvaluationForm
+            skillId={skill.id}
+            versions={versions}
+            selectedVersionId={version.id}
+          />
+        </div>
+      </details>
+      <details className="section">
+        <summary>Upload a new version</summary>
+        <div style={{ marginTop: 16 }}>
+          <UploadForm compact skillId={skill.id} />
+        </div>
+      </details>
+      <details className="section">
+        <summary>Package provenance</summary>
+        <dl className="kv">
+          <div>
+            <dt>Skill root</dt>
+            <dd>{version.selected_root || "Archive root"}</dd>
+          </div>
+          <div>
+            <dt>Original checksum</dt>
+            <dd className="mono">{version.checksum}</dd>
+          </div>
+          <div>
+            <dt>Normalized checksum</dt>
+            <dd className="mono">
+              {version.installable_checksum ?? "Not recorded"}
+            </dd>
+          </div>
+        </dl>
+        <a
+          className="btn quiet"
+          href={`/api/v1/skill/download/${version.id}?kind=original`}
+        >
+          Download original upload
+        </a>
+      </details>
     </Work>
   );
 }

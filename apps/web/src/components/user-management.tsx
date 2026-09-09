@@ -4,6 +4,7 @@ import { apiFetch, safeRedirect } from "../lib/client-request";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Status } from "./ui";
+import { AccountLinks } from "./account-links";
 
 type ManagedUser = {
   id: string;
@@ -62,7 +63,8 @@ export function UserManagement({
 
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const element = event.currentTarget;
+    const form = new FormData(element);
     const succeeded = await request(
       "/api/v1/users",
       "POST",
@@ -72,9 +74,9 @@ export function UserManagement({
         role: form.get("role"),
         password: form.get("password"),
       },
-      "Account created. Share the temporary password outside SkillEd.",
+      "Account created. Share the temporary password directly; they must replace it on first sign-in.",
     );
-    if (succeeded) event.currentTarget.reset();
+    if (succeeded) element.reset();
   }
 
   async function update(user: ManagedUser, body: Record<string, unknown>) {
@@ -83,6 +85,7 @@ export function UserManagement({
 
   return (
     <>
+      <AccountLinks users={initialUsers} />
       {(message || error) && (
         <div
           className={error ? "error-box" : "success-box"}
@@ -226,7 +229,7 @@ export function UserManagement({
 
       <section className="section">
         <div className="section-head">
-          <h2>Add account</h2>
+          <h2>Create an account with a temporary password</h2>
           <span className="section-note">Administrator action</span>
         </div>
         <form className="create-user-form" onSubmit={create}>

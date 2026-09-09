@@ -1,5 +1,6 @@
 import {
   mkdir,
+  mkdtemp,
   readFile,
   readdir,
   rename,
@@ -7,6 +8,9 @@ import {
   writeFile,
   lstat,
 } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { excludedPackagePath, parseSkillMetadata } from "./intake";
 export type FileChange = {
@@ -67,13 +71,50 @@ export async function unifiedFilePatch(root: string, changes: FileChange[]) {
         ? ""
         : await readFile(safe(root, oldPath), "utf8");
     const after = change.action === "delete" ? "" : (change.content ?? before);
-    const lines = (text: string) =>
-      text ? text.replace(/\n$/, "").split("\n") : [];
-    const old = lines(before),
-      next = lines(after);
-    patches.push(
-      `--- ${change.action === "create" ? "/dev/null" : `a/${oldPath}`}\n+++ ${change.action === "delete" ? "/dev/null" : `b/${change.path}`}\n@@ -${old.length ? 1 : 0},${old.length} +${next.length ? 1 : 0},${next.length} @@\n${old.map((line) => `-${line}\n`).join("")}${next.map((line) => `+${line}\n`).join("")}`,
-    );
+    const temp = await mkdtemp(join(tmpdir(), "skilled-diff-"));
+    try {
+      await writeFile(join(temp, "before"), before);
+      await writeFile(join(temp, "after"), after);
+      let output = "";
+      try {
+        output = (
+          await promisify(execFile)(
+            "git",
+            [
+              "diff",
+              "--no-index",
+              "--no-ext-diff",
+              "--no-textconv",
+              "--no-color",
+              "--unified=3",
+              "--",
+              "before",
+              "after",
+            ],
+            {
+              cwd: temp,
+              timeout: 5000,
+              maxBuffer: 2_000_000,
+              env: {
+                ...process.env,
+                GIT_CONFIG_NOSYSTEM: "1",
+                GIT_CONFIG_GLOBAL: "/dev/null",
+              },
+            },
+          )
+        ).stdout;
+      } catch (error) {
+        if ((error as any).code !== 1) throw error;
+        output = String((error as any).stdout);
+      }
+      const hunk = output.indexOf("@@");
+      const header = `--- ${change.action === "create" ? "/dev/null" : `a/${oldPath}`}\n+++ ${change.action === "delete" ? "/dev/null" : `b/${change.path}`}\n`;
+      if (hunk >= 0) patches.push(header + output.slice(hunk));
+      else if (change.action === "rename")
+        patches.push(`rename from ${oldPath}\nrename to ${change.path}\n`);
+    } finally {
+      await rm(temp, { recursive: true, force: true });
+    }
   }
   return patches.join("\n");
 }

@@ -90,3 +90,11 @@ Every finding below has an acceptance test, an operational check, or the later-r
 ## Remaining release evidence
 
 The local automated checks do not close HOST gates. Outstanding work before real pilot cutover: obtain repository access, prove Render isolation, complete authorized real Codex fixtures and replacement/cancellation tests, validate release image inventory and resource pressure, measure representative query/load behavior, rehearse production-sized backup restoration and all-history migration, then perform the final paused-source cutover. No missing gate has been converted into a green result.
+
+## 9 September — evaluation studio update
+
+The [studio implementation and acceptance report](../acceptance/2026-09-09-evaluation-studio/README.md) adds evidence for E01–E11, O10/O13, C13 and U02–U10. New tests cover task-specific roles and IDs, source-located package findings, profile hash stability, exact group coverage, explicit material visibility, version-specific history, current/proposed revisions and initial verification. Browser checks cover the new Dashboard/Skills architecture and all six requested widths.
+
+This update does **not** close C01/C02/C05/C06/C10/C11 or other HOST gates. The actual judge sandbox still fails under its configured limits; model-backed acceptance, direct assessment-to-repair generation, timed restore and Render cutover remain outstanding. Existing historical dispositions and labels above are preserved.
+
+The [interactive chart follow-up](../acceptance/2026-09-09-evaluation-studio/interactive-charts.md) adds trial/configuration controls, shared filter navigation, correct sample inspection and touch/keyboard checks. It also closes a verification-page refresh race found by browser acceptance. The accompanying check record distinguishes the final targeted rerun, environment-dependent unit skips and unchanged real-execution gates.

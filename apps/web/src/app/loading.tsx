@@ -2,12 +2,14 @@ export default function Loading() {
   return (
     <div className="work">
       <div className="content">
-        <div className="empty" role="status">
-          <h2>Reading the authoritative state</h2>
-          <p>
-            SkillEd renders from the database rather than a cache, so a page
-            never shows a result the worker has not committed.
-          </p>
+        <div className="studio-empty" role="status">
+          <h2>Loading your workspace</h2>
+          <p>Getting the latest details…</p>
+          <div className="loading-lines" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
         </div>
       </div>
     </div>

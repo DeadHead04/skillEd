@@ -1,0 +1,126 @@
+{
+  "date": "2026-09-09",
+  "mode": "demo",
+  "realExecutionAccepted": false,
+  "checks": [
+    {
+      "name": "format",
+      "status": "passed"
+    },
+    {
+      "name": "lint",
+      "status": "passed"
+    },
+    {
+      "name": "typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "unit and PostgreSQL integration",
+      "status": "passed",
+      "passed": 74,
+      "skipped": 2,
+      "note": "Linux process and CLI fixtures ran separately in Docker"
+    },
+    {
+      "name": "pinned CLI and Linux process tests",
+      "status": "passed",
+      "passed": 2
+    },
+    {
+      "name": "XLSX protected fields/formula text",
+      "status": "passed",
+      "passed": 1
+    },
+    {
+      "name": "standalone controller diff test",
+      "status": "passed",
+      "passed": 1
+    },
+    {
+      "name": "production builds: host, web/worker images, controller image",
+      "status": "passed"
+    },
+    {
+      "name": "complete browser suite",
+      "status": "passed",
+      "passed": 52,
+      "skipped": 2,
+      "note": "Duplicate laptop/mobile zoom cases; desktop zoom covered"
+    },
+    {
+      "name": "final expanded revision-to-activation journeys",
+      "status": "passed",
+      "passed": 3
+    },
+    {
+      "name": "chart/API/download reconciliation",
+      "status": "passed",
+      "samples": 40
+    },
+    {
+      "name": "Compose demo verification",
+      "status": "passed"
+    },
+    {
+      "name": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "name": "actual script sandbox",
+      "status": "blocked",
+      "evidence": "script-sandbox-probe.json"
+    },
+    {
+      "name": "real model acceptance and private Render release",
+      "status": "not completed"
+    }
+  ],
+  "widths": [360, 390, 768, 1280, 1440, 1920],
+  "preserved": {
+    "originalInstallation": true,
+    "previousHistory": true,
+    "sourcePackageActiveVersionId": null,
+    "preexistingAccountWork": true
+  },
+  "limitations": [
+    "No real model evidence or Render isolation certification",
+    "Direct static-assessment-to-repair generation remains product work",
+    "XLSX formulas are compared as text, not recalculated",
+    "Current Render repository access and operational migration/restore gates need fresh validation"
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/dashboard-1440.png",
+      "sha256": "0a454dcf31947a43bce88fcb48be5a0d4f0dda56ab40b3d830be0e5e5459c730"
+    },
+    {
+      "path": "screenshots/improve-1440.png",
+      "sha256": "fae9979eca3ea665694a6838aee007d9c6af6a9c98090926b9efa9c01ed734c8"
+    },
+    {
+      "path": "screenshots/package-1440.png",
+      "sha256": "187ed3f1ee185e8d6b58ace77ec9529f1feee071e752fb3cc749aefd0686b36f"
+    },
+    {
+      "path": "screenshots/plan-1440.png",
+      "sha256": "d9431ebd0ef559d322f324273f90f5e6ce649dd4646604a998d10618ea74c9fe"
+    },
+    {
+      "path": "screenshots/registry-1440.png",
+      "sha256": "ae4945637772e9cf7c72ba3928508a8b037e496dcc6f717b79aaf3eb656eb8d4"
+    },
+    {
+      "path": "screenshots/results-1440.png",
+      "sha256": "aa3813920e4d1a02546d1e15f0c3914c2c37c91a2a67ecab9f254c9283b9ca16"
+    },
+    {
+      "path": "screenshots/results-390.png",
+      "sha256": "eacf2f8dff445285d3be59fde25fa078262dba0df664910725569a94b0d3aabf"
+    },
+    {
+      "path": "screenshots/revision-1440.png",
+      "sha256": "737037f83d3240f095a13d108fdfdd1bf1ce7577f59625bbd77449ab0ec9a0d3"
+    }
+  ]
+}

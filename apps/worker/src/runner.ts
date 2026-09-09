@@ -83,20 +83,20 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
         const scopeDrift = item.case_id === "FG-004";
         const candidateSkill =
           run.skill_status === "candidate" && variant === "skill";
-        const assertions = (item.required_dimensions as string[]).map(
-          (dimension) => ({
-            id: `${item.case_id}-${dimension}`,
-            dimension,
-            required: true,
+        const assertions = definitionsFromMapping(item.assertion_mapping).map(
+          (definition) => ({
+            ...definition,
             passed:
-              !candidateSkill && scopeDrift && dimension === "scope"
-                ? false
-                : !candidateSkill &&
-                    falseGreen &&
-                    !scopeDrift &&
-                    dimension === "correctness"
-                  ? false
-                  : true,
+              candidateSkill ||
+              !(scopeDrift
+                ? definition.dimension === "scope" ||
+                  definition.dimension === "protected-fields" ||
+                  definition.dimension === "change-boundaries"
+                : falseGreen &&
+                  (definition.role === "task_success" ||
+                    definition.dimension === "correctness")),
+            evidence:
+              "Demo evidence: deterministic fixture outcome; no model execution.",
           }),
         );
         const result = deriveResult(assertions);
@@ -256,6 +256,7 @@ function runProvenance(
       originalSkill: run.skill_checksum,
       installableSkill: inputs?.installable_checksum ?? null,
       approvedEval: run.eval_checksum,
+      evaluationProfile: run.settings?.profileHash ?? null,
     },
     settings: {
       ...run.settings,
@@ -363,6 +364,7 @@ async function runRealEvaluation(
           operation,
           {
             kind: "skillup",
+            approvedProfileHash: run.settings?.profileHash ?? null,
             evalPath: relative(operation, join(skillRoot, "evals/eval.yaml")),
             model: run.model,
             iterations: Number(run.iterations),

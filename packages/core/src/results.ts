@@ -2,6 +2,7 @@ import type { Result } from "./contracts";
 
 export type Assertion = {
   dimension?: string;
+  role?: "task_success" | "constraint" | "informational";
   required?: boolean;
   passed?: boolean;
   error?: string;
@@ -18,7 +19,13 @@ export function deriveResult(assertions: Assertion[]): Result {
   const failed = assertions.filter(
     (a) => a.required !== false && a.passed === false,
   );
-  if (failed.some((a) => a.dimension === "correctness")) return "FAIL";
+  if (
+    failed.some(
+      (a) =>
+        a.role === "task_success" || (!a.role && a.dimension === "correctness"),
+    )
+  )
+    return "FAIL";
   if (failed.length) return "PARTIAL";
   return "PASS";
 }

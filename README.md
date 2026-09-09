@@ -19,6 +19,10 @@ The corrected local workflow and private-service implementation are available on
 
 The [69-finding implementation tracker](docs/audits/2026-09-05-implementation-tracker.md) distinguishes implemented code, automated acceptance, pending operational evidence and later releases. The [Render deployment/migration runbook](docs/operations/private-render-pilot.md) covers credentials, service boundaries, all-history migration, restoration and cutover. Neither document claims that real hosted execution has been certified.
 
+## Evaluation studio
+
+The task-specific studio adds **Dashboard** and **Skills**, package findings, profile approval/revision comparisons, linked evidence charts, actual file diffs and version-specific release decisions. See the [studio acceptance report](docs/acceptance/2026-09-09-evaluation-studio/README.md) for the implemented contracts, manual workflow, screenshots and outstanding real-execution gates. Apply migration **007** before starting the updated web/controller images. The local review installation remains at <http://127.0.0.1:3400/dashboard>.
+
 ## Start a credential-free local demo
 
 Requirements: Git, Docker Desktop/Compose v2 and sufficient Docker memory (8 GB is a useful development starting point). No personal Codex login is required for this test installation.
@@ -54,12 +58,22 @@ Long operations recover their job IDs from server state after refresh and offer 
 - **Demo evidence** is deterministic and makes no model calls. It cannot authorize activation in real mode.
 - **Imported history — not reverified** preserves original labels and active-version pointers, but cannot certify new candidates until rerun through the corrected pipeline.
 - **Execution unavailable** means the browser/history remain usable while login, sandbox or runtime prerequisites are missing.
-- `PASS` requires every required assertion. `PARTIAL` means correctness passed while another required dimension failed. `FAIL` is task failure. `ERROR` means trustworthy execution/grading evidence is unavailable. Missing, malformed, duplicate or unmapped required grading is never green.
+- `PASS` requires every required assertion. `PARTIAL` means task-success requirements passed while a required constraint failed; historical correctness/scope dimensions retain their compatibility mapping. `FAIL` is task failure. `ERROR` means trustworthy execution/grading evidence is unavailable. Missing, malformed, duplicate or unmapped required grading is never green.
 - Script judges inspect concrete text/JSON/CSV/XLSX outputs and protected fields. They run through an explicit sandbox wrapper, never directly with service permissions during real execution.
 - Each case, baseline variant, repeated trial and agent judge starts fresh. Hidden expected answers and authoring history must remain outside tested workspaces. Actual isolation is a measured release gate.
 - Authoring and improvement have separate durable App Server conversations. Missing native state is reconstructed from completed saved messages and recorded as reconstruction.
 
-One trusted team shares the installation. Administrators manage named administrators/operators; operators cannot manage accounts. Password, role and activation changes revoke affected application sessions. There is no public signup, per-customer tenant boundary or per-user Codex OAuth.
+One trusted team shares the installation. Administrators issue single-use signup links; invited people choose their own login IDs and passwords. Administrators can also create accounts with temporary passwords that must be changed on first sign-in. Operators cannot manage accounts. People can change their password in **Your account**, and administrators can issue single-use recovery links. Password, role and activation changes revoke affected application sessions. There is no unrestricted public signup, per-customer tenant boundary or per-user Codex OAuth.
+
+See the [complete manual account test guide](docs/acceptance/manual-account-flow.md) for signup, sign-in, recovery, role checks and failure cases. Start its separate local installation with:
+
+```sh
+COMPOSE_DISABLE_ENV_FILE=true docker compose -p skilled-account-review -f compose.test.yaml -f compose.accounts.yaml up -d --build
+```
+
+Open <http://127.0.0.1:3400/login>. Its initial administrator is `admin` / `deterministic-test-password-only`. These credentials belong only to this disposable local installation. Keep existing installations and their volumes intact. Account signup does not authenticate Codex or satisfy executor readiness.
+
+Existing deployments need migration **006** and runtime-role provisioning before the new web image starts. New credentials use salted scrypt hashes; existing bcrypt passwords continue to work. Account link secrets are stored only as hashes, shown once to the administrator and carried in URL fragments. They are excluded from history exports, so invitations and recovery links must be reissued after migration. Recovery is administrator-assisted; no email delivery is configured.
 
 The private pilot retains the existing ChatGPT account through official Codex login directly on the executor. Do not read, print, copy, commit or package credential files. Normal development/CI must not receive personal credentials. No real-agent suite should run without explicit authorization after deterministic and isolation gates pass.
 

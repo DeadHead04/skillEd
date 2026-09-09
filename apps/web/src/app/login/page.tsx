@@ -1,13 +1,22 @@
 "use client";
 import { apiFetch, safeRedirect } from "../../lib/client-request";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const [loginId, setLoginId] = useState("admin");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const [show, setShow] = useState(false);
+  const [changed, setChanged] = useState(false);
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    setLoginId(query.get("loginId") ?? "");
+    setChanged(query.has("passwordChanged"));
+  }, []);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -20,8 +29,17 @@ export default function LoginPage() {
     });
     if (!response.ok) {
       const problem = await response.json();
-      setError(problem.detail ?? "Sign in failed.");
+      setError(
+        problem.code === "NETWORK_UNAVAILABLE"
+          ? "Could not reach SkillEd. Check your connection and try again."
+          : (problem.detail ?? "Sign in failed."),
+      );
       setBusy(false);
+      return;
+    }
+    const result = await response.json();
+    if (result.passwordChangeRequired) {
+      window.location.assign("/account");
       return;
     }
     const next = new URLSearchParams(window.location.search).get("next");
@@ -62,9 +80,14 @@ export default function LoginPage() {
         <div className="login-panel">
           <h1>Sign in</h1>
           <p className="lede">
-            Use your own account. Codex credentials stay inside the worker and
-            are never handled by the browser.
+            Use your SkillEd login ID and password to open your shared
+            workbench.
           </p>
+          {changed && (
+            <p className="success-box" role="status">
+              Password updated. Sign in with your new password.
+            </p>
+          )}
           <form onSubmit={submit} className="login-form">
             <div className="field">
               <label htmlFor="loginId">Login ID</label>
@@ -81,15 +104,26 @@ export default function LoginPage() {
             </div>
             <div className="field">
               <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              <div className="password-control">
+                <input
+                  id="password"
+                  name="password"
+                  type={show ? "text" : "password"}
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="text-button"
+                  aria-label={show ? "Hide password" : "Show password"}
+                  aria-pressed={show}
+                  onClick={() => setShow(!show)}
+                >
+                  {show ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
             {error && (
               <div className="error-box" role="alert">
@@ -100,6 +134,10 @@ export default function LoginPage() {
               {busy ? "Signing in…" : "Sign in"}
             </button>
           </form>
+          <p className="auth-links">
+            <Link href="/signup">Create an account</Link>
+            <Link href="/forgot-password">Forgot password?</Link>
+          </p>
           <p className="login-note">
             Sessions last 24 hours. Five wrong attempts lock the login ID for 15
             minutes.

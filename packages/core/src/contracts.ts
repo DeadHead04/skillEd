@@ -78,7 +78,7 @@ export const MaterialKindSchema = z.enum([
   "past_failure",
 ]);
 export type Result = z.infer<typeof ResultSchema>;
-export const DimensionSchema = z.enum([
+export const LegacyDimensionSchema = z.enum([
   "correctness",
   "semantic",
   "source",
@@ -86,6 +86,31 @@ export const DimensionSchema = z.enum([
   "artifact",
   "stability",
 ]);
+// New evaluations name their own areas. The six historical names remain valid.
+export const DimensionSchema = z.string().regex(/^[a-z][a-z0-9_-]{0,63}$/);
+export const OutcomeRoleSchema = z.enum([
+  "task_success",
+  "constraint",
+  "informational",
+]);
+export const JudgingAreaSchema = z.object({
+  id: DimensionSchema,
+  label: z.string().min(1).max(80),
+  description: z.string().min(1).max(400),
+  role: OutcomeRoleSchema,
+  required: z.boolean(),
+  sourceReferences: z.array(
+    z.object({ materialId: z.uuid(), location: z.string().min(1).max(500) }),
+  ),
+});
+export type JudgingArea = z.infer<typeof JudgingAreaSchema>;
+export const TaskAssertionSchema = z.object({
+  id: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/),
+  areaId: DimensionSchema,
+  text: z.string().min(1),
+  role: OutcomeRoleSchema,
+  required: z.boolean(),
+});
 
 export const TaskUnderstandingSchema = z.object({
   inputs: z.array(z.string()),
@@ -111,6 +136,7 @@ export const AuthoringIntakeSchema = z.object({
   questions: z.array(MaterialQuestionSchema),
 });
 export const CoveragePlanSchema = z.object({
+  areas: z.array(JudgingAreaSchema).max(24).default([]),
   groups: z.array(
     z.object({
       name: z.string(),
@@ -124,6 +150,7 @@ export const CoveragePlanSchema = z.object({
   ),
 });
 export const GeneratedEvalCaseSchema = z.object({
+  assertions: z.array(TaskAssertionSchema).max(50).default([]),
   id: z.string().regex(/^[A-Z][A-Z0-9_-]{2,63}$/),
   title: z.string().min(1),
   coverageGroup: z.string().min(1),
@@ -141,6 +168,7 @@ export const GeneratedEvalCaseSchema = z.object({
   deterministicChecks: z
     .array(
       z.object({
+        assertionId: z.string().optional(),
         kind: z.enum(["equals", "contains", "not_contains", "unchanged"]),
         value: z
           .union([z.string(), z.number(), z.boolean(), z.null()])
@@ -204,6 +232,7 @@ export const UpdateUserSchema = z
     message: "At least one user field must change.",
   });
 export const SkillFileChangeSchema = z.object({
+  targetAssertionIds: z.array(z.string().min(1).max(128)).max(1000).default([]),
   path: z
     .string()
     .min(1)

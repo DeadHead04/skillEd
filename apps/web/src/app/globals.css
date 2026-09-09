@@ -1,17 +1,3 @@
-/* ==========================================================================
-   SkillEd — Precision Workbench
-
-   Three rules, applied everywhere:
-
-   1. Progressive disclosure. The verdict is at the top, items are rows, and
-      the evidence behind a row lives in the inspector. Nothing that belongs
-      in the inspector renders on the surface.
-   2. Cards are for decisions only. Everything else is grouped rows separated
-      by hairlines. A bordered box means "you must decide something here".
-   3. Colour is a signal, not decoration. A screen where everything passed is
-      almost monochrome.
-   ========================================================================== */
-
 :root {
   --rail: #1c1f1e;
   --rail-2: #292d2c;
@@ -1575,4 +1561,86 @@ input[type="file"]::file-selector-button {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+/* Account entry follows the existing workbench typography and surfaces. */
+.password-control {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.password-control input {
+  min-width: 0;
+  flex: 1;
+}
+.password-control button {
+  min-width: 48px;
+  min-height: 44px;
+  color: var(--text-2);
+}
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 24px;
+  font-size: 14px;
+}
+.auth-links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-primary {
+  margin-top: 20px;
+}
+.account-form {
+  max-width: 480px;
+}
+.account-recovery {
+  margin-top: 24px;
+}
+.account-recovery summary {
+  cursor: pointer;
+  font-weight: 500;
+  padding: 8px 0;
+}
+.account-recovery p {
+  max-width: 680px;
+  margin: 12px 0;
+}
+.account-link-result {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #bcc7bf;
+  border-radius: 8px;
+  background: #f0f5f1;
+}
+.account-link-result input {
+  width: 100%;
+  min-width: 0;
+  font-family: var(--font-plex-mono);
+}
+.account-link-result button {
+  justify-self: start;
+}
+.recovery-steps {
+  padding-left: 24px;
+  display: grid;
+  gap: 20px;
+  margin: 24px 0;
+  line-height: 1.6;
+}
+.login-form details summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+.rail-foot .account a {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }

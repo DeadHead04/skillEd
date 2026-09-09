@@ -10,6 +10,7 @@ import {
   Work,
 } from "../../../components/ui";
 import { JobStream } from "../../../components/job-stream";
+import { ProposalRecovery } from "../../../components/proposal-recovery";
 import { humanize } from "../../../lib/labels";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function ImprovePage({
         {/* Without this the page would sit on "diagnosing" forever: the stream
             refreshes the route when the worker finishes the job. */}
         <JobStream jobId={proposal.activeJob?.id} />
+        <ProposalRecovery id={proposal.id} status={status} />
       </Work>
     );
 
@@ -126,6 +128,7 @@ export default async function ImprovePage({
       />
 
       <JobStream jobId={proposal.activeJob?.id} />
+      <ProposalRecovery id={proposal.id} status={status} />
 
       <section className="section" style={{ marginTop: 22 }}>
         <div className="section-head">
@@ -191,11 +194,53 @@ export default async function ImprovePage({
         </div>
       </section>
 
+      {skillChanges.some((c: any) => c.targetAssertionIds?.length) && (
+        <section className="section">
+          <div className="section-head">
+            <h2>Evidence behind each change</h2>
+          </div>
+          {skillChanges.map((change: any) => (
+            <div className="finding-card" key={change.path}>
+              <strong>{change.path}</strong>
+              {(change.targetAssertionIds ?? []).map((id: string) => {
+                const target = proposal.targetedEvidence[id];
+                return target ? (
+                  <p key={id}>
+                    <Link
+                      href={`/runs/${proposal.source_run_id}?skill=${proposal.skill_id}&case=${target.caseId}`}
+                    >
+                      {target.title} · {target.text} ↗
+                    </Link>
+                  </p>
+                ) : (
+                  <p key={id}>Evidence reference unavailable</p>
+                );
+              })}
+            </div>
+          ))}
+        </section>
+      )}
+      <section className="section">
+        <div className="section-head">
+          <h2>Review the actual changes</h2>
+          <span className="section-note">Base v{proposal.base_version}</span>
+        </div>
+        <DiffViewer patch={proposal.skillPatch} />
+        {proposal.evalPatch && (
+          <details>
+            <summary>Separate evaluation changes</summary>
+            <DiffViewer patch={proposal.evalPatch} />
+          </details>
+        )}
+      </section>
+
       {proposal.candidate_version_id && (
         <section className="section">
           <div className="section-head">
             <h2>Candidate</h2>
-            <span className="section-note">Created, not active</span>
+            <span className="section-note">
+              {activated ? "Active" : "Created, not active"}
+            </span>
           </div>
           <div className="rows">
             <a
@@ -228,6 +273,14 @@ export default async function ImprovePage({
         </section>
       )}
 
+      {comparison?.reasons?.length > 0 && (
+        <div className="error-box" role="alert">
+          <b>Verification needs attention</b>
+          {comparison.reasons.map((reason: string, i: number) => (
+            <p key={i}>{reason}</p>
+          ))}
+        </div>
+      )}
       {comparison && (
         <section className="section">
           <div className="section-head">

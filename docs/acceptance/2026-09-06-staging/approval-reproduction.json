@@ -1,0 +1,15 @@
+{
+  "reviewedRevision": 1,
+  "currentRevision": 5,
+  "explicitStaleStatus": 409,
+  "omittedRevisionStatus": 200,
+  "decision": [
+    {
+      "action": "approve_eval",
+      "revision": null,
+      "input_hashes": {
+        "request": "e6328604b09e951937d2ec896b39fc3e6aa6882d4ceeb203c4e362529f753746"
+      }
+    }
+  ]
+}

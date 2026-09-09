@@ -31,7 +31,7 @@ test("administrators create operators and deactivation revokes their session", a
   await page.getByLabel("Login ID").last().fill(loginId);
   await page.getByLabel("Temporary password").fill(password);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByText(`@${loginId}`)).toBeVisible();
+  await expect(page.getByText(`@${loginId}`, { exact: true })).toBeVisible();
 
   const usersResponse = await page.request.get("/api/v1/users");
   expect(usersResponse.status()).toBe(200);
@@ -47,6 +47,28 @@ test("administrators create operators and deactivation revokes their session", a
   await operatorPage.getByLabel("Password", { exact: true }).fill(password);
   await operatorPage.getByRole("button", { name: "Sign in" }).click();
   await operatorPage.waitForURL((url) => !url.pathname.startsWith("/login"));
+  await expect(operatorPage).toHaveURL(/\/account/);
+  await operatorPage
+    .getByLabel("Current password", { exact: true })
+    .fill(password);
+  await operatorPage
+    .getByLabel("New password", { exact: true })
+    .fill(`${password}-personal`);
+  await operatorPage
+    .getByLabel("Confirm password", { exact: true })
+    .fill(`${password}-personal`);
+  await operatorPage
+    .getByRole("button", { name: "Change password and sign out" })
+    .click();
+  await expect(operatorPage).toHaveURL(/\/login/);
+  await operatorPage.getByLabel("Login ID").fill(loginId);
+  await operatorPage
+    .getByLabel("Password", { exact: true })
+    .fill(`${password}-personal`);
+  await operatorPage
+    .getByRole("button", { name: "Sign in", exact: true })
+    .click();
+  await expect(operatorPage).toHaveURL(/\/skill/);
   await expect(operatorPage.getByRole("link", { name: "Users" })).toHaveCount(
     0,
   );

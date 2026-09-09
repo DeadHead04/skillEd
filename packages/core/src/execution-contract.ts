@@ -22,6 +22,11 @@ export const ExecutionManifestSchema = z.object({
     }),
     z.object({
       kind: z.literal("skillup"),
+      approvedProfileHash: z
+        .string()
+        .regex(/^[a-f0-9]{64}$/)
+        .nullable()
+        .default(null),
       evalPath: z.string(),
       model: z.string(),
       iterations: z.number().int().min(1).max(3),

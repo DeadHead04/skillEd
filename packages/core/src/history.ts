@@ -70,7 +70,8 @@ export async function exportHistory(
   const tables = {} as Snapshot["tables"];
   await sql.begin("isolation level repeatable read read only", async (tx) => {
     for (const table of TABLES) {
-      const [available] = await tx`SELECT to_regclass(${table}) present`;
+      const [available] =
+        await tx`SELECT to_regclass(format('%I.%I',current_schema(),${table}::text)) present`;
       if (
         !available?.present &&
         ["decision_records", "history_assessments"].includes(table)
@@ -78,6 +79,8 @@ export async function exportHistory(
         tables[table] = [];
         continue;
       }
+      if (!available?.present)
+        throw new Error(`Missing source table: ${table}`);
       // Explicit projection excludes password hashes, login throttles, receipts and sessions.
       tables[table] =
         table === "users"
@@ -259,6 +262,7 @@ export async function importHistory(
         const jsonColumns = [
           "root_candidates",
           "manifest",
+          "package_assessment",
           "readiness",
           "task_understanding",
           "coverage_plan",

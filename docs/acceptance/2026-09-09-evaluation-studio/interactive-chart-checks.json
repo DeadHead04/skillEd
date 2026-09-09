@@ -1,0 +1,103 @@
+{
+  "date": "2026-09-09",
+  "environment": "local review on 127.0.0.1:3400",
+  "mode": "demo",
+  "realExecutionAccepted": false,
+  "savedRunId": "5089cc17-614d-45f8-b15b-af761d56b8af",
+  "checks": [
+    {
+      "name": "format, lint, typecheck, diff checks",
+      "status": "passed"
+    },
+    {
+      "name": "unit suite",
+      "status": "passed",
+      "passed": 55,
+      "skipped": 8,
+      "note": "Environment-dependent PostgreSQL/private-service/Linux/CLI checks were not enabled in this graph-focused unit invocation. Prior studio integration evidence is separate."
+    },
+    {
+      "name": "production builds",
+      "status": "passed",
+      "note": "Repository build invoked successfully; final web image rebuilt with all changes using the pinned Docker production toolchain."
+    },
+    {
+      "name": "browser suite",
+      "status": "passed after targeted rerun",
+      "passedDistinctChecks": 52,
+      "skipped": 2,
+      "note": "Final full run: 51 passed, 2 duplicate zoom checks skipped, 1 desktop journey hit a transient socket reset during a read-only approval poll. Added a bounded connection-reset retry; the complete desktop journey then passed. Laptop/mobile passed the final full run."
+    },
+    {
+      "name": "saved-run desktop and touch interactions",
+      "status": "passed",
+      "includes": [
+        "trial/configuration counts reconciled with stored assertions",
+        "selection and case matrix",
+        "baseline trial inspector and Escape",
+        "status filters preserve chart state",
+        "refresh/back/forward",
+        "radar arrow keys and Enter",
+        "reset",
+        "no browser runtime errors"
+      ]
+    },
+    {
+      "name": "six widths and 200% zoom",
+      "status": "passed",
+      "widths": [360, 390, 768, 1280, 1440, 1920],
+      "documentOverflow": false,
+      "visualReview": "desktop, mobile and zoom screenshots inspected"
+    },
+    {
+      "name": "verification disconnect and refresh recovery",
+      "status": "passed",
+      "note": "All three workflow journeys drop job event streams and reload after verification dispatch; activation becomes available from persisted verification state."
+    },
+    {
+      "name": "Compose verification",
+      "status": "passed",
+      "workerMode": "demo"
+    }
+  ],
+  "regressionsFixed": [
+    "Chart and case filters now share optimistic state to prevent stale outcome filters during rapid navigation.",
+    "Preview geometry remains stable when a bar receives focus or a pointer enters it.",
+    "Proposal status recovery handles the gap between reading a running proposal and discovering that its last job has already completed."
+  ],
+  "unchangedBoundaries": [
+    "No real Codex calls",
+    "No change to execution isolation gates",
+    "Original local installation and user history preserved"
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/interactive-chart-360.png",
+      "sha256": "c4daaf1d3d62719f2c1a899e5ad6d8911275af244a541892f96634ad2d771975"
+    },
+    {
+      "path": "screenshots/interactive-chart-390.png",
+      "sha256": "6ddd8bde7b59a15352989cf3b4ce601826727b64dfc250362301be442a9afe70"
+    },
+    {
+      "path": "screenshots/interactive-chart-768.png",
+      "sha256": "1634163fbddd681034c3a19aef163dafcf71ae5273d462873ec512bdf81de58b"
+    },
+    {
+      "path": "screenshots/interactive-chart-1280.png",
+      "sha256": "79a7d27c4d1ae2f8d883533c112ef73d7591e2ca6f15921cb3e743203bf1b8c4"
+    },
+    {
+      "path": "screenshots/interactive-chart-1440.png",
+      "sha256": "a8a14c9b30d3513a1d3325764212ee3c3082d629b128af0b7b697d4f85845f4b"
+    },
+    {
+      "path": "screenshots/interactive-chart-1920.png",
+      "sha256": "75911e292b504c7de135b9b62592cdcef242bf9ac2329ac90024e980e63be422"
+    },
+    {
+      "path": "screenshots/interactive-chart-zoom200.png",
+      "sha256": "9ad836ddb20bd1cfd0a98e2e2a1814e0f3b6e366e4814f2b7567da20fc7460f7"
+    }
+  ]
+}

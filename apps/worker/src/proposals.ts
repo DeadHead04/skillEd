@@ -20,6 +20,21 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     await sql`SELECT * FROM conversations WHERE resource_id=${proposal.id} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
   if (!conversation) throw new Error("Skill update conversation not found");
   await emit(sql, job.id, "stage_changed", { stage: "analyzing_failures" });
+  const failures =
+    await sql`SELECT cr.case_id,cr.result,cr.assertions,cr.dimensions,cr.error_class,cr.detail,ec.title,ec.source FROM case_results cr LEFT JOIN eval_cases ec ON ec.eval_version_id=${proposal.eval_version_id} AND ec.case_id=cr.case_id WHERE cr.run_id=${proposal.source_run_id} AND cr.configuration IN ('skill','with_skill') AND cr.result <> 'PASS' ORDER BY cr.case_id,cr.iteration`;
+  const targets = new Set<string>(
+    failures.flatMap((row) =>
+      (row.assertions ?? [])
+        .filter(
+          (a: any) => a.required !== false && a.passed === false && !a.error,
+        )
+        .map((a: any) => a.id),
+    ),
+  );
+  if (!targets.size)
+    throw new Error(
+      "No trustworthy failed task assertions are available. Resolve execution or grading errors before proposing a package change.",
+    );
   let output: z.infer<typeof UpdateProposalOutputSchema>;
   const store = new ArtifactStore();
   const cwd = join(
@@ -45,6 +60,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
           path: "SKILL.md",
           action: "replace",
           reason: "Add an explicit evidence and scope gate.",
+          targetAssertionIds: [...targets],
           content: `${current.trimEnd()}\n\n## Grounding gate\nNever return PASS unless every cited fact is present in an authoritative input. Treat omitted meaning, invented claims, and unrelated additions as failures.\nBefore finalizing, compare protected fields and report any unrelated drift.\n`,
         },
       ],
@@ -62,8 +78,6 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
       join(cwd, ".agents/skills/skill-upper"),
       { recursive: true },
     );
-    const failures =
-      await sql`SELECT cr.case_id,cr.result,cr.assertions,cr.dimensions,cr.error_class,cr.detail,ec.title,ec.source FROM case_results cr LEFT JOIN eval_cases ec ON ec.eval_version_id=${proposal.eval_version_id} AND ec.case_id=cr.case_id WHERE cr.run_id=${proposal.source_run_id} AND cr.result <> 'PASS' ORDER BY cr.case_id,cr.iteration`;
     await writeFile(
       join(cwd, "failure-evidence.json"),
       JSON.stringify(
@@ -80,7 +94,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     const revision = String(job.payload?.message ?? "").trim();
     const turn = await codexAppServer.structuredTurn(
       cwd,
-      `Use $skill-upper. Inspect base-skill and failure-evidence.json. ${revision ? `The user requested this revision: ${revision}` : "Diagnose the failures and propose the smallest grounded correction."} Return complete replacement content for every Skill file you change. Eval changes must strengthen evidence or fix an invalid test; never weaken a criterion merely to obtain a pass. Do not edit files directly and do not include credentials or paths outside the Skill root.`,
+      `Use $skill-upper. Inspect base-skill and failure-evidence.json. ${revision ? `The user requested this revision: ${revision}` : "Diagnose the failures and propose the smallest grounded correction."} Return complete replacement content for every Skill file you change. Each change must name targetAssertionIds drawn from the actual failed required assertions in failure-evidence.json; never invent an ID. Eval changes must strengthen evidence or fix an invalid test; never weaken a criterion merely to obtain a pass. Do not edit files directly and do not include credentials or paths outside the Skill root.`,
       z.toJSONSchema(UpdateProposalOutputSchema),
       conversation.codex_thread_id,
       {
@@ -101,6 +115,16 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     );
     output = UpdateProposalOutputSchema.parse(turn.structured);
   }
+  for (const change of output.skillChanges)
+    if (
+      !change.targetAssertionIds.length ||
+      new Set(change.targetAssertionIds).size !==
+        change.targetAssertionIds.length ||
+      change.targetAssertionIds.some((id) => !targets.has(id))
+    )
+      throw new Error(
+        "Every package change must target existing failed assertions without duplicate or invented IDs",
+      );
   const baseRoot =
     process.env.SKILLED_ADAPTER_MODE === "fake"
       ? join(cwd, proposal.selected_root)

@@ -1,0 +1,113 @@
+{
+  "synthetic": true,
+  "cards": [
+    {
+      "id": "supported",
+      "source": {
+        "facts": {
+          "F1": "Made from oats.",
+          "F2": "Tested for consistency.",
+          "F3": "Contains peanuts; the submitted card must include this warning."
+        },
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      },
+      "submitted": {
+        "copy": "Made from oats. Tested for consistency. Contains peanuts.",
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      }
+    },
+    {
+      "id": "unsupported-claim",
+      "source": {
+        "facts": {
+          "F1": "Made from oats.",
+          "F2": "Tested for consistency.",
+          "F3": "Contains peanuts; the submitted card must include this warning."
+        },
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      },
+      "submitted": {
+        "copy": "Made from oats. Clinically proven to improve health. Contains peanuts.",
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      }
+    },
+    {
+      "id": "missing-warning",
+      "source": {
+        "facts": {
+          "F1": "Made from oats.",
+          "F2": "Tested for consistency.",
+          "F3": "Contains peanuts; the submitted card must include this warning."
+        },
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      },
+      "submitted": {
+        "copy": "Made from oats. Tested for consistency.",
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      }
+    },
+    {
+      "id": "protected-drift",
+      "source": {
+        "facts": {
+          "F1": "Made from oats.",
+          "F2": "Tested for consistency.",
+          "F3": "Contains peanuts; the submitted card must include this warning."
+        },
+        "protected_fields": {
+          "sku": "DEMO-001",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      },
+      "submitted": {
+        "copy": "Made from oats. Tested for consistency. Contains peanuts.",
+        "protected_fields": {
+          "sku": "DEMO-002",
+          "seller": "Example Seller",
+          "price": "100.00 INR",
+          "quantity": "100 g",
+          "address": "1 Example Road"
+        }
+      }
+    }
+  ]
+}

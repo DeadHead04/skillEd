@@ -101,7 +101,7 @@ test("ZIP extraction preserves safe executable files and parses structural metad
   try {
     await writeFile(
       join(source, "SKILL.md"),
-      '---\nname: "Skill: exact"\ndescription: |\n  Multiple lines\n  remain meaningful\n---\nBody',
+      '---\nname: "skill-exact"\ndescription: |\n  Multiple lines\n  remain meaningful\n---\nBody',
     );
     await writeFile(join(source, "helper.sh"), "#!/bin/sh\necho fixture\n", {
       mode: 0o755,
@@ -112,7 +112,7 @@ test("ZIP extraction preserves safe executable files and parses structural metad
     assert.equal((await stat(join(dir, "out/helper.sh"))).mode & 0o777, 0o755);
     assert.equal(
       parseSkillMetadata(await readFile(join(source, "SKILL.md"), "utf8")).name,
-      "Skill: exact",
+      "skill-exact",
     );
     assert.throws(
       () =>

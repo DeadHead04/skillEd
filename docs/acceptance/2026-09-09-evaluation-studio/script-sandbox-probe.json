@@ -1,0 +1,6 @@
+{
+  "check": "actual-script-sandbox",
+  "exitCode": 1,
+  "stdout": "",
+  "stderr": "Error: Resource temporarily unavailable (os error 11)\n"
+}

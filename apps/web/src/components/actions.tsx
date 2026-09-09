@@ -142,11 +142,7 @@ export function UploadForm({
       setBusy(false);
       return;
     }
-    router.push(
-      data.evalId
-        ? `/evals/${data.evalId}?skill=${data.skillId}`
-        : `/skill?skill=${data.skillId}`,
-    );
+    router.push(`/skill?skill=${data.skillId}&version=${data.resourceId}`);
     router.refresh();
   }
   return (
@@ -215,6 +211,20 @@ export function UploadForm({
             <option value="expected">Expected outputs</option>
             <option value="example">Behavioural examples</option>
             <option value="past_failure">Recorded failures</option>
+          </select>
+          <label htmlFor={`visibility-${filename}`}>
+            Who can read {filename}?
+          </label>
+          <select
+            id={`visibility-${filename}`}
+            name={`visibility:${filename}`}
+            defaultValue=""
+          >
+            <option value="">
+              Automatic: datasets to agent; other material to judges
+            </option>
+            <option value="agent_input">Tested agent and judges</option>
+            <option value="judge_only">Judges only</option>
           </select>
         </div>
       ))}
@@ -328,9 +338,11 @@ export function EvalQuestionsForm({
 export function ConversationForm({
   url,
   placeholder = "Ask Codex to explain or revise this work…",
+  initialMessage = "",
 }: {
   url: string;
   placeholder?: string;
+  initialMessage?: string;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -363,6 +375,7 @@ export function ConversationForm({
       <textarea
         id={`message-${url}`}
         name="message"
+        defaultValue={initialMessage}
         placeholder={placeholder}
       />
       {error && (

@@ -1,6 +1,6 @@
 "use client";
+import Link from "next/link";
 export default function ErrorPage({
-  error,
   reset,
 }: {
   error: Error;
@@ -10,11 +10,16 @@ export default function ErrorPage({
     <div className="work">
       <div className="content">
         <div className="error-box" role="alert">
-          <h2>The workbench could not load</h2>
-          <p>{error.message}</p>
-          <button className="btn" onClick={reset}>
-            Try again
-          </button>
+          <h2>The workspace could not load</h2>
+          <p>Try again, or return to your dashboard to continue.</p>
+          <div className="decision-actions">
+            <button className="btn" onClick={reset}>
+              Try again
+            </button>
+            <Link className="btn secondary" href="/dashboard">
+              Dashboard
+            </Link>
+          </div>
         </div>
       </div>
     </div>

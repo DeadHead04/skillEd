@@ -44,7 +44,7 @@ test(
           Number(
             (await runtime`SELECT count(*) FROM schema_migrations`)[0]!.count,
           ),
-          5,
+          7,
         );
         await assert.rejects(
           runtime`CREATE TABLE forbidden(id integer)`,
@@ -54,12 +54,21 @@ test(
           runtime`UPDATE schema_migrations SET version=999`,
           /permission denied/,
         );
-        if (role === "skilled_controller")
+        if (role === "skilled_controller") {
           await assert.rejects(
             runtime`SELECT password_hash FROM users`,
             /permission denied/,
           );
-        else {
+          await assert.rejects(
+            runtime`SELECT token_hash FROM account_tokens`,
+            /permission denied/,
+          );
+        } else {
+          const [user] =
+            await runtime`INSERT INTO users(login_id,display_name,role,password_hash) VALUES('role-admin','Role administrator','administrator','synthetic-unusable-hash') RETURNING id`;
+          const [link] =
+            await runtime`INSERT INTO account_tokens(token_hash,kind,created_by,expires_at) VALUES(${"a".repeat(64)},'invitation',${user!.id},now()+interval '1 hour') RETURNING id`;
+          await runtime`UPDATE account_tokens SET revoked_at=now() WHERE id=${link!.id}`;
           const [skill] =
             await runtime`INSERT INTO skills(name) VALUES('least-privilege') RETURNING id`;
           const [version] =

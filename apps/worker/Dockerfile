@@ -28,6 +28,10 @@ COPY apps/worker apps/worker
 COPY --from=skillup /out/skill-up /usr/local/bin/skill-up
 COPY skill-up/skills/skill-upper /opt/skilled/skill-upper
 COPY apps/worker/src/script-sandbox.py /usr/local/bin/skilled-script-sandbox
+# Invoke the native sandbox binary under judge limits; the npm Node launcher
+# cannot initialize its virtual heap inside the 512 MiB address-space limit.
+RUN find /usr/local/lib/node_modules/@openai/codex -type f -path '*/bin/codex' -exec ln -s '{}' /usr/local/bin/skilled-codex ';' \
+  && test -x /usr/local/bin/skilled-codex
 RUN groupadd -g 10001 skilled && useradd -u 10001 -g 10001 -m skilled \
   && mkdir -p /data/artifacts /data/work /data/executor /home/skilled/.codex \
   && chmod 755 /usr/local/bin/skilled-script-sandbox \

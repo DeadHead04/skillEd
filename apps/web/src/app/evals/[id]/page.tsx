@@ -1,4 +1,7 @@
+import { ProfileRevision } from "../../../components/profile-revision";
 import Link from "next/link";
+import { profileHash } from "@skilled/core";
+import { ReadMore } from "../../../components/studio";
 import { currentEval, readEvalFile } from "../../../lib/data";
 import {
   ApiAction,
@@ -35,7 +38,12 @@ export default async function EvalPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ skill?: string; case?: string; panel?: string }>;
+  searchParams: Promise<{
+    skill?: string;
+    case?: string;
+    panel?: string;
+    area?: string;
+  }>;
 }) {
   const [route, query] = await Promise.all([params, searchParams]);
   const evaluation = await currentEval(route.id, query.skill);
@@ -166,6 +174,45 @@ export default async function EvalPage({
                   {message.role === "assistant" ? "Codex" : "You"}
                 </span>
                 <p>{message.content}</p>
+                {message.structured?.revision && status !== "approved" && (
+                  <div className="studio-panel">
+                    <h3>Proposed revision</h3>
+                    <p className="hint">
+                      {message.structured.revision.plan?.areas
+                        ?.map((a: any) => a.label)
+                        .join(" · ") ||
+                        "Updated task understanding and coverage"}
+                    </p>
+                    <ProfileRevision
+                      current={{
+                        understanding: evaluation.task_understanding,
+                        plan: evaluation.coverage_plan,
+                      }}
+                      proposed={message.structured.revision}
+                    />
+                    <details>
+                      <summary>Full revision data</summary>
+                      <pre className="file-view">
+                        {JSON.stringify(message.structured.revision, null, 2)}
+                      </pre>
+                    </details>
+                    {message.structured.baseRevision === evaluation.revision ? (
+                      <ApiAction
+                        url={`/api/v1/evals/${evaluation.id}/apply-revision`}
+                        body={{
+                          messageId: message.id,
+                          expectedRevision: evaluation.revision,
+                        }}
+                        label="Apply proposed revision"
+                      />
+                    ) : (
+                      <p className="hint">
+                        This proposal belongs to an older draft. Request a fresh
+                        revision to make more changes.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           ) : (
@@ -175,8 +222,16 @@ export default async function EvalPage({
             </p>
           )}
         </div>
-        {evaluation.conversation && (
-          <ConversationForm url={`/api/v1/evals/${evaluation.id}/messages`} />
+        {evaluation.conversation && status !== "approved" && (
+          <ConversationForm
+            key={query.area ?? "general"}
+            url={`/api/v1/evals/${evaluation.id}/messages`}
+            initialMessage={
+              query.area
+                ? `Please revise the judging area "${plan?.areas?.find((a: any) => a.id === query.area)?.label ?? query.area}": `
+                : ""
+            }
+          />
         )}
       </Inspector>
     );
@@ -185,8 +240,8 @@ export default async function EvalPage({
   return (
     <Work inspector={inspector}>
       <Verdict
-        title="Turn task knowledge into evidence"
-        lede="Codex proposes the coverage. Every case stays tied to a source, a required dimension, and a regression purpose."
+        title="Decide what good looks like."
+        lede="Review the task, approve its judging areas, then inspect the generated checks."
         status={
           <Status
             value={status === "approved" ? "pass" : "active"}
@@ -197,22 +252,96 @@ export default async function EvalPage({
 
       <JobStream jobId={evaluation.activeJob?.id} />
 
-      <ol className="steps" style={{ marginTop: 20 }}>
-        {STEPS.map((step, index) => (
-          <li
-            key={step.name}
-            className={
-              index < activeStep ? "done" : index === activeStep ? "now" : ""
-            }
-            aria-current={index === activeStep ? "step" : undefined}
-          >
-            <span className="glyph" aria-hidden="true">
-              {index < activeStep ? "✓" : index + 1}
+      <p className="eyebrow">
+        {STEPS[activeStep]?.name} · Revision {evaluation.revision}
+      </p>
+      {plan?.areas?.length > 0 && (
+        <section className="section">
+          <div className="section-head">
+            <h2>What this Skill will be judged on</h2>
+            <span className="section-note">
+              {status === "approved"
+                ? "Approved and frozen"
+                : evaluation.evidenceMode === "demo"
+                  ? "Demo proposal · review required"
+                  : "Codex proposal · review required"}
             </span>
-            {step.name}
-          </li>
-        ))}
-      </ol>
+          </div>
+          <div className="area-cards">
+            {plan.areas.map((area: any, i: number) => (
+              <article className="area-card" key={area.id}>
+                <span className="area-number">
+                  AREA {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3>{area.label}</h3>
+                <ReadMore text={area.description} />
+                <p className="area-role">
+                  {area.required ? "Required" : "Optional"} ·{" "}
+                  {area.role.replaceAll("_", " ")}
+                </p>
+                {status !== "approved" && (
+                  <Link
+                    className="btn quiet"
+                    href={`${base}&panel=conversation&area=${area.id}`}
+                  >
+                    Request change ↗
+                  </Link>
+                )}
+                {area.sourceReferences?.length > 0 && (
+                  <details>
+                    <summary>Source references</summary>
+                    {area.sourceReferences.map((r: any, j: number) => (
+                      <p className="hint" key={j}>
+                        {evaluation.files.find(
+                          (f: any) => f.id === r.materialId,
+                        )?.filename ?? r.materialId}
+                        : {r.location}
+                      </p>
+                    ))}
+                  </details>
+                )}
+              </article>
+            ))}
+          </div>
+          {cases.length > 0 && (
+            <div className="coverage-scroll">
+              <table className="matrix">
+                <caption className="chart-caption">
+                  Coverage of approved judging areas
+                </caption>
+                <thead>
+                  <tr>
+                    <th>Case</th>
+                    {plan.areas.map((a: any) => (
+                      <th key={a.id}>{a.label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {cases.map((c: any) => (
+                    <tr key={c.case_id}>
+                      <td>
+                        <Link href={`${base}&case=${c.case_id}`}>
+                          {c.title}
+                        </Link>
+                      </td>
+                      {plan.areas.map((a: any) => (
+                        <td key={a.id}>
+                          {c.required_dimensions.includes(a.id) ? (
+                            <span className="status pass">✓ Covered</span>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
 
       {status === "failed" && (
         <div className="error-box" role="alert" style={{ marginBottom: 20 }}>
@@ -280,19 +409,21 @@ export default async function EvalPage({
             </dl>
           </section>
 
-          <MaterialManager
-            evalId={evaluation.id}
-            revision={evaluation.revision}
-            files={evaluation.files ?? []}
-            editable={[
-              "collecting",
-              "awaiting_answers",
-              "awaiting_plan_approval",
-              "ready",
-              "failed",
-            ].includes(status)}
-          />
-
+          <details className="section">
+            <summary>Inspect or update task material</summary>
+            <MaterialManager
+              evalId={evaluation.id}
+              revision={evaluation.revision}
+              files={evaluation.files ?? []}
+              editable={[
+                "collecting",
+                "awaiting_answers",
+                "awaiting_plan_approval",
+                "ready",
+                "failed",
+              ].includes(status)}
+            />
+          </details>
           <section className="section">
             <div className="section-head">
               <h2>{cases.length ? "Cases" : "Planned coverage"}</h2>
@@ -416,12 +547,20 @@ export default async function EvalPage({
           {status === "awaiting_plan_approval" && (
             <ApiAction
               url={`/api/v1/evals/${evaluation.id}/approve-plan`}
+              body={{
+                expectedRevision: evaluation.revision,
+                profileHash: profileHash(plan, understanding),
+              }}
               label="Generate evals"
             />
           )}
           {status === "ready" && (
             <ApiAction
               url={`/api/v1/evals/${evaluation.id}/approve`}
+              body={{
+                expectedRevision: evaluation.revision,
+                profileHash: profileHash(plan, understanding),
+              }}
               label="Approve evals"
             />
           )}

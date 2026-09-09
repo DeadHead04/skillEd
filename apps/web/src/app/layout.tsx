@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./studio.css";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { headers } from "next/headers";
@@ -23,7 +24,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SkillEd — Skill evaluation workbench",
+  title: "SkillEd — Evaluation studio",
   description:
     "Build evidence-backed evals, test Skills, and verify improvements.",
 };
@@ -36,7 +37,7 @@ export default async function RootLayout({
   const currentUser = authenticatedUser(
     new Request("http://skilled.local", { headers: requestHeaders }),
   );
-  const skills = await listSkills();
+  const skills = currentUser ? await listSkills() : [];
   return (
     <html lang="en" className={`${ui.variable} ${mono.variable}`}>
       <body>
