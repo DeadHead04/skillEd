@@ -2,7 +2,12 @@ import { ProfileRevision } from "../../../components/profile-revision";
 import Link from "next/link";
 import { profileHash } from "@skilled/core";
 import { ReadMore } from "../../../components/studio";
-import { currentEval, readEvalFile } from "../../../lib/data";
+import {
+  currentEval,
+  readEvalFile,
+  currentExecutionAvailability,
+} from "../../../lib/data";
+import { ExecutionAction } from "../../../components/execution-action";
 import {
   ApiAction,
   CaseToggle,
@@ -65,6 +70,7 @@ export default async function EvalPage({
     );
 
   const status = String(evaluation.status);
+  const availability = await currentExecutionAvailability();
   const understanding = evaluation.task_understanding as any;
   const plan = evaluation.coverage_plan as any;
   const cases = evaluation.cases as any[];
@@ -522,8 +528,12 @@ export default async function EvalPage({
             </>
           ) : status === "failed" ? (
             <>
-              <b>Generation failed</b>
-              <p>Nothing was frozen. Retrying starts from the approved plan.</p>
+              <b>
+                {availability.available
+                  ? "Generation stopped"
+                  : "Generation blocked"}
+              </b>
+              <p>Nothing was frozen. The saved task and plan are preserved.</p>
             </>
           ) : status === "approved" ? (
             <>
@@ -539,13 +549,15 @@ export default async function EvalPage({
         </div>
         <div className="decision-actions">
           {status === "collecting" && (
-            <ApiAction
+            <ExecutionAction
+              availability={availability}
               url={`/api/v1/evals/${evaluation.id}/author`}
               label="Start understanding"
             />
           )}
           {status === "awaiting_plan_approval" && (
-            <ApiAction
+            <ExecutionAction
+              availability={availability}
               url={`/api/v1/evals/${evaluation.id}/approve-plan`}
               body={{
                 expectedRevision: evaluation.revision,
@@ -565,7 +577,8 @@ export default async function EvalPage({
             />
           )}
           {status === "failed" && (
-            <ApiAction
+            <ExecutionAction
+              availability={availability}
               url={`/api/v1/evals/${evaluation.id}/retry`}
               label="Retry generation"
             />

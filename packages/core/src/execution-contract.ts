@@ -84,19 +84,79 @@ export function acceptsExecutionEvidence(
   value: unknown,
   imageRevision: string,
 ) {
+  return assessExecutionEvidence(value, imageRevision).ready;
+}
+
+/** Safe diagnostics: never return arbitrary report details or filesystem paths. */
+export function assessExecutionEvidence(
+  value: unknown,
+  imageRevision: string,
+  now = Date.now(),
+) {
   const parsed = ExecutionReadinessSchema.safeParse(value);
-  if (!parsed.success) return false;
+  if (!parsed.success)
+    return {
+      ready: false,
+      code: "ACCEPTANCE_INVALID",
+      detail:
+        "Execution unavailable: the acceptance report has an invalid format. Regenerate it with the matching acceptance harness.",
+    };
   const report = parsed.data;
-  const age = Date.now() - Date.parse(report.checkedAt);
-  return (
-    report.status === "ready" &&
-    report.imageRevision === imageRevision &&
-    age >= 0 &&
-    age < 24 * 60 * 60_000 &&
-    REQUIRED_EXECUTION_CHECKS.every(
-      (name) =>
-        report.checks.filter((c) => c.name === name).length === 1 &&
-        report.checks.find((c) => c.name === name)?.status === "passed",
-    )
-  );
+  const checks = REQUIRED_EXECUTION_CHECKS.map((name) => {
+    const matching = report.checks.filter((check) => check.name === name);
+    return {
+      name,
+      status:
+        matching.length === 0
+          ? "missing"
+          : matching.length > 1
+            ? "duplicate"
+            : matching[0]!.status,
+    };
+  });
+  const timestamp = Date.parse(report.checkedAt);
+  const expiry = new Date(timestamp + 24 * 60 * 60_000);
+  const metadata = {
+    checks,
+    checkedAt: Number.isFinite(timestamp)
+      ? new Date(timestamp).toISOString()
+      : undefined,
+    expiresAt: Number.isFinite(expiry.getTime()) ? expiry.toISOString() : null,
+  };
+  const blocked = (code: string, detail: string) => ({
+    ...metadata,
+    ready: false,
+    code,
+    detail: `Execution unavailable: ${detail}`,
+  });
+  if (report.imageRevision !== imageRevision)
+    return blocked(
+      "ACCEPTANCE_REVISION_MISMATCH",
+      "the acceptance report belongs to another image. Rerun acceptance on the image being deployed.",
+    );
+  const age = now - Date.parse(report.checkedAt);
+  if (!Number.isFinite(age) || age < 0)
+    return blocked(
+      "ACCEPTANCE_TIME_INVALID",
+      "the acceptance timestamp is invalid or in the future. Check the executor clock and rerun acceptance.",
+    );
+  if (age >= 24 * 60 * 60_000)
+    return blocked(
+      "ACCEPTANCE_EXPIRED",
+      "the acceptance report is older than 24 hours. Rerun the checks; retrying generation or extending the report timestamp cannot renew acceptance.",
+    );
+  if (
+    report.status !== "ready" ||
+    checks.some((check) => check.status !== "passed")
+  )
+    return blocked(
+      "ISOLATION_NOT_ACCEPTED",
+      "isolation acceptance has failed, pending, missing or duplicate checks. Complete every required check on this executor. The preliminary canary alone cannot enable real execution.",
+    );
+  return {
+    ...metadata,
+    ready: true,
+    code: "ISOLATION_ACCEPTED",
+    detail: "Isolation acceptance is current for this image.",
+  };
 }

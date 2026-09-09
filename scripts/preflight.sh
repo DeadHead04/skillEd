@@ -46,3 +46,7 @@ if [ "$mode" = "real" ]; then
 fi
 
 echo "SkillEd preflight passed ($mode mode)."
+if [ "$mode" = "real" ]; then
+  echo "This checks local prerequisites only; it does not certify execution."
+  echo "Before generation, run ./scripts/check-execution.sh against the running worker."
+fi

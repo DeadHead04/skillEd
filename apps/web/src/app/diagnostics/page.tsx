@@ -7,6 +7,7 @@ import {
 } from "@skilled/core";
 import { Status, Verdict, Work } from "../../components/ui";
 import { humanize } from "../../lib/labels";
+import { executionAvailability } from "../../lib/execution-availability";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ export default async function Diagnostics() {
     const fresh =
       worker && Date.now() - new Date(worker.last_seen_at).getTime() < 30_000;
     const execution = fresh ? worker.readiness?.execution : null;
+    const availability = executionAvailability(worker as any);
 
     return (
       <Work>
@@ -77,6 +79,45 @@ export default async function Diagnostics() {
           }
         />
 
+        {!availability.available && (
+          <section className="section" aria-label="Execution setup blocker">
+            <h2>Execution setup needs attention</h2>
+            <p className="error-box" role="status">
+              {availability.detail}
+            </p>
+            <p className="hint">
+              Reason: {availability.code}. Retrying generation cannot repair
+              this prerequisite.
+            </p>
+            <p>
+              Run <code>./scripts/check-execution.sh</code> from the same
+              Compose project, or{" "}
+              <code>node --import tsx apps/worker/src/readiness-cli.ts</code>{" "}
+              inside the executor. This only checks setup and login status; it
+              does not call a model.
+            </p>
+          </section>
+        )}
+        {fresh && worker.readiness?.checks?.length > 0 && (
+          <section className="section" aria-label="Isolation acceptance checks">
+            <h2>Isolation acceptance</h2>
+            <p className="hint">
+              Checked {worker.readiness.checkedAt ?? "Unknown"} · Expires{" "}
+              {worker.readiness.expiresAt ?? "Unknown"}
+            </p>
+            <div className="rows">
+              {worker.readiness.checks.map(
+                (check: { name: string; status: string }) => (
+                  <div className="row plain" key={check.name}>
+                    <span>{humanize(check.name)}</span>
+                    <span>{humanize(check.status)}</span>
+                  </div>
+                ),
+              )}
+            </div>
+          </section>
+        )}
+
         <section className="section" style={{ marginTop: 22 }}>
           <div className="section-head">
             <h2>Worker</h2>
@@ -87,11 +128,21 @@ export default async function Diagnostics() {
           <dl className="kv" style={{ marginTop: 12 }}>
             <div>
               <dt>Skill-Up</dt>
-              <dd>{worker?.readiness?.skillUp ? "Available" : "Missing"}</dd>
+              <dd>
+                {worker?.versions?.executor && execution !== "ready"
+                  ? "Not checked on executor"
+                  : worker?.readiness?.skillUp
+                    ? "Available"
+                    : "Missing"}
+              </dd>
             </div>
             <div>
               <dt>Codex login</dt>
-              <dd>{worker?.readiness?.codexLogin ?? "Unknown"}</dd>
+              <dd>
+                {worker?.readiness?.codexLogin === "not_checked"
+                  ? "Not checked — isolation is blocked"
+                  : humanize(worker?.readiness?.codexLogin ?? "Unknown")}
+              </dd>
             </div>
             <div>
               <dt>Node</dt>

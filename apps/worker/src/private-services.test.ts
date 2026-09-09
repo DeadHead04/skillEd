@@ -133,6 +133,15 @@ test(
         },
       );
       await ready(executorUrl, executor);
+      assert.equal((await fetch(executorUrl + "/readiness")).status, 401);
+      const readiness = await fetch(executorUrl + "/readiness", {
+        headers: { authorization: "Bearer synthetic-private-service-token" },
+      });
+      assert.equal(readiness.status, 200);
+      const diagnostic = await readiness.json();
+      assert.equal(diagnostic.code, "ACCEPTANCE_MISSING");
+      assert.equal(diagnostic.ready, false);
+      assert.equal(diagnostic.codexLogin, "not_checked");
       assert.equal(
         (await (await fetch(executorUrl + "/health")).json()).execution,
         "blocked",

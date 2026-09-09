@@ -32,6 +32,7 @@ export function ApiAction({
     const data = await response.json();
     if (!response.ok) {
       setError(data.detail ?? "The request could not be completed.");
+      if (data.code === "EXECUTION_UNAVAILABLE") router.refresh();
       setBusy(false);
       return;
     }

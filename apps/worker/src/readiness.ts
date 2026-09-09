@@ -1,58 +1,79 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { readFile } from "node:fs/promises";
-import { acceptsExecutionEvidence } from "@skilled/core";
+import { readFile, stat } from "node:fs/promises";
+import { assessExecutionEvidence } from "@skilled/core";
 export type ExecutionReadiness = {
   ready: boolean;
   code: string;
   detail: string;
+  checks?: { name: string; status: string }[];
+  checkedAt?: string;
+  expiresAt?: string | null;
+  codexLogin?: "available" | "unavailable" | "not_checked";
 };
-export async function executionReadiness(): Promise<ExecutionReadiness> {
-  const path = process.env.SKILLED_EXECUTION_EVIDENCE;
+export async function executionReadiness(
+  env: NodeJS.ProcessEnv = process.env,
+  loginStatus = async (binary: string) => {
+    const login = await promisify(execFile)(binary, ["login", "status"], {
+      timeout: 5000,
+      maxBuffer: 4096,
+    });
+    return /^\s*Logged in\b/im.test(`${login.stdout}\n${login.stderr}`);
+  },
+): Promise<ExecutionReadiness> {
+  const path = env.SKILLED_EXECUTION_EVIDENCE?.trim();
   const revision =
-    process.env.SKILLED_IMAGE_REVISION ?? process.env.RENDER_GIT_COMMIT;
-  if (!path || !revision)
+    env.SKILLED_IMAGE_REVISION?.trim() || env.RENDER_GIT_COMMIT?.trim();
+  if (!path)
     return {
       ready: false,
       code: "ACCEPTANCE_MISSING",
+      codexLogin: "not_checked",
       detail:
-        "Execution unavailable: no isolation acceptance report is configured for this image. An administrator must run the executor canary and configure the accepted report.",
+        "Execution unavailable: SKILLED_EXECUTION_EVIDENCE is not configured in the execution service. Mount the measured acceptance report and set its container path. The preliminary canary alone cannot certify real execution.",
     };
+  if (!revision)
+    return {
+      ready: false,
+      code: "IMAGE_REVISION_MISSING",
+      codexLogin: "not_checked",
+      detail:
+        "Execution unavailable: the executor image revision is missing. Set SKILLED_IMAGE_REVISION to the built release revision, or use Render's RENDER_GIT_COMMIT, then run acceptance for that exact image.",
+    };
+  let acceptance: ReturnType<typeof assessExecutionEvidence>;
   try {
+    const file = await stat(path);
+    if (!file.isFile() || file.size > 1024 * 1024)
+      throw new Error("Invalid report file");
     const report = JSON.parse(await readFile(path, "utf8"));
-    if (!acceptsExecutionEvidence(report, revision))
-      return {
-        ready: false,
-        code: "ISOLATION_NOT_ACCEPTED",
-        detail:
-          "Execution unavailable: isolation acceptance is incomplete, expired, or belongs to another image. Run the canary on this exact executor image; inspect failed and pending checks in Diagnostics.",
-      };
+    acceptance = assessExecutionEvidence(report, revision);
+    if (!acceptance.ready) return { ...acceptance, codexLogin: "not_checked" };
   } catch {
     return {
       ready: false,
       code: "ACCEPTANCE_UNREADABLE",
+      codexLogin: "not_checked",
       detail:
         "Execution unavailable: the executor acceptance report cannot be read or validated. Restore a valid report for this image.",
     };
   }
   try {
-    const login = await promisify(execFile)(
-      process.env.CODEX_BIN ?? "codex",
-      ["login", "status"],
-      { timeout: 5000, maxBuffer: 4096 },
-    );
-    if (/logged in/i.test(`${login.stdout} ${login.stderr}`))
+    if (await loginStatus(env.CODEX_BIN ?? "codex"))
       return {
+        ...acceptance,
         ready: true,
         code: "READY",
+        codexLogin: "available",
         detail: "Isolation accepted and Codex login available.",
       };
   } catch {
     /* Return a sanitized remedy; never expose command output or credential locations. */
   }
   return {
+    ...acceptance,
     ready: false,
     code: "AUTHENTICATION_UNAVAILABLE",
+    codexLogin: "unavailable",
     detail:
       "Execution unavailable: Codex login is missing or unavailable. An administrator must complete the official login flow directly on the executor.",
   };

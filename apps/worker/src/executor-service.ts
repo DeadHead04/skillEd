@@ -26,7 +26,11 @@ import {
 } from "@skilled/core";
 import { codexAppServer } from "./app-server.js";
 import { executeBounded, stopExecutions } from "./process.js";
-import { realExecutionReady, requireExecutionReady } from "./readiness.js";
+import {
+  realExecutionReady,
+  requireExecutionReady,
+  executionReadiness,
+} from "./readiness.js";
 import { z } from "zod";
 const Input = ExecutionManifestSchema;
 const token = process.env.EXECUTOR_SERVICE_TOKEN;
@@ -270,6 +274,10 @@ const server = createServer(async (request, response) => {
       return;
     }
     const url = new URL(request.url ?? "/", "http://executor");
+    if (request.method === "GET" && url.pathname === "/readiness") {
+      send(200, await executionReadiness());
+      return;
+    }
     const parts = url.pathname.split("/").filter(Boolean);
     let body: any;
     if (request.method === "POST") {

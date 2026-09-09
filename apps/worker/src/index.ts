@@ -15,11 +15,7 @@ import { randomUUID } from "node:crypto";
 import { fencedDatabase, reconcileJobs } from "./jobs.js";
 import { stopExecutions } from "./process.js";
 import { codexAppServer } from "./app-server.js";
-import {
-  realExecutionReady,
-  requireExecutionReady,
-  executionReadiness,
-} from "./readiness.js";
+import { requireExecutionReady, executionReadiness } from "./readiness.js";
 const sql = db();
 const workerId = `worker-${randomUUID()}`;
 const run = promisify(execFile);
@@ -43,20 +39,29 @@ async function heartbeat() {
       execution: "blocked",
       appServer: false,
       detail: "Executor unreachable",
+      code: "EXECUTOR_UNREACHABLE",
+      codexLogin: "not_checked",
     };
     try {
-      const response = await fetch(`${serviceEndpoint("EXECUTOR")}/health`, {
+      const response = await fetch(`${serviceEndpoint("EXECUTOR")}/readiness`, {
+        headers: {
+          authorization: `Bearer ${process.env.EXECUTOR_SERVICE_TOKEN ?? ""}`,
+        },
         signal: AbortSignal.timeout(5000),
       });
+      if (!response.ok) throw new Error("Executor readiness unavailable");
       const health = await response.json();
+      if (
+        typeof health.ready !== "boolean" ||
+        typeof health.code !== "string" ||
+        typeof health.detail !== "string"
+      )
+        throw new Error("Invalid executor readiness response");
       readiness = {
-        execution: health.execution,
-        appServer: health.execution === "ready",
-        skillUp: health.execution === "ready",
-        codexLogin:
-          health.execution === "ready"
-            ? "available"
-            : "Execution acceptance required",
+        ...health,
+        execution: health.ready ? "ready" : "blocked",
+        appServer: health.ready,
+        skillUp: health.ready,
       };
     } catch {
       /* Queue and historical results remain available. */
@@ -72,21 +77,16 @@ async function heartbeat() {
     skillUpSource: "vendored",
     node: process.version,
   };
-  const login =
-    process.env.SKILLED_ADAPTER_MODE === "fake"
-      ? "fake-ready"
-      : await version(process.env.CODEX_BIN ?? "codex", ["login", "status"]);
   const acceptance =
     process.env.SKILLED_ADAPTER_MODE === "fake"
       ? {
           ready: true,
           code: "DEMO",
+          codexLogin: "fake-ready",
           detail: "Demo evidence: deterministic execution without model calls.",
         }
       : await executionReadiness();
-  const loggedIn =
-    process.env.SKILLED_ADAPTER_MODE === "fake" || /logged in/i.test(login);
-  await sql`INSERT INTO worker_heartbeats(worker_id,versions,readiness,last_seen_at) VALUES(${workerId},${sql.json(versions)},${sql.json({ detail: acceptance.detail, code: acceptance.code, codexLogin: process.env.SKILLED_ADAPTER_MODE === "fake" ? "fake-ready" : loggedIn ? "available" : "unavailable", appServer: loggedIn && (process.env.SKILLED_ADAPTER_MODE === "fake" || (await realExecutionReady())), execution: process.env.SKILLED_ADAPTER_MODE === "fake" ? "demo" : (await realExecutionReady()) ? "ready" : "blocked", skillUp: versions.skillUp !== "unavailable" })},now()) ON CONFLICT(worker_id) DO UPDATE SET versions=excluded.versions,readiness=excluded.readiness,last_seen_at=now()`;
+  await sql`INSERT INTO worker_heartbeats(worker_id,versions,readiness,last_seen_at) VALUES(${workerId},${sql.json(versions)},${sql.json({ ...acceptance, appServer: acceptance.ready, execution: process.env.SKILLED_ADAPTER_MODE === "fake" ? "demo" : acceptance.ready ? "ready" : "blocked", skillUp: versions.skillUp !== "unavailable" })},now()) ON CONFLICT(worker_id) DO UPDATE SET versions=excluded.versions,readiness=excluded.readiness,last_seen_at=now()`;
 }
 let busy = false;
 let stopping = false;

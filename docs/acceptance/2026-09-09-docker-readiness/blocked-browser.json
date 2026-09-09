@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "real-mode fresh Docker installation blocks before login",
+    "uploaded task remains collecting",
+    "recheck performs GET only; three attempts create no model operation",
+    "direct author POST rejects with 503",
+    "reload preserves draft and blocker",
+    "390px and 1440px render without horizontal overflow",
+    "administrator diagnostics shows exact reason"
+  ],
+  "evalId": "5c5f18b8-9002-4891-9f82-619ae694a1bd"
+}

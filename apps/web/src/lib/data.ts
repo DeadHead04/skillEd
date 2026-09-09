@@ -8,6 +8,7 @@ import {
   type ZipEntryContent,
 } from "@skilled/core";
 import { readFile, stat } from "node:fs/promises";
+import { executionAvailability } from "./execution-availability";
 const sql = db();
 const ready = Promise.resolve();
 const severity: Record<string, number> = {
@@ -394,6 +395,11 @@ export async function packageAssessment(
         "Download the package and inspect large or unavailable files before relying on this assessment.",
     });
   return result;
+}
+export async function currentExecutionAvailability() {
+  const [worker] =
+    await sql`SELECT last_seen_at,readiness FROM worker_heartbeats ORDER BY last_seen_at DESC LIMIT 1`;
+  return executionAvailability(worker as any);
 }
 export async function studioHealth() {
   const [worker] =

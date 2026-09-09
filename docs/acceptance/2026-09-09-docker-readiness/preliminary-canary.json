@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "skilled-readiness-v1",
+  "status": "blocked",
+  "checkedAt": "2026-09-09T16:14:47.417Z",
+  "imageRevision": "unidentified-image",
+  "checks": [
+    {
+      "name": "non_root",
+      "status": "passed",
+      "detail": "uid=10001"
+    },
+    {
+      "name": "workspace",
+      "status": "failed",
+      "detail": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    {
+      "name": "hidden_reads",
+      "status": "failed",
+      "detail": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    {
+      "name": "script_judge",
+      "status": "failed",
+      "detail": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    {
+      "name": "network_denial",
+      "status": "failed",
+      "detail": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    {
+      "name": "process_isolation",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "resource_limits",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "codex_initial",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "codex_resume",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "app_server",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "judge_correction",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "login_persistence",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    },
+    {
+      "name": "conversation_recovery",
+      "status": "pending",
+      "detail": "Not certified by this credential-free canary"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "adapter": "real",
+  "executionService": "local",
+  "configuration": {
+    "evidenceConfigured": false,
+    "revisionConfigured": false
+  },
+  "ready": false,
+  "code": "ACCEPTANCE_MISSING",
+  "codexLogin": "not_checked",
+  "detail": "Execution unavailable: SKILLED_EXECUTION_EVIDENCE is not configured in the execution service. Mount the measured acceptance report and set its container path. The preliminary canary alone cannot certify real execution."
+}

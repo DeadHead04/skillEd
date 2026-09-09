@@ -37,6 +37,7 @@ import {
 import { packageAssessment } from "../../../../lib/data";
 import { multipart } from "../../../../lib/multipart";
 import { mutation } from "../../../../lib/mutation";
+import { executionAvailability } from "../../../../lib/execution-availability";
 
 import {
   mkdir,
@@ -113,6 +114,11 @@ export async function GET(request: Request, context: Context) {
         : fail("NOT_FOUND", "Evaluation not found", "", 404);
     }
     if (path[0] === "capabilities") return json(TOOLCHAIN_CAPABILITIES);
+    if (path.length === 1 && path[0] === "execution-readiness") {
+      const [worker] =
+        await sql`SELECT last_seen_at,readiness FROM worker_heartbeats ORDER BY last_seen_at DESC LIMIT 1`;
+      return json(executionAvailability(worker as any));
+    }
     if (path[0] === "health") {
       const [dbNow] = await sql`SELECT now()`,
         [worker] =
@@ -618,18 +624,14 @@ async function post(request: Request, context: Context, sql: Db) {
     if (modelOperation && process.env.SKILLED_ADAPTER_MODE !== "fake") {
       const [worker] =
         await sql`SELECT last_seen_at,readiness FROM worker_heartbeats ORDER BY last_seen_at DESC LIMIT 1`;
-      if (
-        !worker ||
-        Date.now() - new Date(worker.last_seen_at).getTime() > 30000 ||
-        worker.readiness?.execution !== "ready"
-      )
+      const availability = executionAvailability(worker as any);
+      if (!availability.available)
         return fail(
           "EXECUTION_UNAVAILABLE",
           "Execution unavailable",
-          worker?.readiness?.detail ??
-            "The executor has not passed isolation and login checks for this image. An administrator must resolve Diagnostics before retrying; your draft is preserved.",
+          availability.detail,
           503,
-          true,
+          false,
         );
     }
 

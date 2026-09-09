@@ -1,5 +1,7 @@
 # SkillEd
 
+If another person's Docker installation repeatedly reports missing isolation acceptance, use the [Docker execution-readiness diagnostic](docs/operations/docker-execution-readiness.md). Login alone does not satisfy this gate; the preliminary canary does not yet certify all required real execution paths.
+
 SkillEd helps a trusted team upload an existing Skill, define approved tests, inspect evidence, review an improvement, verify it and explicitly activate or download the candidate. The backend invokes the pinned **Skill-Up CLI**; application code does not import its internal packages.
 
 ```text
@@ -29,7 +31,7 @@ Requirements: Git, Docker Desktop/Compose v2 and sufficient Docker memory (8 GB 
 
 ```sh
 git status --short
-./scripts/preflight.sh
+./scripts/preflight.sh --demo
 docker compose -f compose.test.yaml up -d --build
 COMPOSE_FILE=compose.test.yaml SKILLED_BASE_URL=http://127.0.0.1:3100 ./scripts/verify-stack.sh --demo
 ```

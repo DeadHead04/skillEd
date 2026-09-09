@@ -1,0 +1,15 @@
+# Optional local real-execution configuration. Use only with measured acceptance
+# from this exact executor image. This overlay does not grant sandbox bypasses.
+# COMPOSE_FILE=docker-compose.yml:compose.execution.yaml
+services:
+  worker:
+    environment:
+      SKILLED_EXECUTION_EVIDENCE: /data/acceptance/acceptance.json
+      SKILLED_IMAGE_REVISION: ${SKILLED_IMAGE_REVISION:?Set the revision actually built and tested}
+    volumes:
+      - type: bind
+        source: ${SKILLED_EXECUTION_REPORT_FILE:?Set the absolute path to the measured acceptance report}
+        target: /data/acceptance/acceptance.json
+        read_only: true
+        bind:
+          create_host_path: false

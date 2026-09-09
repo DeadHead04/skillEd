@@ -47,6 +47,8 @@ services:
       WORK_ROOT: /data/work
       CODEX_HOME: /home/skilled/.codex
       SKILLED_ADAPTER_MODE: ${SKILLED_ADAPTER_MODE:-real}
+      SKILLED_EXECUTION_EVIDENCE: ${SKILLED_EXECUTION_EVIDENCE:-}
+      SKILLED_IMAGE_REVISION: ${SKILLED_IMAGE_REVISION:-}
     depends_on:
       postgres:
         condition: service_healthy

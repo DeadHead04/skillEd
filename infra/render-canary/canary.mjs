@@ -9,7 +9,10 @@ const report = {
   schemaVersion: "skilled-readiness-v1",
   status: "blocked",
   checkedAt: new Date().toISOString(),
-  imageRevision: process.env.RENDER_GIT_COMMIT ?? "local-canary",
+  imageRevision:
+    process.env.SKILLED_IMAGE_REVISION ||
+    process.env.RENDER_GIT_COMMIT ||
+    "unidentified-image",
   checks: [],
 };
 const add = (name, status, detail) =>
@@ -101,6 +104,8 @@ for (const name of [
   add(name, "pending", "Not certified by this credential-free canary");
 await rm(root, { recursive: true, force: true });
 console.log(JSON.stringify(report));
+if (process.env.SKILLED_CANARY_ONCE === "true")
+  process.exitCode = report.status === "ready" ? 0 : 1;
 if (process.env.SKILLED_CANARY_ONCE !== "true")
   createServer((request, response) => {
     response.setHeader("content-type", "application/json");

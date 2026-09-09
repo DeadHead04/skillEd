@@ -110,7 +110,52 @@ test(
         iterations: 3,
         baseline: true,
       };
-      const key = crypto.randomUUID();
+      // A failed prerequisite must not create jobs, mutate the draft, or get
+      // cached as an idempotent success. Repairing readiness permits a retry.
+      process.env.SKILLED_ADAPTER_MODE = "real";
+      const retryKey = crypto.randomUUID();
+      await sql`INSERT INTO worker_heartbeats(worker_id,readiness,last_seen_at) VALUES('readiness-test','{"execution":"blocked","code":"ACCEPTANCE_MISSING","detail":"Missing measured acceptance report"}',now())`;
+      for (const parts of [
+        ["runs", "launch"],
+        ["evals", ev!.id, "retry"],
+        ["evals", ev!.id, "author"],
+        ["evals", ev!.id, "approve-plan"],
+        ["updates", "generate"],
+      ]) {
+        const blocked = await send(
+          parts,
+          payload,
+          parts[0] === "runs" ? retryKey : crypto.randomUUID(),
+        );
+        assert.equal(blocked.status, 503);
+        const problem = await blocked.json();
+        assert.equal(problem.code, "EXECUTION_UNAVAILABLE");
+        assert.equal(problem.retryable, false);
+        assert.match(problem.detail, /Missing measured acceptance/);
+      }
+      assert.equal(Number((await sql`SELECT count(*) FROM jobs`)[0]!.count), 0);
+      assert.equal(
+        (await sql`SELECT status FROM eval_versions WHERE id=${ev!.id}`)[0]!
+          .status,
+        "approved",
+      );
+      await sql`UPDATE worker_heartbeats SET readiness='{"execution":"ready"}',last_seen_at=now()-interval '1 minute' WHERE worker_id='readiness-test'`;
+      const staleReadiness = await send(["runs", "launch"], payload, retryKey);
+      assert.equal(staleReadiness.status, 503);
+      assert.match((await staleReadiness.json()).detail, /heartbeat is stale/);
+      const fresh = await api.GET(
+        new Request("http://localhost/api/v1/execution-readiness"),
+        { params: Promise.resolve({ path: ["execution-readiness"] }) },
+      );
+      assert.equal((await fresh.json()).available, false);
+      await sql`UPDATE worker_heartbeats SET readiness='{"execution":"ready"}',last_seen_at=now() WHERE worker_id='readiness-test'`;
+      const available = await api.GET(
+        new Request("http://localhost/api/v1/execution-readiness"),
+        { params: Promise.resolve({ path: ["execution-readiness"] }) },
+      );
+      assert.equal((await available.json()).available, true);
+      process.env.SKILLED_ADAPTER_MODE = "fake";
+      const key = retryKey;
       const replies = await Promise.all([
         send(["runs", "launch"], payload, key),
         send(["runs", "launch"], payload, key),
