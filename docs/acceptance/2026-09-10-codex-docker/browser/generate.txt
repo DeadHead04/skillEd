@@ -1,0 +1,102 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+Decide what good looks like.
+
+Review the task, approve its judging areas, then inspect the generated checks.
+
+●
+Generating
+Queued
+Cancel operation
+
+Review · Revision 2
+
+What this Skill will be judged on
+Codex proposal · review required
+AREA 01
+QC decisions
+Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 02
+Source citations
+Required: yes. Validate F2, F3, sku, and boundary source_id missing with reason insufficient evidence.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 03
+review.json contract
+Required: yes. Require a written review.json with reviews, valid ids, PASS/FAIL decisions, and findings containing source_id and reason.
+Read more
+
+Required · constraint
+
+Request change ↗
+Source references
+AREA 04
+Input integrity
+Required: yes. Verify every original input remains byte-for-byte unchanged after execution.
+Read more
+
+Required · constraint
+
+Request change ↗
+Source references
+What the task is
+Conversation ▸
+Inputs
+Product-card JSON with source facts, Public product-review rules, Public review.json output contract
+Outputs
+A written review.json containing a reviews array; each item has id, decision (PASS or FAIL), and findings with source_id and reason
+Deciding authority
+Product-card source facts, Public product-review rules, Public review.json output contract
+Must never change
+Only fully supported product cards pass, Unsupported clinical claims are rejected with source_id F2, A missing peanut warning is rejected with source_id F3, SKU drift is rejected with source_id sku, Missing evidence is rejected with source_id missing and reason insufficient evidence, Evidence is never invented or inferred from category norms, Original input files remain byte-for-byte unchanged, The Skill creates review.json only, Hidden expected-review.json and evaluation manifests are not inputs to the Skill, Hidden expected decisions remain outside tested-agent prompts, Runtime dependencies are none
+Inspect or update task material
+Planned coverage
+2 cases
+batch_normal_adversarial
+One script-validated case supplies all four cards and requires review.json with concrete card decisions, ids, and F2/F3/sku citations. The tested agent receives only public task rules, source facts, and the output contract; expected answers remain judge-only.
+1 cases, script judge
+boundary_missing_source
+One script-validated case supplies a product claim without supporting source evidence and requires review.json to contain a FAIL finding with source_id missing and reason insufficient evidence.
+1 cases, script judge
+Generating
+
+Codex is working. Progress is recorded durably.

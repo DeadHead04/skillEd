@@ -1,0 +1,39 @@
+{
+  "reviews": [
+    {
+      "id": "supported",
+      "decision": "PASS",
+      "findings": []
+    },
+    {
+      "id": "unsupported-claim",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F2",
+          "reason": "The submitted claim \"Clinically proven to improve health\" is unsupported; F2 only states that the product was tested for consistency."
+        }
+      ]
+    },
+    {
+      "id": "missing-warning",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F3",
+          "reason": "The submitted copy omits the required warning that the product contains peanuts."
+        }
+      ]
+    },
+    {
+      "id": "protected-drift",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "sku",
+          "reason": "The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001."
+        }
+      ]
+    }
+  ]
+}

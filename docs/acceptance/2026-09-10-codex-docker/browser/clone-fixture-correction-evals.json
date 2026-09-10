@@ -1,0 +1,560 @@
+{
+  "id": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "version": null,
+  "revision": 1,
+  "status": "ready",
+  "evidence_level": "Strong",
+  "task_understanding": {
+    "inputs": [
+      "Product-card JSON with source facts",
+      "Public product-review rules",
+      "Public review.json output contract"
+    ],
+    "outputs": [
+      "A written review.json containing a reviews array; each item has id, decision (PASS or FAIL), and findings with source_id and reason"
+    ],
+    "ambiguity": [],
+    "invariants": [
+      "Only fully supported product cards pass",
+      "Unsupported clinical claims are rejected with source_id F2",
+      "A missing peanut warning is rejected with source_id F3",
+      "SKU drift is rejected with source_id sku",
+      "Missing evidence is rejected with source_id missing and reason insufficient evidence",
+      "Evidence is never invented or inferred from category norms",
+      "Original input files remain byte-for-byte unchanged",
+      "The Skill creates review.json only",
+      "Hidden expected-review.json and evaluation manifests are not inputs to the Skill",
+      "Hidden expected decisions remain outside tested-agent prompts",
+      "Runtime dependencies are none"
+    ],
+    "authorities": [
+      "Product-card source facts",
+      "Public product-review rules",
+      "Public review.json output contract"
+    ],
+    "dependencies": ["none"],
+    "failureModes": [
+      "Incorrect QC decisions",
+      "Unsupported or incorrect source citations",
+      "Malformed or absent review.json",
+      "Invented missing evidence",
+      "Changed input bytes"
+    ],
+    "allowedChanges": [
+      "Create review.json",
+      "Leave all original input files byte-for-byte unchanged"
+    ],
+    "likelyHallucinations": [
+      "Treating testing as evidence for a clinical benefit",
+      "Passing a card despite an omitted mandatory peanut warning",
+      "Silently repairing SKU drift",
+      "Inventing or inferring missing source evidence",
+      "Writing evaluation artifacts instead of review.json"
+    ]
+  },
+  "coverage_plan": {
+    "areas": [
+      {
+        "id": "qc_decisions",
+        "role": "task_success",
+        "label": "QC decisions",
+        "required": true,
+        "description": "Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.",
+        "sourceReferences": [
+          {
+            "location": "product-cards.json cards[*]",
+            "materialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          },
+          {
+            "location": "task-description.txt",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          }
+        ]
+      },
+      {
+        "id": "source_citations",
+        "role": "task_success",
+        "label": "Source citations",
+        "required": true,
+        "description": "Required: yes. Validate F2, F3, sku, and boundary source_id missing with reason insufficient evidence.",
+        "sourceReferences": [
+          {
+            "location": "product-cards.json cards[*].source.facts and protected_fields",
+            "materialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          },
+          {
+            "location": "task-description.txt",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          },
+          {
+            "location": "authority.md",
+            "materialId": "77eb91e4-1037-431c-979b-28a371b47788"
+          }
+        ]
+      },
+      {
+        "id": "review_json_contract",
+        "role": "constraint",
+        "label": "review.json contract",
+        "required": true,
+        "description": "Required: yes. Require a written review.json with reviews, valid ids, PASS/FAIL decisions, and findings containing source_id and reason.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          }
+        ]
+      },
+      {
+        "id": "input_integrity",
+        "role": "constraint",
+        "label": "Input integrity",
+        "required": true,
+        "description": "Required: yes. Verify every original input remains byte-for-byte unchanged after execution.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          },
+          {
+            "location": "product-cards.json",
+            "materialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "name": "batch_normal_adversarial",
+        "judge": "script",
+        "purpose": "One script-validated case supplies all four cards and requires review.json with concrete card decisions, ids, and F2/F3/sku citations. The tested agent receives only public task rules, source facts, and the output contract; expected answers remain judge-only.",
+        "caseCount": 1,
+        "dimensions": [
+          "qc_decisions",
+          "source_citations",
+          "review_json_contract",
+          "input_integrity"
+        ],
+        "iterations": 1,
+        "provenance": [
+          "product-cards.json cards: supported, unsupported-claim, missing-warning, protected-drift",
+          "task-description.txt",
+          "authority.md"
+        ]
+      },
+      {
+        "name": "boundary_missing_source",
+        "judge": "script",
+        "purpose": "One script-validated case supplies a product claim without supporting source evidence and requires review.json to contain a FAIL finding with source_id missing and reason insufficient evidence.",
+        "caseCount": 1,
+        "dimensions": [
+          "qc_decisions",
+          "source_citations",
+          "review_json_contract",
+          "input_integrity"
+        ],
+        "iterations": 1,
+        "provenance": [
+          "task-description.txt",
+          "authority.md",
+          "A dedicated boundary fixture with absent source evidence, created only for evaluation orchestration"
+        ]
+      }
+    ]
+  },
+  "answers": {},
+  "bundle_key": "eval-versions/554f2b2c-50c1-46b5-812e-e4da7a775ac8/bundles/12f2d656db315e00ec623dfb89c5462883fd1bb2d8b5344ac530c64bb3923520.zip",
+  "checksum": "12f2d656db315e00ec623dfb89c5462883fd1bb2d8b5344ac530c64bb3923520",
+  "validation": {
+    "cases": 2,
+    "valid": true,
+    "output": "level=WARNING msg=\"SKILL.md not found within 10 levels above /data/work/eval-554f2b2c-50c1-46b5-812e-e4da7a775ac8/evals; falling back to /data/work/eval-554f2b2c-50c1-46b5-812e-e4da7a775ac8\"\n✓ eval.yaml is valid (loaded 2 case(s))",
+    "adapter": "codex",
+    "validator": "skill-up validate"
+  },
+  "created_at": "2026-09-10T10:55:18.465Z",
+  "approved_at": null,
+  "questions": [],
+  "generation_notes": [],
+  "profile_hash": null,
+  "cases": [
+    {
+      "id": "c1610edc-00cf-4df5-86fb-d4cadc1ee213",
+      "eval_version_id": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial",
+      "enabled": true,
+      "judge_type": "script",
+      "evidence_provenance": [
+        "task-description.txt: review.json contract, decision requirements, citations, and byte preservation",
+        "product-cards.json: cards[0..3], source facts, submitted copy, and protected fields",
+        "authority.md: source authority, protected fields, and missing-evidence rule"
+      ],
+      "required_dimensions": [
+        "qc_decisions",
+        "source_citations",
+        "review_json_contract",
+        "input_integrity"
+      ],
+      "yaml_path": "evals/cases/product-qc-batch-001.yaml",
+      "assertion_mapping": {
+        "[batch_integrity_001] The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.": {
+          "id": "batch_integrity_001",
+          "role": "constraint",
+          "areaId": "input_integrity",
+          "required": true,
+          "dimension": "input_integrity"
+        },
+        "[batch_f3_001] The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.": {
+          "id": "batch_f3_001",
+          "role": "task_success",
+          "areaId": "source_citations",
+          "required": true,
+          "dimension": "source_citations"
+        },
+        "[batch_f2_001] The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.": {
+          "id": "batch_f2_001",
+          "role": "task_success",
+          "areaId": "source_citations",
+          "required": true,
+          "dimension": "source_citations"
+        },
+        "[batch_sku_001] The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.": {
+          "id": "batch_sku_001",
+          "role": "task_success",
+          "areaId": "source_citations",
+          "required": true,
+          "dimension": "source_citations"
+        },
+        "[batch_decisions_001] The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.": {
+          "id": "batch_decisions_001",
+          "role": "task_success",
+          "areaId": "qc_decisions",
+          "required": true,
+          "dimension": "qc_decisions"
+        },
+        "[batch_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.": {
+          "id": "batch_contract_001",
+          "role": "constraint",
+          "areaId": "review_json_contract",
+          "required": true,
+          "dimension": "review_json_contract"
+        }
+      },
+      "source": {
+        "id": "PRODUCT-QC-BATCH-001",
+        "title": "Four-card grounded product QC batch",
+        "prompt": "Review inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "purpose": "Evaluate supported approval and adversarial rejection of an unsupported claim, an omitted warning, and protected-field drift.",
+        "criteria": [
+          "Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+          "The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+          "The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths."
+        ],
+        "judgeType": "script",
+        "assertions": [
+          {
+            "id": "batch_contract_001",
+            "role": "constraint",
+            "text": "Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+            "areaId": "review_json_contract",
+            "required": true
+          },
+          {
+            "id": "batch_decisions_001",
+            "role": "task_success",
+            "text": "The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+            "areaId": "qc_decisions",
+            "required": true
+          },
+          {
+            "id": "batch_f2_001",
+            "role": "task_success",
+            "text": "The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+            "areaId": "source_citations",
+            "required": true
+          },
+          {
+            "id": "batch_f3_001",
+            "role": "task_success",
+            "text": "The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+            "areaId": "source_citations",
+            "required": true
+          },
+          {
+            "id": "batch_sku_001",
+            "role": "task_success",
+            "text": "The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+            "areaId": "source_citations",
+            "required": true
+          },
+          {
+            "id": "batch_integrity_001",
+            "role": "constraint",
+            "text": "The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+            "areaId": "input_integrity",
+            "required": true
+          }
+        ],
+        "dimensions": [
+          "qc_decisions",
+          "source_citations",
+          "review_json_contract",
+          "input_integrity"
+        ],
+        "provenance": [
+          "task-description.txt: review.json contract, decision requirements, citations, and byte preservation",
+          "product-cards.json: cards[0..3], source facts, submitted copy, and protected fields",
+          "authority.md: source authority, protected fields, and missing-evidence rule"
+        ],
+        "coverageGroup": "batch_normal_adversarial",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt: output contract, F2/F3/sku rules, and input preservation",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          },
+          {
+            "location": "product-cards.json: cards[0..3].source and cards[0..3].submitted",
+            "materialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          },
+          {
+            "location": "authority.md: paragraphs 1-4",
+            "materialId": "77eb91e4-1037-431c-979b-28a371b47788"
+          }
+        ],
+        "deterministicChecks": [
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"type\":\"string\",\"enum\":[\"supported\",\"unsupported-claim\",\"missing-warning\",\"protected-drift\"]},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true},\"prefixItems\":[{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"supported\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true},{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true},{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true},{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true}]}},\"additionalProperties\":false}",
+            "format": "json",
+            "selector": "",
+            "dimension": "review_json_contract",
+            "assertionId": "batch_contract_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"allOf\":[{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"supported\"},\"decision\":{\"const\":\"PASS\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}]}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "qc_decisions",
+            "assertionId": "batch_decisions_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F2\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "source_citations",
+            "assertionId": "batch_f2_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F3\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "source_citations",
+            "assertionId": "batch_f3_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"sku\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "source_citations",
+            "assertionId": "batch_sku_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+            "kind": "unchanged",
+            "value": null,
+            "format": "text",
+            "selector": "",
+            "dimension": "input_integrity",
+            "assertionId": "batch_integrity_001",
+            "allowedPaths": [],
+            "expectedMaterialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          }
+        ]
+      }
+    },
+    {
+      "id": "41826ecb-a80c-416d-bda4-ee6dd5433018",
+      "eval_version_id": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source",
+      "enabled": true,
+      "judge_type": "script",
+      "evidence_provenance": [
+        "task-description.txt: missing-evidence rejection and review.json contract",
+        "authority.md: missing evidence must be reported and never manufactured",
+        "Inline boundary input: missing-source-card has a submitted claim with no corresponding source fact"
+      ],
+      "required_dimensions": [
+        "qc_decisions",
+        "source_citations",
+        "review_json_contract",
+        "input_integrity"
+      ],
+      "yaml_path": "evals/cases/product-qc-boundary-001.yaml",
+      "assertion_mapping": {
+        "[boundary_integrity_001] The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.": {
+          "id": "boundary_integrity_001",
+          "role": "constraint",
+          "areaId": "input_integrity",
+          "required": true,
+          "dimension": "input_integrity"
+        },
+        "[boundary_decision_001] The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.": {
+          "id": "boundary_decision_001",
+          "role": "task_success",
+          "areaId": "qc_decisions",
+          "required": true,
+          "dimension": "qc_decisions"
+        },
+        "[boundary_citation_001] The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.": {
+          "id": "boundary_citation_001",
+          "role": "task_success",
+          "areaId": "source_citations",
+          "required": true,
+          "dimension": "source_citations"
+        },
+        "[boundary_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.": {
+          "id": "boundary_contract_001",
+          "role": "constraint",
+          "areaId": "review_json_contract",
+          "required": true,
+          "dimension": "review_json_contract"
+        }
+      },
+      "source": {
+        "id": "PRODUCT-QC-BOUNDARY-001",
+        "title": "Missing source evidence boundary",
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "purpose": "Evaluate rejection of a claim for which the supplied source facts contain no supporting evidence.",
+        "criteria": [
+          "boundary_contract_001: Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review. Concrete script validator: parse review.json and validate the declared Draft 2020-12 schema.",
+          "boundary_decision_001: The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct. Concrete script validator: locate the review by id and compare decision with FAIL.",
+          "boundary_citation_001: The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding. Concrete script validator: iterate findings and require one object with both exact field values.",
+          "boundary_integrity_001: The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths. Concrete script validator: compare the post-run bytes with the pre-run snapshot."
+        ],
+        "judgeType": "script",
+        "assertions": [
+          {
+            "id": "boundary_contract_001",
+            "role": "constraint",
+            "text": "Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+            "areaId": "review_json_contract",
+            "required": true
+          },
+          {
+            "id": "boundary_decision_001",
+            "role": "task_success",
+            "text": "The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+            "areaId": "qc_decisions",
+            "required": true
+          },
+          {
+            "id": "boundary_citation_001",
+            "role": "task_success",
+            "text": "The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+            "areaId": "source_citations",
+            "required": true
+          },
+          {
+            "id": "boundary_integrity_001",
+            "role": "constraint",
+            "text": "The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+            "areaId": "input_integrity",
+            "required": true
+          }
+        ],
+        "dimensions": [
+          "qc_decisions",
+          "source_citations",
+          "review_json_contract",
+          "input_integrity"
+        ],
+        "provenance": [
+          "task-description.txt: missing-evidence rejection and review.json contract",
+          "authority.md: missing evidence must be reported and never manufactured",
+          "Inline boundary input: missing-source-card has a submitted claim with no corresponding source fact"
+        ],
+        "coverageGroup": "boundary_missing_source",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt: missing-source-evidence boundary requirement and output contract",
+            "materialId": "b47e1e42-cbd0-4cc5-991a-ba1f2c82e61f"
+          },
+          {
+            "location": "authority.md: paragraph 4, missing evidence rule",
+            "materialId": "77eb91e4-1037-431c-979b-28a371b47788"
+          },
+          {
+            "location": "product-cards.json: uploaded agent_input material whose bytes must remain unchanged",
+            "materialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          }
+        ],
+        "deterministicChecks": [
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true}}},\"additionalProperties\":false}",
+            "format": "json",
+            "selector": "",
+            "dimension": "review_json_contract",
+            "assertionId": "boundary_contract_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "qc_decisions",
+            "assertionId": "boundary_decision_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "review.json",
+            "kind": "json_schema",
+            "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"missing\"},\"reason\":{\"const\":\"insufficient evidence\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+            "format": "json",
+            "selector": "",
+            "dimension": "source_citations",
+            "assertionId": "boundary_citation_001",
+            "allowedPaths": []
+          },
+          {
+            "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+            "kind": "unchanged",
+            "value": null,
+            "format": "text",
+            "selector": "",
+            "dimension": "input_integrity",
+            "assertionId": "boundary_integrity_001",
+            "allowedPaths": [],
+            "expectedMaterialId": "88f48b76-a550-4342-ad08-397a198ef73b"
+          }
+        ]
+      }
+    }
+  ],
+  "messages": []
+}

@@ -1,6 +1,13 @@
 export const TOOLCHAIN_CAPABILITIES = Object.freeze({
   schemaVersion: "skilled-toolchain-v1",
-  available: ["python3", "node", "openpyxl", "python-docx", "pypdf"],
+  available: [
+    "python3",
+    "node",
+    "openpyxl",
+    "python-docx",
+    "pypdf",
+    "jsonschema",
+  ],
   artifactFormats: ["text", "json", "csv", "xlsx"],
   packageInstallation: false,
   networkTools: false,
@@ -17,7 +24,7 @@ export const TOOLCHAIN_CAPABILITIES = Object.freeze({
 export function unsupportedRequirements(dependencies: unknown): string[] {
   if (!Array.isArray(dependencies)) return [];
   const supported =
-    /^(?:python(?:3)?|node(?:\.js)?|openpyxl(?:[= ]+3\.1\.5)?|python-docx(?:[= ]+1\.2\.0)?|pypdf(?:[= ]+6\.1\.1)?|standard library|none)$/i;
+    /^(?:python(?:3)?|node(?:\.js)?|openpyxl(?:[= ]+3\.1\.5)?|python-docx(?:[= ]+1\.2\.0)?|pypdf(?:[= ]+6\.1\.1)?|jsonschema(?:[= ]+4\.25\.1)?|standard library|none)$/i;
   return dependencies
     .filter((item) => typeof item !== "string" || !supported.test(item.trim()))
     .map(String);

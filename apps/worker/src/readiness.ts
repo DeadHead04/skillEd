@@ -2,6 +2,10 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { readFile, stat } from "node:fs/promises";
 import { assessExecutionEvidence } from "@skilled/core";
+import {
+  builtRuntimeRevision,
+  PERMISSION_PROFILE,
+} from "./runtime-identity.js";
 export type ExecutionReadiness = {
   ready: boolean;
   code: string;
@@ -10,6 +14,8 @@ export type ExecutionReadiness = {
   checkedAt?: string;
   expiresAt?: string | null;
   codexLogin?: "available" | "unavailable" | "not_checked";
+  imageRevision?: string;
+  permissionPolicy?: string;
 };
 export async function executionReadiness(
   env: NodeJS.ProcessEnv = process.env,
@@ -20,10 +26,13 @@ export async function executionReadiness(
     });
     return /^\s*Logged in\b/im.test(`${login.stdout}\n${login.stderr}`);
   },
+  runtimeRevision = builtRuntimeRevision,
 ): Promise<ExecutionReadiness> {
   const path = env.SKILLED_EXECUTION_EVIDENCE?.trim();
   const revision =
-    env.SKILLED_IMAGE_REVISION?.trim() || env.RENDER_GIT_COMMIT?.trim();
+    (await runtimeRevision()) ||
+    env.SKILLED_IMAGE_REVISION?.trim() ||
+    env.RENDER_GIT_COMMIT?.trim();
   if (!path)
     return {
       ready: false,
@@ -48,7 +57,15 @@ export async function executionReadiness(
     const report = JSON.parse(await readFile(path, "utf8"));
     acceptance = assessExecutionEvidence(report, revision);
     if (!acceptance.ready) return { ...acceptance, codexLogin: "not_checked" };
-  } catch {
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT")
+      return {
+        ready: false,
+        code: "ACCEPTANCE_MISSING",
+        codexLogin: "not_checked",
+        detail:
+          "Execution unavailable: this Docker installation has no measured acceptance report yet. An administrator must run ./scripts/setup-docker-execution.sh --real, including the official Docker login when requested.",
+      };
     return {
       ready: false,
       code: "ACCEPTANCE_UNREADABLE",
@@ -63,6 +80,8 @@ export async function executionReadiness(
         ...acceptance,
         ready: true,
         code: "READY",
+        imageRevision: revision,
+        permissionPolicy: PERMISSION_PROFILE,
         codexLogin: "available",
         detail: "Isolation accepted and Codex login available.",
       };

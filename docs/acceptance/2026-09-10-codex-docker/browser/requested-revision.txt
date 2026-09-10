@@ -1,0 +1,6 @@
+Keep the four judging areas and exactly two groups from your latest proposed revision. Before approval, correct the task understanding to describe only what the TESTED product-review Skill does. Return a complete revision, still based on revision 1.
+
+Set understanding.inputs to product-card JSON with source facts, public product-review rules, and the public output contract. Hidden expected-review.json and evaluation manifests are NOT inputs to this Skill.
+Set understanding.outputs to ONLY a written review.json containing a reviews array; each item has id, decision (PASS or FAIL), and findings with source_id and reason. Do not list evaluation cases, validators or configuration as the Skill's output.
+Set understanding.allowedChanges to ONLY creating review.json and leaving all original input files byte-for-byte unchanged. The tested Skill must not create evaluation cases, validators or fixtures.
+Set understanding.failureModes to incorrect QC decisions, unsupported citations, malformed or absent review.json, invented missing evidence, and changed input bytes. Keep dependencies ["none"]. Keep source references and public boundary rule source_id="missing", reason="insufficient evidence". Evaluation construction belongs in the coverage plan, not in the business task understanding. Do not generate cases yet.

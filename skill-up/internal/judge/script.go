@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -83,6 +84,11 @@ func (j *ScriptJudge) evaluateInRuntime(ctx context.Context, rt evalruntime.Runt
 	}
 
 	remoteDir := judgeTempDir(targetGOOS)
+	if rt.RequiresProcessSandbox() {
+		// Local execution honors the executor's dedicated staging root. Shared
+		// /tmp is intentionally denied by SkillEd's restricted-read policy.
+		remoteDir = filepath.Join(os.TempDir(), filepath.Base(remoteDir))
+	}
 	remoteScript := joinForGOOS(targetGOOS, remoteDir, plan.uploadName)
 	if err := rt.UploadFile(ctx, j.ScriptPath, remoteScript); err != nil {
 		return nil, fmt.Errorf("script execution failed: upload script judge: %w", err)
@@ -99,6 +105,12 @@ func (j *ScriptJudge) evaluateInRuntime(ctx context.Context, rt evalruntime.Runt
 		}
 	}
 
+	if plan.prepareCommand != nil {
+		prepared, prepareErr := rt.Exec(ctx, plan.prepareCommand(remoteScript), evalruntime.ExecOptions{TimeoutSec: int(timeout.Seconds())})
+		if prepareErr != nil || prepared.ExitCode != 0 {
+			return nil, fmt.Errorf("script execution failed: prepare script permissions (exit %d): %v", prepared.ExitCode, prepareErr)
+		}
+	}
 	command := plan.command(remoteScript)
 	cwd := in.WorkspacePath
 	if cwd == "" {

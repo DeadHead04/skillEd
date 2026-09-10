@@ -39,6 +39,9 @@ export async function ensureSchema(sql: Db) {
 export async function migrate(sql: Db) {
   await sql.begin(async (tx) => {
     await tx`SELECT pg_advisory_xact_lock(83746201)`;
+    // Extensions are database-wide. Install in the shared schema before the
+    // baseline replay so isolated workflow schemas cannot own/drop pgcrypto.
+    await tx`CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public`;
     await tx`CREATE TABLE IF NOT EXISTS schema_migrations (version integer PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`;
     const applied = await tx`SELECT version FROM schema_migrations`;
     const versions = new Set(applied.map((r) => Number(r.version)));

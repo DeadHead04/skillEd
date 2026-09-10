@@ -17,26 +17,37 @@ RUN pnpm install --filter @skilled/worker... --frozen-lockfile
 FROM node:24.13.0-bookworm-slim@sha256:4660b1ca8b28d6d1906fd644abe34b2ed81d15434d26d845ef0aced307cf4b6f
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-pip ca-certificates git && rm -rf /var/lib/apt/lists/* \
   && npm install -g @openai/codex@0.149.0-alpha.4.1 \
-  && pip3 install --break-system-packages --no-cache-dir openpyxl==3.1.5 python-docx==1.2.0 pypdf==6.1.1
+  && pip3 install --break-system-packages --no-cache-dir openpyxl==3.1.5 python-docx==1.2.0 pypdf==6.1.1 jsonschema==4.25.1
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/worker/node_modules ./apps/worker/node_modules
 COPY --from=deps /app/packages/core/node_modules ./packages/core/node_modules
-COPY package.json pnpm-workspace.yaml tsconfig.base.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml tsconfig.base.json ./
 COPY packages/core packages/core
 COPY apps/worker apps/worker
 COPY --from=skillup /out/skill-up /usr/local/bin/skill-up
 COPY skill-up/skills/skill-upper /opt/skilled/skill-upper
 COPY apps/worker/src/script-sandbox.py /usr/local/bin/skilled-script-sandbox
+COPY apps/worker/src/runtime_permissions.py /usr/local/bin/runtime_permissions.py
+COPY apps/worker/src/codex-launcher.py /usr/local/bin/skilled-codex-agent
+COPY apps/worker/src/docker-entrypoint.sh /usr/local/bin/skilled-entrypoint
 COPY infra/render-canary/canary.mjs /opt/skilled/canary.mjs
+COPY apps/worker/src/isolation-canary.py /opt/skilled/isolation-canary.py
 # Invoke the native sandbox binary under judge limits; the npm Node launcher
 # cannot initialize its virtual heap inside the 512 MiB address-space limit.
 RUN find /usr/local/lib/node_modules/@openai/codex -type f -path '*/bin/codex' -exec ln -s '{}' /usr/local/bin/skilled-codex ';' \
   && test -x /usr/local/bin/skilled-codex
+RUN rm /usr/local/bin/codex && ln -s /usr/local/bin/skilled-codex-agent /usr/local/bin/codex \
+  && chmod 755 /usr/local/bin/skilled-codex-agent
+COPY apps/worker/src/image-revision.py /opt/skilled/image-revision.py
+COPY infra/docker/codex-seccomp.json /opt/skilled/docker-seccomp.json
+RUN python3 /opt/skilled/image-revision.py > /opt/skilled/image-revision
 RUN groupadd -g 10001 skilled && useradd -u 10001 -g 10001 -m skilled \
-  && mkdir -p /data/artifacts /data/work /data/executor /home/skilled/.codex \
+  && mkdir -p /data/artifacts /data/work/tmp /data/executor /data/acceptance /home/skilled/.codex \
   && chmod 755 /usr/local/bin/skilled-script-sandbox \
+  && chmod 755 /usr/local/bin/skilled-entrypoint \
   && chown -R skilled:skilled /data /home/skilled
 USER 10001:10001
-ENV HOME=/home/skilled SKILLED_SCRIPT_SANDBOX=/usr/local/bin/skilled-script-sandbox CODEX_HOME=/home/skilled/.codex SKILL_UP_BIN=/usr/local/bin/skill-up
+ENV HOME=/home/skilled TMPDIR=/data/work/tmp SKILLED_SCRIPT_SANDBOX=/usr/local/bin/skilled-script-sandbox CODEX_HOME=/home/skilled/.codex SKILL_UP_BIN=/usr/local/bin/skill-up
+ENTRYPOINT ["/usr/local/bin/skilled-entrypoint"]
 CMD ["node", "--import", "tsx", "apps/worker/src/index.ts"]

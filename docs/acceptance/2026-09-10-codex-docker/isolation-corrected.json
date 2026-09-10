@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "skilled-readiness-v1",
+  "status": "blocked",
+  "checkedAt": "2026-09-10T09:31:19.034493+00:00",
+  "imageRevision": "skilled-runtime-cadaaafcbb5a3fb15775c8a39ebc1d81d45028e0ff9caa605cb78bf6ab8771d9",
+  "policyVersion": "skilled-workspace-v2",
+  "checks": [
+    {
+      "name": "non_root",
+      "status": "passed",
+      "detail": "Non-root executor, no effective capabilities, no-new-privileges and seccomp enabled"
+    },
+    {
+      "name": "workspace",
+      "status": "passed",
+      "detail": "Workspace read/write passed"
+    },
+    {
+      "name": "hidden_reads",
+      "status": "passed",
+      "detail": "Synthetic home and sibling reads denied"
+    },
+    {
+      "name": "process_isolation",
+      "status": "passed",
+      "detail": "Fresh PID numbering; outside process inaccessible"
+    },
+    {
+      "name": "network_denial",
+      "status": "passed",
+      "detail": "Host-reachable listener inaccessible to sandbox"
+    },
+    {
+      "name": "script_judge",
+      "status": "passed",
+      "detail": "Actual Skill-Up script judge: PASS and intentional FAIL; staged validator/transcript read-only, hidden reads denied"
+    },
+    {
+      "name": "resource_limits",
+      "status": "passed",
+      "detail": "Judge resource limits active; oversized allocation denied; Docker limits {\"memory.max\": \"4294967296\", \"pids.max\": \"512\", \"cpu.max\": \"200000 100000\"}; Actual sandbox cancellation leaves no delayed child; timeout and 10 MiB raw output limit enforced"
+    },
+    {
+      "name": "codex_initial",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    },
+    {
+      "name": "codex_resume",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    },
+    {
+      "name": "app_server",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    },
+    {
+      "name": "judge_correction",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    },
+    {
+      "name": "login_persistence",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    },
+    {
+      "name": "conversation_recovery",
+      "status": "pending",
+      "detail": "Authenticated acceptance not yet run"
+    }
+  ],
+  "deterministicReady": true
+}

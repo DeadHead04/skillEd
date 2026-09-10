@@ -8,7 +8,6 @@ import {
   AuthoringIntakeSchema,
   ConversationReplySchema,
   CoveragePlanSchema,
-  GeneratedEvalSuiteSchema,
   TaskUnderstandingSchema,
   createZip,
   emit,
@@ -21,15 +20,17 @@ import {
   materialVisibility,
 } from "@skilled/core";
 import { z } from "zod";
+import { fileURLToPath } from "node:url";
+import { validatedGeneration } from "./validated-generation.js";
+import {
+  validateGeneratedSuite,
+  generationSchemaForPlan,
+} from "./eval-validation.js";
 import { codexAppServer as appServer } from "./app-server.js";
 
 const execute = promisify(execFile);
 
 export const MAX_NUM_TEST_CASES = 50;
-
-const LimitedGeneratedEvalSuiteSchema = GeneratedEvalSuiteSchema.extend({
-  cases: GeneratedEvalSuiteSchema.shape.cases.max(MAX_NUM_TEST_CASES),
-});
 
 function safeName(value: string) {
   return basename(value)
@@ -612,7 +613,7 @@ export async function authorEval(sql: Db, job: Record<string, any>) {
 export async function generateEval(sql: Db, job: Record<string, any>) {
   const id = String(job.resource_id);
   const [context] =
-    await sql`SELECT ev.coverage_plan,ev.answers,sv.installable_key original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${id} LIMIT 1`;
+    await sql`SELECT ev.coverage_plan,ev.task_understanding,ev.answers,sv.installable_key original_key,ef.metadata FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id LEFT JOIN eval_files ef ON ef.eval_version_id=ev.id AND ef.kind='task' WHERE ev.id=${id} LIMIT 1`;
   if (!context) throw new Error("Eval context not found");
   const fallback = isProductQcTask(context?.metadata?.text)
     ? productCases
@@ -660,29 +661,87 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
       throw new Error("At least one enabled case is required");
   } else if (process.env.SKILLED_ADAPTER_MODE !== "fake") {
     const conversation = await conversationFor(sql, id, "eval_authoring");
-    const { cwd } = await stageAuthorWorkspace(sql, id, context.original_key);
-    const turn = await appServer.structuredTurn(
-      cwd,
-      `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Generate exactly the approved coverage counts, up to ${MAX_NUM_TEST_CASES}. If coverage cannot be satisfied, return a validation error rather than truncate. Each case must include explicit assertions with globally unique stable IDs, areaId from the approved areas, text, required flag and the exact approved outcome role. Each required area must have coverage. More than one assertion may belong to an area. Populate dimensions with its distinct area IDs, and criteria with assertion text. Deterministic checks may inspect text, JSON, CSV or XLSX artifacts using file, format and JSON-pointer selector. unchanged checks use expectedMaterialId and explicitly allowedPaths. Map every deterministic check to its exact assertionId and area ID. Every script assertion must have a concrete validator. Include thresholds in the criterion text. Files marked agent_input in metadata (datasets by default) are staged under inputs/<material-id>-<filename>. Use approved public rules as task instructions. Expected answers always remain judge-only. Other materials are judge-only unless explicitly approved for the tested agent. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Include sourceReferences with exact material IDs from the material manifest and a concrete rule/cell/section location for each case. Use a script judge when concrete file or final-message checks cover every required dimension. Artifact dimensions must inspect a named output file. Otherwise use an agent judge; never use a mere non-empty-output check.`,
-      z.toJSONSchema(LimitedGeneratedEvalSuiteSchema),
-      conversation.codex_thread_id,
-      {
-        recoveryContext: JSON.stringify(
-          await sql`SELECT role,content FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
-        ),
-        onThread: async (threadId) => {
-          await sql`UPDATE conversations SET codex_thread_id=${threadId},updated_at=now() WHERE id=${conversation.id}`;
-        },
-        onDelta: async (delta) => {
-          await emit(sql, job.id, "conversation_delta", { delta });
-        },
-        skill: {
-          name: "skill-upper",
-          path: join(cwd, ".agents/skills/skill-upper/SKILL.md"),
-        },
-      },
+    const { cwd, files } = await stageAuthorWorkspace(
+      sql,
+      id,
+      context.original_key,
     );
-    const suite = LimitedGeneratedEvalSuiteSchema.parse(turn.structured);
+    let threadId = conversation.codex_thread_id;
+    const responseSchema = generationSchemaForPlan(
+      CoveragePlanSchema.parse(context.coverage_plan),
+    );
+    const suite = await validatedGeneration({
+      generate: async (feedback) => {
+        const turn = await appServer.structuredTurn(
+          cwd,
+          `Use $skill-upper. Generate the complete eval suite from the approved coverage plan ${JSON.stringify(context.coverage_plan)} and the approved business task ${JSON.stringify(context.task_understanding)} and user answers ${JSON.stringify(context.answers)}. Read the Skill and task materials. Return casesByGroup containing EVERY approved coverage group by its exact name, including all groups in this request, with the exact case count required by the response schema. Generate exactly the approved coverage counts, up to ${MAX_NUM_TEST_CASES}. If coverage cannot be satisfied, return a validation error rather than truncate. Each case must include explicit assertions with globally unique stable IDs, areaId from the approved areas, text, required flag and the exact approved outcome role. Each required area must have coverage. More than one assertion may belong to an area. Populate dimensions with its distinct area IDs, and criteria with assertion text. Deterministic checks may inspect text, JSON, CSV or XLSX artifacts using file, format and JSON-pointer selector. unchanged checks use expectedMaterialId and explicitly allowedPaths. Map every deterministic check to its exact assertionId and area ID. Every script assertion must have a concrete validator. Include thresholds in the criterion text. Files marked agent_input in metadata (datasets by default) are staged under inputs/<material-id>-<filename>. Use approved public rules as task instructions. Expected answers always remain judge-only. Other materials are judge-only unless explicitly approved for the tested agent. Cases must be concrete, adversarial, grounded in provenance, and collectively cover false approvals, omissions, invented claims, scope drift, artifact validity, and stability where relevant. Never put hidden expected answers or expected-output files into the tested-agent prompt. Every case must include deterministicChecks (an empty array for agent judges). Include sourceReferences with exact material IDs from the material manifest and a concrete rule/cell/section location for each case. Use a script judge when concrete file or final-message checks cover every required dimension. Artifact dimensions must inspect a named output file. Otherwise use an agent judge; never use a mere non-empty-output check. For full JSON structure checks, use kind=json_schema, file=<output file>, format=json and value containing a JSON-encoded Draft 2020-12 schema string (no external references or format annotations); validate types, required fields, array lengths and allowed properties. Use contains/items schemas to locate findings without assuming their order unless the public contract explicitly fixes that order. For byte-for-byte input preservation use unchanged with format=text and allowedPaths=[]; JSON unchanged only checks parsed field equality. Only uploaded agent_input files are staged; never invent fixture files or expectedMaterialId values. Boundary inputs can be provided inline in the case prompt while preserving the uploaded inputs. Assertions must not promise more than their actual checks enforce. ${feedback ? `The preceding generated suite was rejected: ${feedback}. Return a complete corrected suite retaining every approved judging area, required assertion and group count. Do not merely remove an assertion to suppress the error.` : ""}`,
+          z.toJSONSchema(responseSchema),
+          threadId,
+          {
+            recoveryContext: JSON.stringify(
+              await sql`SELECT role,content FROM conversation_messages WHERE conversation_id=${conversation.id} AND completed=true ORDER BY created_at`,
+            ),
+            onThread: async (threadId) => {
+              await sql`UPDATE conversations SET codex_thread_id=${threadId},updated_at=now() WHERE id=${conversation.id}`;
+            },
+            onDelta: async (delta) => {
+              await emit(sql, job.id, "conversation_delta", { delta });
+            },
+            skill: {
+              name: "skill-upper",
+              path: join(cwd, ".agents/skills/skill-upper/SKILL.md"),
+            },
+          },
+        );
+        threadId = turn.threadId;
+        return turn.structured;
+      },
+      validate: async (value) => {
+        const grouped = responseSchema.parse(value);
+        const suite = validateGeneratedSuite(
+          {
+            cases: Object.values(grouped.casesByGroup).flat(),
+            generationNotes: grouped.generationNotes,
+          },
+          CoveragePlanSchema.parse(context.coverage_plan),
+          files,
+        );
+        for (const item of suite.cases)
+          for (const check of item.deterministicChecks.filter(
+            (c) => c.kind === "json_schema",
+          ))
+            await execute(
+              "python3",
+              [
+                "-c",
+                "import runpy,sys; runpy.run_path(sys.argv[1])['artifact_schema'](sys.argv[2])",
+                fileURLToPath(
+                  new URL(
+                    "../../../packages/core/src/judge-harness.py",
+                    import.meta.url,
+                  ),
+                ),
+                String(check.value),
+              ],
+              { timeout: 5000, maxBuffer: 8000 },
+            );
+        return suite;
+      },
+      rejected: async (value, error, attempt) => {
+        await persistMessage(
+          sql,
+          conversation.id,
+          "assistant",
+          `Generated suite rejected (attempt ${attempt}/3): ${error}`,
+          { rejected: true, validationError: error, proposal: value },
+        );
+        await emit(sql, job.id, "warning", {
+          detail: error,
+          attempt,
+          stage: "correcting_generated_suite",
+        });
+      },
+    });
     caseSet = suite.cases;
     generationNotes = suite.generationNotes;
     await persistMessage(
@@ -872,7 +931,10 @@ export async function generateEval(sql: Db, job: Record<string, any>) {
         title,
         description: definition.purpose,
         input: { prompt },
-        context: fixtureEntries.length ? { repo_fixture: "fixtures" } : {},
+        // The pinned CLI resolves fixtures from the Skill root, not evals/.
+        context: fixtureEntries.length
+          ? { repo_fixture: "evals/fixtures" }
+          : {},
         collect_artifacts: [
           "outputs/**",
           "*.xlsx",

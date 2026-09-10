@@ -1,0 +1,39 @@
+{
+  "reviews": [
+    {
+      "id": "supported",
+      "decision": "PASS",
+      "findings": []
+    },
+    {
+      "id": "unsupported-claim",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F2",
+          "reason": "The source supports only testing for consistency, not a clinical claim that the product improves health."
+        }
+      ]
+    },
+    {
+      "id": "missing-warning",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F3",
+          "reason": "The required peanut warning is missing from the submitted copy."
+        }
+      ]
+    },
+    {
+      "id": "protected-drift",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "sku",
+          "reason": "The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+        }
+      ]
+    }
+  ]
+}

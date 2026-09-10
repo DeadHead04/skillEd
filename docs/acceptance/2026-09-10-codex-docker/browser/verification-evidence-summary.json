@@ -1,0 +1,47 @@
+{
+  "runId": "348bbcc6-ea48-450d-913b-0e369d272c93",
+  "samples": [
+    {
+      "caseId": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "assertions": 6,
+      "outputChecksum": "981eb253aea426662ab3f1acfc9987cbb0d96078f73a361bf42aa41d3ab9b569"
+    },
+    {
+      "caseId": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 2,
+      "assertions": 6,
+      "outputChecksum": "d35b2047ddae62d1d5bbe1eb4fafe960df6ade65da4979b07e69a9417caab4e8"
+    },
+    {
+      "caseId": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 3,
+      "assertions": 6,
+      "outputChecksum": "97dbead66b785e7c7c38ff5bb5e5a94c598095921f167b7b34c80e9983fdf709"
+    },
+    {
+      "caseId": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "assertions": 4,
+      "outputChecksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f"
+    },
+    {
+      "caseId": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 2,
+      "assertions": 4,
+      "outputChecksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f"
+    },
+    {
+      "caseId": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 3,
+      "assertions": 4,
+      "outputChecksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f"
+    }
+  ]
+}

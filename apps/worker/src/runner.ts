@@ -20,6 +20,7 @@ import {
 } from "@skilled/core";
 import { remoteExecution } from "./remote-execution.js";
 import { executeBounded } from "./process.js";
+import { executionIdentity } from "./runtime-identity.js";
 import {
   mkdir,
   readFile,
@@ -49,7 +50,8 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
     await finalizeVerification(sql, run.id);
     return;
   }
-  await sql`UPDATE runs SET engine_versions=${sql.json(runProvenance(run, "demo"))} WHERE id=${run.id}`;
+  const provenance = await runProvenance(run, "demo");
+  await sql`UPDATE runs SET engine_versions=${sql.json(provenance)} WHERE id=${run.id}`;
   await sql`UPDATE runs SET status='preparing',started_at=now() WHERE id=${run.id}`;
   await emit(sql, job.id, "stage_changed", { stage: "preparing" });
   const cases =
@@ -155,7 +157,7 @@ export async function runEvaluation(sql: Db, job: Record<string, any>) {
     JSON.stringify(
       {
         schema_version: "skilled-v1",
-        provenance: runProvenance(run, "demo"),
+        provenance,
         case_results: normalized,
       },
       null,
@@ -228,29 +230,33 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;");
 }
 
-function runProvenance(
+async function runProvenance(
   run: Record<string, any>,
   adapter: string,
   inputs?: Record<string, any>,
 ) {
+  const identity =
+    adapter === "real"
+      ? await executionIdentity()
+      : {
+          imageRevision:
+            process.env.SKILLED_IMAGE_REVISION ??
+            process.env.RENDER_GIT_COMMIT ??
+            "local-unpublished",
+          permissionPolicy: "demo-no-model-execution",
+        };
   return {
     schemaVersion: "skilled-run-provenance-v1",
     adapter,
     model: run.model,
     normalizationVersion: NORMALIZATION_VERSION,
-    imageRevision:
-      process.env.SKILLED_IMAGE_REVISION ??
-      process.env.RENDER_GIT_COMMIT ??
-      "local-unpublished",
+    imageRevision: identity.imageRevision,
     versions: {
       codex: adapter === "real" ? "0.149.0-alpha.4.1" : null,
       skillUp: "skilled-v2",
       node: process.version,
     },
-    permissionPolicy:
-      adapter === "real"
-        ? "skilled-restricted-v1; acceptance evidence required"
-        : "demo-no-model-execution",
+    permissionPolicy: identity.permissionPolicy,
     toolchain: TOOLCHAIN_CAPABILITIES,
     hashes: {
       originalSkill: run.skill_checksum,
@@ -275,7 +281,8 @@ async function runRealEvaluation(
   await emit(sql, job.id, "stage_changed", { stage: "preparing" });
   const [inputs] =
     await sql`SELECT sv.installable_key,sv.installable_checksum,sv.selected_root,ev.bundle_key,ev.checksum eval_checksum FROM skill_versions sv JOIN eval_versions ev ON ev.id=${run.eval_version_id} WHERE sv.id=${run.skill_version_id}`;
-  await sql`UPDATE runs SET engine_versions=${sql.json(runProvenance(run, "real", inputs))} WHERE id=${run.id}`;
+  const provenance = await runProvenance(run, "real", inputs);
+  await sql`UPDATE runs SET engine_versions=${sql.json(provenance)} WHERE id=${run.id}`;
   if (!inputs?.installable_key || !inputs?.bundle_key)
     throw new Error("Pinned Skill or eval artifact is missing");
   const cases =
@@ -507,7 +514,7 @@ async function runRealEvaluation(
       await sql`SELECT case_id,configuration,iteration,result,assertions,dimensions,tokens,duration_ms,error_class,detail,artifacts,transcript_key FROM case_results WHERE run_id=${run.id} ORDER BY case_id,configuration,iteration`;
     const exportManifest = {
       runId: run.id,
-      provenance: runProvenance(run, "real", inputs),
+      provenance,
       execution: {
         exitCode,
         cancelled: termSent,

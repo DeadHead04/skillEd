@@ -35,7 +35,7 @@ test(
       const [v] =
         await sql`INSERT INTO skill_versions(skill_id,version,name,selected_root,checksum,original_key) VALUES(${skill!.id},1,'api-test','','source','source.zip') RETURNING id`;
       const [ev] =
-        await sql`INSERT INTO eval_versions(skill_version_id,status,checksum,validation) VALUES(${v!.id},'ready','eval','{"valid":true}') RETURNING id,revision`;
+        await sql`INSERT INTO eval_versions(skill_version_id,status,checksum,validation,profile_hash) VALUES(${v!.id},'ready','eval','{"valid":true}','approved-profile-fixture') RETURNING id,revision`;
       await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,required_dimensions,yaml_path) VALUES(${ev!.id},'CASE','Case','group','script','["correctness"]','case.yaml')`;
       const send = (
         parts: string[],
@@ -167,6 +167,19 @@ test(
       assert.deepEqual(await replies[0]!.json(), await replies[1]!.json());
       assert.equal(Number((await sql`SELECT count(*) FROM runs`)[0]!.count), 1);
       assert.equal(Number((await sql`SELECT count(*) FROM jobs`)[0]!.count), 1);
+      assert.equal(
+        (await sql`SELECT settings FROM runs`)[0]!.settings.profileHash,
+        "approved-profile-fixture",
+      );
+      const [blockedVersion] =
+        await sql`INSERT INTO skill_versions(skill_id,version,name,selected_root,checksum,original_key,package_assessment) VALUES(${skill!.id},99,'blocked-runtime','','blocked','blocked.zip','{"valid":true,"runtime":"unsupported"}') RETURNING id`;
+      const blockedPackage = await send(["runs", "launch"], {
+        ...payload,
+        skillVersionId: blockedVersion!.id,
+      });
+      assert.equal(blockedPackage.status, 409);
+      assert.equal((await blockedPackage.json()).code, "PACKAGE_BLOCKED");
+      assert.equal(Number((await sql`SELECT count(*) FROM runs`)[0]!.count), 1);
       assert.equal(
         (await send(["runs", "launch"], { ...payload, iterations: 1 }, key))
           .status,
@@ -357,6 +370,183 @@ test(
         profileDraft!.id,
       );
       // Route pools are short-lived test-process resources, and the schema is isolated.
+      if (process.env.SKILLED_CONTRACT_CLI) {
+        const { mkdtemp, readFile, rm } = await import("node:fs/promises");
+        const { join } = await import("node:path");
+        const { tmpdir } = await import("node:os");
+        const { ArtifactStore, extractZip } = await import("@skilled/core");
+        // Keep the worker's Node types separate from Next's ambient ProcessEnv
+        // augmentation. Its own project typechecks this entrypoint.
+        const workerEntrypoint = "../../../worker/src/evals";
+        const { generateEval } = await import(workerEntrypoint);
+        const root = await mkdtemp(join(tmpdir(), "skilled-clone-bundle-"));
+        process.env.ARTIFACT_ROOT = join(root, "artifacts");
+        process.env.WORK_ROOT = join(root, "work");
+        process.env.SKILL_UP_BIN = process.env.SKILLED_CONTRACT_CLI;
+        try {
+          const materialId = crypto.randomUUID();
+          const plan = CoveragePlanSchema.parse({
+            areas: [
+              {
+                id: "scope",
+                label: "Input integrity",
+                description: "Preserve input bytes",
+                role: "task_success",
+                required: true,
+                sourceReferences: [{ materialId, location: "input" }],
+              },
+            ],
+            groups: [
+              {
+                name: "fixtures",
+                purpose: "Preserve input",
+                caseCount: 1,
+                judge: "script",
+                dimensions: ["scope"],
+                provenance: ["task"],
+                iterations: 1,
+              },
+            ],
+          });
+          const definition = {
+            id: "INPUT",
+            title: "Input preservation",
+            coverageGroup: "fixtures",
+            purpose: "Preserve bytes",
+            prompt: `Read inputs/${materialId}-input.json`,
+            judgeType: "script",
+            dimensions: ["scope"],
+            criteria: ["Preserve input"],
+            provenance: ["task"],
+            sourceReferences: [{ materialId, location: "input" }],
+            assertions: [
+              {
+                id: "keep",
+                areaId: "scope",
+                role: "task_success",
+                required: true,
+                text: "Preserve input",
+              },
+            ],
+            deterministicChecks: [
+              {
+                assertionId: "keep",
+                dimension: "scope",
+                kind: "unchanged",
+                format: "text",
+                file: `inputs/${materialId}-input.json`,
+                expectedMaterialId: materialId,
+                allowedPaths: [],
+              },
+            ],
+          };
+          const [source] =
+            await sql`INSERT INTO eval_versions(skill_version_id,status,checksum,coverage_plan) VALUES(${v!.id},'ready','original-frozen-bundle',${sql.json(plan)}) RETURNING id`;
+          await sql`INSERT INTO eval_files(id,eval_version_id,kind,filename,artifact_key) VALUES(${materialId},${source!.id},'dataset','input.json','test/input.json')`;
+          await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key) VALUES(${source!.id},'expected','hidden.json','test/hidden.json')`;
+          await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,required_dimensions,yaml_path,source) VALUES(${source!.id},'INPUT','Input preservation','fixtures','script','["scope"]','evals/cases/input.yaml',${sql.json(definition)})`;
+          await sql`UPDATE eval_versions SET status='approved' WHERE id=${source!.id}`;
+          const store = new ArtifactStore();
+          await store.put("test/input.json", Buffer.from('{"value":1}\n'));
+          await store.put("test/hidden.json", Buffer.from("hidden truth"));
+          const cloneKey = crypto.randomUUID();
+          const reply = await send(
+            ["evals", source!.id, "clone"],
+            { preserveCases: true },
+            cloneKey,
+          );
+          assert.equal(reply.status, 201, await reply.clone().text());
+          const { resourceId } = await reply.json();
+          assert.equal(
+            (
+              await (
+                await send(
+                  ["evals", source!.id, "clone"],
+                  { preserveCases: true },
+                  cloneKey,
+                )
+              ).json()
+            ).resourceId,
+            resourceId,
+          );
+          const [copied] =
+            await sql`SELECT * FROM eval_files WHERE eval_version_id=${resourceId} AND kind='dataset'`;
+          assert.notEqual(copied!.id, materialId);
+          const [job] =
+            await sql`SELECT * FROM jobs WHERE resource_id=${resourceId}`;
+          await generateEval(sql, job!);
+          const [draft] =
+            await sql`SELECT * FROM eval_versions WHERE id=${resourceId}`;
+          assert.equal(draft!.status, "ready");
+          assert.notEqual(draft!.checksum, "original-frozen-bundle");
+          assert.equal(
+            (
+              await sql`SELECT checksum FROM eval_versions WHERE id=${source!.id}`
+            )[0]!.checksum,
+            "original-frozen-bundle",
+          );
+          const extracted = join(root, "extracted");
+          await extractZip(
+            await store.materialize(draft!.bundle_key),
+            extracted,
+            { requireSkill: false },
+          );
+          const spec = JSON.parse(
+            await readFile(join(extracted, "evals/cases/input.yaml"), "utf8"),
+          );
+          // Match the pinned CLI's SkillDir-relative fixture resolution.
+          assert.equal(
+            await readFile(
+              join(
+                extracted,
+                spec.context.repo_fixture,
+                `inputs/${copied!.id}-input.json`,
+              ),
+              "utf8",
+            ),
+            '{"value":1}\n',
+          );
+          const manifest = JSON.parse(
+            await readFile(
+              join(extracted, "evals/skilled.manifest.json"),
+              "utf8",
+            ),
+          );
+          assert.equal(manifest.fixtures.length, 1);
+          assert.equal(manifest.fixtures[0].id, copied!.id);
+          const [clonedCase] =
+            await sql`SELECT source FROM eval_cases WHERE eval_version_id=${resourceId}`;
+          assert.equal(
+            clonedCase!.source.deterministicChecks[0].file,
+            `inputs/${copied!.id}-input.json`,
+          );
+          assert.equal(
+            clonedCase!.source.deterministicChecks[0].expectedMaterialId,
+            copied!.id,
+          );
+          const approvedHash = profileHash(
+            draft!.coverage_plan,
+            draft!.task_understanding,
+          );
+          const clonedApproval = await send(["evals", resourceId, "approve"], {
+            expectedRevision: draft!.revision,
+            profileHash: approvedHash,
+          });
+          assert.equal(
+            clonedApproval.status,
+            200,
+            await clonedApproval.clone().text(),
+          );
+          assert.equal(
+            (
+              await sql`SELECT profile_hash FROM eval_versions WHERE id=${resourceId}`
+            )[0]!.profile_hash,
+            approvedHash,
+          );
+        } finally {
+          await rm(root, { recursive: true, force: true });
+        }
+      }
     } finally {
       await sql.end();
       await admin.unsafe(`DROP SCHEMA ${schema} CASCADE`);

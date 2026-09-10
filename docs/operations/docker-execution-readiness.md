@@ -2,13 +2,36 @@
 
 The message `no isolation acceptance report is configured for this image` is an execution setup rejection. It does not grade the Skill and does not establish that the person's ChatGPT login is invalid. Retrying generation cannot repair it.
 
-## Confirmed implementation gaps
+## Initialize real Docker execution
 
-The default local Compose file selects `real` mode. Before this fix it did not pass `SKILLED_EXECUTION_EVIDENCE` or `SKILLED_IMAGE_REVISION` to the worker. Adding those settings to `.env` alone therefore had no effect inside that container. The code also returned the same error when either setting was absent.
+Enable **device-code authorization for Codex** in the intended account's
+**ChatGPT Settings > Security** before starting login. For a managed workspace,
+the workspace administrator may need to enable it in workspace permissions.
+If the authorization page displays “Enable device code authorization for Codex,”
+use its ChatGPT Security Settings link, enable the setting, then rerun the login
+command for a fresh code. This rejection comes from the account's sign-in policy;
+rebuilding Docker or retrying generation does not change it.
+[Official Codex authentication instructions](https://learn.chatgpt.com/docs/auth#preferred-device-code-authentication-beta)
 
-The preliminary canary still leaves eight acceptance paths pending. It cannot generate a fully accepted report. Completing the real execution acceptance harness remains required; this diagnostic/configuration fix does **not** make a fresh installation capable of certified real evaluation. Previously observed local Docker probes failed namespace creation, and the actual script-judge probe failed with resource exhaustion. Those results describe the tested machine, not another person's Docker host.
+The login code expires after 15 minutes in the pinned CLI. If it expires while
+changing settings, rerun `./scripts/create-codex-login.sh` using the same Compose
+project, then continue the setup command below. Do not copy credential files.
 
-Reports must match the tested image and be less than 24 hours old. Copying a report from a different installation, changing its revision/timestamp, or marking pending checks passed is not acceptance.
+After deterministic checks, use the existing Compose project (preserve its name and volumes):
+
+```sh
+./scripts/setup-docker-execution.sh --real
+```
+
+This explicitly consumes model requests. It builds the executor, drains the ordinary worker, checks isolation without credentials, starts the official device-login flow if needed, and runs real CLI/App Server/Skill-Up judge acceptance. A second container proves login persistence and native conversation recovery; a missing-thread test checks reconstruction. The ordinary worker restarts even on failure, retaining history and actionable diagnostics while real execution stays gated.
+
+Default Compose now stores Codex login in `codex-home` and measured acceptance in `acceptance`, both named volumes. It never binds a desktop credential file. Existing application database/artifact/work volumes keep their names and content. The old host login remains untouched; perform a new login in Docker after upgrading.
+
+The image has a build-time fingerprint of pinned binaries, dependency lockfile and product source. This takes precedence over manually configured revisions, so a rebuild cannot accidentally reuse an older image's accepted report. Reports still expire after 24 hours; rerun measured acceptance instead of modifying timestamps. The current setup command is operator-run, not an automatic background renewal service.
+
+The production launcher applies the same strict filesystem policy to task CLI, resume and App Server paths. Script judges apply limits inside their fresh namespace. The pinned CLI uses `sandbox -- COMMAND`; the previous platform subcommand was not supported by this build. Details and the explicit Docker syscall delta are in [the runtime boundary notes](../../infra/docker/README.md).
+
+All 13 isolation and authenticated checks passed on the development Docker host on 10 September 2026, including real CLI/App Server tool use, script and agent judges, login persistence, resume and reconstruction. The [acceptance record](../acceptance/2026-09-10-codex-docker/README.md) tracks the separate browser workflow. These results do not certify another person's Docker host or Render; each installation must run its own acceptance.
 
 ## Collect the exact blocker on the other person's computer
 
@@ -43,11 +66,11 @@ The worker image includes the credential-free canary. It constructs a temporary 
 docker compose exec -T -e SKILLED_CANARY_ONCE=true worker node /opt/skilled/canary.mjs
 ```
 
-A nonzero exit is expected until all required checks are certified; the current preliminary harness always leaves authenticated paths pending. It must never be installed as an accepted report. A sandbox failure needs investigation on that specific host before login or real-agent acceptance. Keep the gate closed rather than adding a privileged container, disabling the sandbox, or relabeling synthetic runs as real.
+The preliminary command exits zero when its seven isolation checks pass, but its report remains blocked with authenticated checks pending. It must never be installed as an accepted report; use the full setup command above. A sandbox failure needs investigation on that specific host before login or real-agent acceptance. Keep the gate closed rather than adding a privileged container, disabling the sandbox, or relabeling synthetic runs as real.
 
 ## Wire a genuinely accepted local report
 
-Only after actual acceptance succeeds for that exact image, add these settings to the existing local `.env`:
+The setup command manages the report volume automatically. For an externally managed accepted report from this exact image, the optional overlay can instead use these settings in the existing local `.env`:
 
 ```dotenv
 COMPOSE_FILE=docker-compose.yml:compose.execution.yaml

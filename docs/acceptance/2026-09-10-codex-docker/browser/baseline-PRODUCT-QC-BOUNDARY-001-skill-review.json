@@ -1,0 +1,14 @@
+{
+  "reviews": [
+    {
+      "id": "missing-source-card",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "missing",
+          "reason": "insufficient evidence"
+        }
+      ]
+    }
+  ]
+}

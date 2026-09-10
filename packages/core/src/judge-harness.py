@@ -40,6 +40,26 @@ def flatten(value, prefix=""):
     return {prefix: value}
 
 
+def artifact_schema(value):
+    from jsonschema import Draft202012Validator
+    from referencing import Registry
+    schema = json.loads(value)
+    def inspect(node):
+        if isinstance(node, dict):
+            for key, item in node.items():
+                if key in ("$ref", "$dynamicRef") and isinstance(item, str) and not item.startswith("#"):
+                    raise ValueError("Artifact schemas cannot access external references")
+                if key == "format" and isinstance(item, str):
+                    raise ValueError("Artifact schemas use explicit structural constraints or patterns, not optional format annotations")
+                inspect(item)
+        elif isinstance(node, list):
+            for item in node:
+                inspect(item)
+    inspect(schema)
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema, registry=Registry())
+
+
 def run_checks(spec):
     grouped = {a["id"]: [] for a in spec["assertions"]}
     envelope = {"schemaVersion": "skilled-grading-v1", "assertions": [], "error": None}
@@ -67,7 +87,18 @@ def run_checks(spec):
             else:
                 actual = os.environ.get("EVAL_FINAL_MESSAGE", "")
             kind = check["kind"]
-            if kind == "unchanged":
+            if kind == "json_schema":
+                if check.get("format") != "json" or not check.get("file"):
+                    raise ValueError("JSON schema checks require a named JSON artifact")
+                expected = json.loads(check["value"])
+                validator = artifact_schema(check["value"])
+                error = next(validator.iter_errors(actual), None)
+                passed = error is None
+                if error:
+                    location = "/" + "/".join(str(part) for part in error.absolute_path)
+                    grouped[definition["id"]].append((False, "Output schema mismatch at " + location + ": " + error.message))
+                    continue
+            elif kind == "unchanged":
                 expected = document(base64.b64decode(spec["truth"][check["expectedMaterialId"]]), check.get("format", "text"))
                 left, right = flatten(expected), flatten(actual)
                 allowed = set(check.get("allowedPaths", []))

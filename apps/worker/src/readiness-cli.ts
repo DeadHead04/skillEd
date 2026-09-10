@@ -1,5 +1,10 @@
 import { serviceEndpoint } from "@skilled/core";
 import { executionReadiness } from "./readiness.js";
+import { stat } from "node:fs/promises";
+const builtRevision = await stat("/opt/skilled/image-revision").then(
+  () => true,
+  () => false,
+);
 
 const demo = process.env.SKILLED_ADAPTER_MODE === "fake";
 const endpoint = serviceEndpoint("EXECUTOR");
@@ -51,7 +56,8 @@ console.log(
                 process.env.SKILLED_EXECUTION_EVIDENCE?.trim(),
               ),
               revisionConfigured: Boolean(
-                process.env.SKILLED_IMAGE_REVISION?.trim() ||
+                builtRevision ||
+                  process.env.SKILLED_IMAGE_REVISION?.trim() ||
                   process.env.RENDER_GIT_COMMIT?.trim(),
               ),
             },

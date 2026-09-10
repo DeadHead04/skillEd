@@ -1,0 +1,168 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+RESULTS · SKILL V1 · TEST PLAN V2
+What the evidence shows
+✓
+Required checks passed
+2/2
+cases passing across 3 trials
+6/6 execution samples recorded · Completed
+Explore the evidence
+
+Choose a comparison, trial, or judging area.
+
+Reset view
+With Skill
+Trial
+All 3 trials
+Trial 1
+Trial 2
+Trial 3
+With Skill
+All 3 trials · required assertions
+25%
+50%
+75%
+100%
+QCdecisions
+Sourcecitations
+review.jsoncontract
+Inputintegrity
+
+Rings: share of expected assertions passed.
+Select an axis or a bar to filter the evidence.
+
+AREA PREVIEW
+QC decisions
+
+Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.
+
+With Skill · 6/6 passed
+0 failed · 0 errors · 0 missing
+Filter these cases
+QC decisions
+Inspect →
+With Skill
+6/6 passed
+0 failed · 0 errors · 0 missing
+Source citations
+Inspect →
+With Skill
+12/12 passed
+0 failed · 0 errors · 0 missing
+review.json contract
+Inspect →
+With Skill
+6/6 passed
+0 failed · 0 errors · 0 missing
+Input integrity
+Inspect →
+With Skill
+6/6 passed
+0 failed · 0 errors · 0 missing
+Passed
+Failed
+Errors
+Missing
+
+Missing evidence stays in every denominator.
+
+All areas · All 3 trials · With Skill
+
+Case evidence
+2 of 2 cases · With Skill · All trials
+All
+Fail
+Partial
+Error
+Pass
+Case	QC decisions	Source citations	review.json contract	Input integrity	Outcome
+
+Four-card grounded product QC batch
+	
+3/3 passed
+	
+9/9 passed
+	
+3/3 passed
+	
+3/3 passed
+	
+✓
+PASS
+
+Missing source evidence boundary
+	
+3/3 passed
+	
+3/3 passed
+	
+3/3 passed
+	
+3/3 passed
+	
+✓
+PASS
+Repeated-trial stability
+With Skill · all trials
+Case	Trial 1	Trial 2	Trial 3	Stability
+Four-card grounded product QC batch	
+✓
+PASS
+	
+✓
+PASS
+	
+✓
+PASS
+	Stable
+Missing source evidence boundary	
+✓
+PASS
+	
+✓
+PASS
+	
+✓
+PASS
+	Stable
+Continue testing or inspect the evidence
+
+Every run and its original evidence remain available.
+
+Start another run
+Initial verification complete
+
+All required checks passed in three trials. No improvement comparison is claimed.
+
+Activate tested version
+Run provenance and downloads

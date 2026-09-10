@@ -1,0 +1,157 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+RESULTS · SKILL V1 · TEST PLAN V2
+What the evidence shows
+✓
+Required checks passed
+2/2
+cases passing across 1 trial
+4/4 execution samples recorded · Completed
+Explore the evidence
+
+Choose a comparison, trial, or judging area.
+
+Reset view
+With Skill
+Without Skill
+Compare both
+Trial
+All 1 trials
+Trial 1
+With Skill
+All 1 trials · required assertions
+25%
+50%
+75%
+100%
+QCdecisions
+Sourcecitations
+review.jsoncontract
+Inputintegrity
+
+Rings: share of expected assertions passed.
+Select an axis or a bar to filter the evidence.
+
+AREA PREVIEW
+QC decisions
+
+Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.
+
+With Skill · 2/2 passed
+0 failed · 0 errors · 0 missing
+Filter these cases
+QC decisions
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Source citations
+Inspect →
+With Skill
+4/4 passed
+0 failed · 0 errors · 0 missing
+review.json contract
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Input integrity
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Passed
+Failed
+Errors
+Missing
+
+Missing evidence stays in every denominator.
+
+All areas · All 1 trials · With Skill
+
+Case evidence
+2 of 2 cases · With Skill · All trials
+All
+Fail
+Partial
+Error
+Pass
+Case	QC decisions	Source citations	review.json contract	Input integrity	Outcome
+
+Four-card grounded product QC batch
+	
+1/1 passed
+	
+3/3 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+✓
+PASS
+
+Missing source evidence boundary
+	
+1/1 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+✓
+PASS
+Repeated-trial stability
+Not measured — one trial
+Benefit of using the Skill
+Matched cases · All trials
+Judging area	With Skill	Without Skill
+
+QC decisions
+	2/2 passed	2/2 passed · 0 unavailable
+
+Source citations
+	4/4 passed	4/4 passed · 0 unavailable
+
+review.json contract
+	2/2 passed	2/2 passed · 0 unavailable
+
+Input integrity
+	2/2 passed	2/2 passed · 0 unavailable
+Continue testing or inspect the evidence
+
+Every run and its original evidence remain available.
+
+Start another run
+Run provenance and downloads

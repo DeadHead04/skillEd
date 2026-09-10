@@ -1,0 +1,430 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+RESULTS · SKILL V1 · TEST PLAN V2
+What the evidence shows
+✓
+Required checks passed
+2/2
+cases passing across 1 trial
+4/4 execution samples recorded · Completed
+Explore the evidence
+
+Choose a comparison, trial, or judging area.
+
+Reset view
+With Skill
+Without Skill
+Compare both
+Trial
+All 1 trials
+Trial 1
+With Skill
+All 1 trials · required assertions
+25%
+50%
+75%
+100%
+QCdecisions
+Sourcecitations
+review.jsoncontract
+Inputintegrity
+
+Rings: share of expected assertions passed.
+Select an axis or a bar to filter the evidence.
+
+AREA PREVIEW
+QC decisions
+
+Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.
+
+With Skill · 2/2 passed
+0 failed · 0 errors · 0 missing
+Filter these cases
+QC decisions
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Source citations
+Inspect →
+With Skill
+4/4 passed
+0 failed · 0 errors · 0 missing
+review.json contract
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Input integrity
+Inspect →
+With Skill
+2/2 passed
+0 failed · 0 errors · 0 missing
+Passed
+Failed
+Errors
+Missing
+
+Missing evidence stays in every denominator.
+
+All areas · All 1 trials · With Skill
+
+Case evidence
+2 of 2 cases · With Skill · All trials
+All
+Fail
+Partial
+Error
+Pass
+Case	QC decisions	Source citations	review.json contract	Input integrity	Outcome
+
+Four-card grounded product QC batch
+	
+1/1 passed
+	
+3/3 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+✓
+PASS
+
+Missing source evidence boundary
+	
+1/1 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+1/1 passed
+	
+✓
+PASS
+Repeated-trial stability
+Not measured — one trial
+Benefit of using the Skill
+Matched cases · All trials
+Judging area	With Skill	Without Skill
+
+QC decisions
+	2/2 passed	2/2 passed · 0 unavailable
+
+Source citations
+	4/4 passed	4/4 passed · 0 unavailable
+
+review.json contract
+	2/2 passed	2/2 passed · 0 unavailable
+
+Input integrity
+	2/2 passed	2/2 passed · 0 unavailable
+Continue testing or inspect the evidence
+
+Every run and its original evidence remain available.
+
+Start another run
+Run provenance and downloads
+Four-card grounded product QC batch
+PRODUCT-QC-BATCH-001 · Skill v1
+✕
+Trial 1
+With Skill
+Without Skill
+✓
+PASS
+Assertion evidence
+✓
+
+Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.
+
+review.json
+Field	Expected	Actual
+value	"{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"type\": \"string\", \"enum\": [\"supported\", \"unsupported-claim\", \"missing-warning\", \"protected-drift\"]}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, \"prefixItems\": [{\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"cons"	Missing
+/reviews/0/id	Missing	"supported"
+/reviews/0/decision	Missing	"PASS"
+/reviews/1/id	Missing	"unsupported-claim"
+/reviews/1/decision	Missing	"FAIL"
+/reviews/1/findings/0/source_id	Missing	"F2"
+/reviews/1/findings/0/reason	Missing	"The source supports only testing for consistency, not a clinical claim that the product improves health."
+/reviews/2/id	Missing	"missing-warning"
+/reviews/2/decision	Missing	"FAIL"
+/reviews/2/findings/0/source_id	Missing	"F3"
+/reviews/2/findings/0/reason	Missing	"The required peanut warning is missing from the submitted copy."
+/reviews/3/id	Missing	"protected-drift"
+/reviews/3/decision	Missing	"FAIL"
+/reviews/3/findings/0/source_id	Missing	"sku"
+/reviews/3/findings/0/reason	Missing	"The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+json_schema check passed
+✓
+
+The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.
+
+review.json
+Field	Expected	Actual
+/$schema	"https://json-schema.org/draft/2020-12/schema"	Missing
+/type	"object"	Missing
+/required/0	"reviews"	Missing
+/properties/reviews/type	"array"	Missing
+/properties/reviews/minItems	4	Missing
+/properties/reviews/maxItems	4	Missing
+/properties/reviews/allOf/0/contains/type	"object"	Missing
+/properties/reviews/allOf/0/contains/required/0	"id"	Missing
+/properties/reviews/allOf/0/contains/required/1	"decision"	Missing
+/properties/reviews/allOf/0/contains/properties/id/const	"supported"	Missing
+/properties/reviews/allOf/0/contains/properties/decision/const	"PASS"	Missing
+/properties/reviews/allOf/0/contains/additionalProperties	true	Missing
+/properties/reviews/allOf/0/minContains	1	Missing
+/properties/reviews/allOf/1/contains/type	"object"	Missing
+/properties/reviews/allOf/1/contains/required/0	"id"	Missing
+/properties/reviews/allOf/1/contains/required/1	"decision"	Missing
+/properties/reviews/allOf/1/contains/properties/id/const	"unsupported-claim"	Missing
+/properties/reviews/allOf/1/contains/properties/decision/const	"FAIL"	Missing
+/properties/reviews/allOf/1/contains/additionalProperties	true	Missing
+/properties/reviews/allOf/1/minContains	1	Missing
+/properties/reviews/allOf/2/contains/type	"object"	Missing
+/properties/reviews/allOf/2/contains/required/0	"id"	Missing
+/properties/reviews/allOf/2/contains/required/1	"decision"	Missing
+/properties/reviews/allOf/2/contains/properties/id/const	"missing-warning"	Missing
+/properties/reviews/allOf/2/contains/properties/decision/const	"FAIL"	Missing
+/properties/reviews/allOf/2/contains/additionalProperties	true	Missing
+/properties/reviews/allOf/2/minContains	1	Missing
+/properties/reviews/allOf/3/contains/type	"object"	Missing
+/properties/reviews/allOf/3/contains/required/0	"id"	Missing
+/properties/reviews/allOf/3/contains/required/1	"decision"	Missing
+/properties/reviews/allOf/3/contains/properties/id/const	"protected-drift"	Missing
+/properties/reviews/allOf/3/contains/properties/decision/const	"FAIL"	Missing
+/properties/reviews/allOf/3/contains/additionalProperties	true	Missing
+/properties/reviews/allOf/3/minContains	1	Missing
+/additionalProperties	true	Missing
+/reviews/0/id	Missing	"supported"
+/reviews/0/decision	Missing	"PASS"
+/reviews/1/id	Missing	"unsupported-claim"
+/reviews/1/decision	Missing	"FAIL"
+/reviews/1/findings/0/source_id	Missing	"F2"
+/reviews/1/findings/0/reason	Missing	"The source supports only testing for consistency, not a clinical claim that the product improves health."
+/reviews/2/id	Missing	"missing-warning"
+/reviews/2/decision	Missing	"FAIL"
+/reviews/2/findings/0/source_id	Missing	"F3"
+/reviews/2/findings/0/reason	Missing	"The required peanut warning is missing from the submitted copy."
+/reviews/3/id	Missing	"protected-drift"
+/reviews/3/decision	Missing	"FAIL"
+/reviews/3/findings/0/source_id	Missing	"sku"
+/reviews/3/findings/0/reason	Missing	"The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+json_schema check passed
+✓
+
+The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.
+
+review.json
+Field	Expected	Actual
+/$schema	"https://json-schema.org/draft/2020-12/schema"	Missing
+/type	"object"	Missing
+/required/0	"reviews"	Missing
+/properties/reviews/type	"array"	Missing
+/properties/reviews/contains/type	"object"	Missing
+/properties/reviews/contains/required/0	"id"	Missing
+/properties/reviews/contains/required/1	"findings"	Missing
+/properties/reviews/contains/properties/id/const	"unsupported-claim"	Missing
+/properties/reviews/contains/properties/findings/type	"array"	Missing
+/properties/reviews/contains/properties/findings/contains/type	"object"	Missing
+/properties/reviews/contains/properties/findings/contains/required/0	"source_id"	Missing
+/properties/reviews/contains/properties/findings/contains/required/1	"reason"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/source_id/const	"F2"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/type	"string"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/minLength	1	Missing
+/properties/reviews/contains/properties/findings/contains/additionalProperties	true	Missing
+/properties/reviews/contains/properties/findings/minContains	1	Missing
+/properties/reviews/contains/additionalProperties	true	Missing
+/properties/reviews/minContains	1	Missing
+/additionalProperties	true	Missing
+/reviews/0/id	Missing	"supported"
+/reviews/0/decision	Missing	"PASS"
+/reviews/1/id	Missing	"unsupported-claim"
+/reviews/1/decision	Missing	"FAIL"
+/reviews/1/findings/0/source_id	Missing	"F2"
+/reviews/1/findings/0/reason	Missing	"The source supports only testing for consistency, not a clinical claim that the product improves health."
+/reviews/2/id	Missing	"missing-warning"
+/reviews/2/decision	Missing	"FAIL"
+/reviews/2/findings/0/source_id	Missing	"F3"
+/reviews/2/findings/0/reason	Missing	"The required peanut warning is missing from the submitted copy."
+/reviews/3/id	Missing	"protected-drift"
+/reviews/3/decision	Missing	"FAIL"
+/reviews/3/findings/0/source_id	Missing	"sku"
+/reviews/3/findings/0/reason	Missing	"The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+json_schema check passed
+✓
+
+The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.
+
+review.json
+Field	Expected	Actual
+/$schema	"https://json-schema.org/draft/2020-12/schema"	Missing
+/type	"object"	Missing
+/required/0	"reviews"	Missing
+/properties/reviews/type	"array"	Missing
+/properties/reviews/contains/type	"object"	Missing
+/properties/reviews/contains/required/0	"id"	Missing
+/properties/reviews/contains/required/1	"findings"	Missing
+/properties/reviews/contains/properties/id/const	"missing-warning"	Missing
+/properties/reviews/contains/properties/findings/type	"array"	Missing
+/properties/reviews/contains/properties/findings/contains/type	"object"	Missing
+/properties/reviews/contains/properties/findings/contains/required/0	"source_id"	Missing
+/properties/reviews/contains/properties/findings/contains/required/1	"reason"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/source_id/const	"F3"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/type	"string"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/minLength	1	Missing
+/properties/reviews/contains/properties/findings/contains/additionalProperties	true	Missing
+/properties/reviews/contains/properties/findings/minContains	1	Missing
+/properties/reviews/contains/additionalProperties	true	Missing
+/properties/reviews/minContains	1	Missing
+/additionalProperties	true	Missing
+/reviews/0/id	Missing	"supported"
+/reviews/0/decision	Missing	"PASS"
+/reviews/1/id	Missing	"unsupported-claim"
+/reviews/1/decision	Missing	"FAIL"
+/reviews/1/findings/0/source_id	Missing	"F2"
+/reviews/1/findings/0/reason	Missing	"The source supports only testing for consistency, not a clinical claim that the product improves health."
+/reviews/2/id	Missing	"missing-warning"
+/reviews/2/decision	Missing	"FAIL"
+/reviews/2/findings/0/source_id	Missing	"F3"
+/reviews/2/findings/0/reason	Missing	"The required peanut warning is missing from the submitted copy."
+/reviews/3/id	Missing	"protected-drift"
+/reviews/3/decision	Missing	"FAIL"
+/reviews/3/findings/0/source_id	Missing	"sku"
+/reviews/3/findings/0/reason	Missing	"The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+json_schema check passed
+✓
+
+The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.
+
+review.json
+Field	Expected	Actual
+/$schema	"https://json-schema.org/draft/2020-12/schema"	Missing
+/type	"object"	Missing
+/required/0	"reviews"	Missing
+/properties/reviews/type	"array"	Missing
+/properties/reviews/contains/type	"object"	Missing
+/properties/reviews/contains/required/0	"id"	Missing
+/properties/reviews/contains/required/1	"findings"	Missing
+/properties/reviews/contains/properties/id/const	"protected-drift"	Missing
+/properties/reviews/contains/properties/findings/type	"array"	Missing
+/properties/reviews/contains/properties/findings/contains/type	"object"	Missing
+/properties/reviews/contains/properties/findings/contains/required/0	"source_id"	Missing
+/properties/reviews/contains/properties/findings/contains/required/1	"reason"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/source_id/const	"sku"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/type	"string"	Missing
+/properties/reviews/contains/properties/findings/contains/properties/reason/minLength	1	Missing
+/properties/reviews/contains/properties/findings/contains/additionalProperties	true	Missing
+/properties/reviews/contains/properties/findings/minContains	1	Missing
+/properties/reviews/contains/additionalProperties	true	Missing
+/properties/reviews/minContains	1	Missing
+/additionalProperties	true	Missing
+/reviews/0/id	Missing	"supported"
+/reviews/0/decision	Missing	"PASS"
+/reviews/1/id	Missing	"unsupported-claim"
+/reviews/1/decision	Missing	"FAIL"
+/reviews/1/findings/0/source_id	Missing	"F2"
+/reviews/1/findings/0/reason	Missing	"The source supports only testing for consistency, not a clinical claim that the product improves health."
+/reviews/2/id	Missing	"missing-warning"
+/reviews/2/decision	Missing	"FAIL"
+/reviews/2/findings/0/source_id	Missing	"F3"
+/reviews/2/findings/0/reason	Missing	"The required peanut warning is missing from the submitted copy."
+/reviews/3/id	Missing	"protected-drift"
+/reviews/3/decision	Missing	"FAIL"
+/reviews/3/findings/0/source_id	Missing	"sku"
+/reviews/3/findings/0/reason	Missing	"The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+json_schema check passed
+✓
+
+The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.
+
+inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json
+Field	Expected	Actual
+value · protected	"\"{\\n \\\"synthetic\\\": true,\\n \\\"cards\\\": [\\n {\\n \\\"id\\\": \\\"supported\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n },\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n },\\n \\\"submitted\\\": {\\n \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n }\\n },\\n {\\n \\\"id\\\": \\\"unsupported-claim\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n },\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n },\\n \\\"submitted\\\": {\\n \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n }\\n },\\n {\\n \\\"id\\\": \\\"missing-warning\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n "	"\"{\\n \\\"synthetic\\\": true,\\n \\\"cards\\\": [\\n {\\n \\\"id\\\": \\\"supported\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n },\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n },\\n \\\"submitted\\\": {\\n \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n }\\n },\\n {\\n \\\"id\\\": \\\"unsupported-claim\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n },\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n },\\n \\\"submitted\\\": {\\n \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n \\\"protected_fields\\\": {\\n \\\"sku\\\": \\\"DEMO-001\\\",\\n \\\"seller\\\": \\\"Example Seller\\\",\\n \\\"price\\\": \\\"100.00 INR\\\",\\n \\\"quantity\\\": \\\"100 g\\\",\\n \\\"address\\\": \\\"1 Example Road\\\"\\n }\\n }\\n },\\n {\\n \\\"id\\\": \\\"missing-warning\\\",\\n \\\"source\\\": {\\n \\\"facts\\\": {\\n \\\"F1\\\": \\\"Made from oats.\\\",\\n \\\"F2\\\": \\\"Tested for consistency.\\\",\\n "
+unchanged check passed
+Actual response
+Created [review.json](/data/work/tmp/skill-up-3409056017/review.json) with four reviews in input order. JSON validation passed, and the input file was not modified.
+Prompt and provenance
+Output files
+grading.json
+↓
+last-message.txt
+↓
+rollout-2026-09-10T10-57-49-01a08af7-7a9a-7b91-a65f-78b62ddf1c05.jsonl
+↓
+stdout.json
+↓
+response.md
+↓
+review.json
+↓
+{
+  "reviews": [
+    {
+      "id": "supported",
+      "decision": "PASS",
+      "findings": []
+    },
+    {
+      "id": "unsupported-claim",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F2",
+          "reason": "The source supports only testing for consistency, not a clinical claim that the product improves health."
+        }
+      ]
+    },
+    {
+      "id": "missing-warning",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F3",
+          "reason": "The required peanut warning is missing from the submitted copy."
+        }
+      ]
+    },
+    {
+      "id": "protected-drift",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "sku",
+          "reason": "The submitted SKU DEMO-002 does not match the protected source SKU DEMO-001."
+        }
+      ]
+    }
+  ]
+}

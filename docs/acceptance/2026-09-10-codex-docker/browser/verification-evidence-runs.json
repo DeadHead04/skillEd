@@ -1,0 +1,1143 @@
+{
+  "id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "eval_version_id": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+  "job_id": "b1559038-9e97-4153-a422-3c3bdb847ba0",
+  "status": "completed",
+  "model": "gpt-5.6-luna",
+  "settings": {
+    "adapter": "real",
+    "retries": {
+      "transient": 1,
+      "correctness": 0
+    },
+    "environment": "none",
+    "parallelism": 1,
+    "profileHash": "addff2a445c7aaf88d88c2a2d936150498ffb823dcbb5b3096840241282cb742",
+    "selectedCaseIds": [
+      "PRODUCT-QC-BATCH-001",
+      "PRODUCT-QC-BOUNDARY-001"
+    ]
+  },
+  "skill_checksum": "99ebd4e933577bbcc16d144da882c040d1d2392fc61420731e85f89bb8046563",
+  "eval_checksum": "12f2d656db315e00ec623dfb89c5462883fd1bb2d8b5344ac530c64bb3923520",
+  "engine_versions": {
+    "model": "gpt-5.6-luna",
+    "hashes": {
+      "approvedEval": "12f2d656db315e00ec623dfb89c5462883fd1bb2d8b5344ac530c64bb3923520",
+      "originalSkill": "99ebd4e933577bbcc16d144da882c040d1d2392fc61420731e85f89bb8046563",
+      "installableSkill": "1c259d9fc7da193c16d7e5a452404a7e775eb5b6c40212df43cb3568ea3f1e3e",
+      "evaluationProfile": "addff2a445c7aaf88d88c2a2d936150498ffb823dcbb5b3096840241282cb742"
+    },
+    "adapter": "real",
+    "settings": {
+      "adapter": "real",
+      "retries": {
+        "transient": 1,
+        "correctness": 0
+      },
+      "baseline": false,
+      "iterations": 3,
+      "environment": "none",
+      "parallelism": 1,
+      "profileHash": "addff2a445c7aaf88d88c2a2d936150498ffb823dcbb5b3096840241282cb742",
+      "selectedCaseIds": [
+        "PRODUCT-QC-BATCH-001",
+        "PRODUCT-QC-BOUNDARY-001"
+      ]
+    },
+    "versions": {
+      "node": "v24.13.0",
+      "codex": "0.149.0-alpha.4.1",
+      "skillUp": "skilled-v2"
+    },
+    "toolchain": {
+      "limits": {
+        "cases": 50,
+        "trials": 3,
+        "logBytes": 10485760,
+        "parallelism": 1,
+        "uploadBytes": 209715200,
+        "artifactBytes": 262144000
+      },
+      "liveMcp": false,
+      "available": [
+        "python3",
+        "node",
+        "openpyxl",
+        "python-docx",
+        "pypdf",
+        "jsonschema"
+      ],
+      "networkTools": false,
+      "schemaVersion": "skilled-toolchain-v1",
+      "artifactFormats": [
+        "text",
+        "json",
+        "csv",
+        "xlsx"
+      ],
+      "packageInstallation": false
+    },
+    "imageRevision": "skilled-runtime-30aa68835ab99e1e03a0e059dfa4bfa9cb2884ccfa54128166cada91e99504f9",
+    "schemaVersion": "skilled-run-provenance-v1",
+    "permissionPolicy": "skilled-workspace-v2",
+    "normalizationVersion": "skilled-grading-v3"
+  },
+  "baseline": false,
+  "iterations": 3,
+  "raw_report_key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/raw-report.zip",
+  "normalized_key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/normalized.json",
+  "started_at": "2026-09-10T11:00:26.160Z",
+  "completed_at": "2026-09-10T11:03:32.668Z",
+  "created_at": "2026-09-10T11:00:25.663Z",
+  "provenance_status": "verified_pipeline",
+  "skill_version": 1,
+  "eval_version": 2,
+  "results": [
+    {
+      "id": "f3563ad0-2e96-45e3-bf51-1b0d6cdef9be",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "batch_contract_001",
+          "role": "constraint",
+          "text": "[batch_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; the source only states \\\"Tested for consistency.\\\"\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The required peanut warning is omitted; the source states \\\"Contains peanuts; the submitted card must include this warning.\\\"\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU \\\"DEMO-002\\\" does not exactly match the protected source SKU \\\"DEMO-001\\\".\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"type\": \"string\", \"enum\": [\"supported\", \"unsupported-claim\", \"missing-warning\", \"protected-drift\"]}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, \"prefixItems\": [{\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"cons",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_decisions_001",
+          "role": "task_success",
+          "text": "[batch_decisions_001] The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; the source only states \\\"Tested for consistency.\\\"\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The required peanut warning is omitted; the source states \\\"Contains peanuts; the submitted card must include this warning.\\\"\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU \\\"DEMO-002\\\" does not exactly match the protected source SKU \\\"DEMO-001\\\".\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"allOf\": [{\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"const\": \"PASS\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}]}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f2_001",
+          "role": "task_success",
+          "text": "[batch_f2_001] The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; the source only states \\\"Tested for consistency.\\\"\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The required peanut warning is omitted; the source states \\\"Contains peanuts; the submitted card must include this warning.\\\"\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU \\\"DEMO-002\\\" does not exactly match the protected source SKU \\\"DEMO-001\\\".\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F2\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f3_001",
+          "role": "task_success",
+          "text": "[batch_f3_001] The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; the source only states \\\"Tested for consistency.\\\"\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The required peanut warning is omitted; the source states \\\"Contains peanuts; the submitted card must include this warning.\\\"\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU \\\"DEMO-002\\\" does not exactly match the protected source SKU \\\"DEMO-001\\\".\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F3\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_sku_001",
+          "role": "task_success",
+          "text": "[batch_sku_001] The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; the source only states \\\"Tested for consistency.\\\"\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The required peanut warning is omitted; the source states \\\"Contains peanuts; the submitted card must include this warning.\\\"\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU \\\"DEMO-002\\\" does not exactly match the protected source SKU \\\"DEMO-001\\\".\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"sku\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_integrity_001",
+          "role": "constraint",
+          "text": "[batch_integrity_001] The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/grading.json",
+          "size": 19879,
+          "checksum": "36ca106939e1c07f411107508bda65700cf9b3e34c16e3f6e6b4964794e1eb8d",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 127,
+          "checksum": "3944a2fa3492b841595cf677221356a81c5f522c94e513b21ba2e05a38b2cac5",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-00-26-01a08af9-de1e-7a62-97a6-b8ef5596a825.jsonl",
+          "size": 88880,
+          "checksum": "e574cc48500ddb30775cb97adbfbde7e7a808248b799035b12872b47748fd737",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 8750,
+          "checksum": "dbc1280d36bcbf661a181e30a2128779ea834ddb1a51317451fd8f726c84d8b4",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/response.md",
+          "size": 128,
+          "checksum": "65f41e42cabc867042b8ec907a81b01a85198719fa50f732b04a5daf736dd30a",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/workspace/review.json",
+          "size": 953,
+          "checksum": "981eb253aea426662ab3f1acfc9987cbb0d96078f73a361bf42aa41d3ab9b569",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 91507,
+        "output": 1239
+      },
+      "duration_ms": 35056,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "response": "Created [review.json](/data/work/tmp/skill-up-1950814547/review.json) with four reviews in input order. JSON validation passed.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial"
+    },
+    {
+      "id": "945a4cdf-3e83-4d27-ab10-2813496cb73f",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 2,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "batch_contract_001",
+          "role": "constraint",
+          "text": "[batch_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The submitted claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only states that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"type\": \"string\", \"enum\": [\"supported\", \"unsupported-claim\", \"missing-warning\", \"protected-drift\"]}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, \"prefixItems\": [{\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"cons",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_decisions_001",
+          "role": "task_success",
+          "text": "[batch_decisions_001] The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The submitted claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only states that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"allOf\": [{\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"const\": \"PASS\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}]}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f2_001",
+          "role": "task_success",
+          "text": "[batch_f2_001] The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The submitted claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only states that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F2\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f3_001",
+          "role": "task_success",
+          "text": "[batch_f3_001] The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The submitted claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only states that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F3\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_sku_001",
+          "role": "task_success",
+          "text": "[batch_sku_001] The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The submitted claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only states that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"sku\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_integrity_001",
+          "role": "constraint",
+          "text": "[batch_integrity_001] The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/grading.json",
+          "size": 19409,
+          "checksum": "5e9c67a22ebaa971c1d16483ac566f8118c287747b8c88db7631fb0a7b6a68b3",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 127,
+          "checksum": "17f4d05e2addd9d9d263c645932b6fff63964e9d60d85ff0c0218f1ec4e05989",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-01-26-01a08afa-cad6-71b1-a3de-9c0b28b18208.jsonl",
+          "size": 83915,
+          "checksum": "b2218f71f0256d7c45e520c7e40a2f25d3835a24f543b8b1dad66efc0337bf0f",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 8575,
+          "checksum": "37c34d97a425df2f0c1bdbb17a10e839ac247d3a9560ec1756c93cb14caa7f93",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/outputs/response.md",
+          "size": 128,
+          "checksum": "f1c58f19688147b12eaa0e5d5d97f10e1ad85b856b8df74fe8f33af44510bb59",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BATCH-001/with_skill/outputs/workspace/review.json",
+          "size": 907,
+          "checksum": "d35b2047ddae62d1d5bbe1eb4fafe960df6ade65da4979b07e69a9417caab4e8",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 98091,
+        "output": 1092
+      },
+      "duration_ms": 33227,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "response": "Created [review.json](/data/work/tmp/skill-up-2470977254/review.json) with four reviews in input order. JSON validation passed.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial"
+    },
+    {
+      "id": "77057cf9-3471-4ead-8f62-5c63b88e8948",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 3,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "batch_contract_001",
+          "role": "constraint",
+          "text": "[batch_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only supports that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"type\": \"string\", \"enum\": [\"supported\", \"unsupported-claim\", \"missing-warning\", \"protected-drift\"]}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, \"prefixItems\": [{\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}, {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"cons",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_decisions_001",
+          "role": "task_success",
+          "text": "[batch_decisions_001] The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only supports that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 4, \"maxItems\": 4, \"allOf\": [{\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"supported\"}, \"decision\": {\"const\": \"PASS\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}, {\"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}]}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f2_001",
+          "role": "task_success",
+          "text": "[batch_f2_001] The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only supports that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"unsupported-claim\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F2\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_f3_001",
+          "role": "task_success",
+          "text": "[batch_f3_001] The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only supports that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-warning\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"F3\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_sku_001",
+          "role": "task_success",
+          "text": "[batch_sku_001] The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"supported\", \"decision\": \"PASS\", \"findings\": []}, {\"id\": \"unsupported-claim\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F2\", \"reason\": \"The claim \\\"Clinically proven to improve health\\\" is unsupported; F2 only supports that the product was tested for consistency.\"}]}, {\"id\": \"missing-warning\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"F3\", \"reason\": \"The submitted copy omits the required warning that the product contains peanuts.\"}]}, {\"id\": \"protected-drift\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"sku\", \"reason\": \"The submitted SKU is DEMO-002, but the protected source SKU is DEMO-001.\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"protected-drift\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"sku\"}, \"reason\": {\"type\": \"string\", \"minLength\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "batch_integrity_001",
+          "role": "constraint",
+          "text": "[batch_integrity_001] The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/grading.json",
+          "size": 19369,
+          "checksum": "d437fa1c46009dd3f8112b26aef104890f14d9eb0c0980eadf7530c25fac0e1e",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 126,
+          "checksum": "63fb3473e6ebf9961cfd834ec88ffd8ca6219cb2ac8d4d9b9181aaca54d863f7",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-02-26-01a08afb-b3ec-7cc1-9347-8d774847ac12.jsonl",
+          "size": 83276,
+          "checksum": "aa545255be1c165b26324a784537f415732a5c5114145476556fabd323124d5c",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 8597,
+          "checksum": "0503fc6bf92a75b4e09fc6d6fdd18244446ec8ee56a9d5006c12965f608d9550",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/outputs/response.md",
+          "size": 127,
+          "checksum": "3be86d479f114847fbc73a5e61e888d19694cafb7eba1d05b0ced8d603425d88",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BATCH-001/with_skill/outputs/workspace/review.json",
+          "size": 899,
+          "checksum": "97dbead66b785e7c7c38ff5bb5e5a94c598095921f167b7b34c80e9983fdf709",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 70161,
+        "output": 1288
+      },
+      "duration_ms": 35860,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "response": "Created [review.json](/data/work/tmp/skill-up-186579858/review.json) with four reviews in input order. JSON validation passed.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial"
+    },
+    {
+      "id": "64c57d86-58d2-426d-9b06-4f0aeafab63b",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "boundary_contract_001",
+          "role": "constraint",
+          "text": "[boundary_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 1, \"maxItems\": 1, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}}}, \"additionalProperties\": false}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_decision_001",
+          "role": "task_success",
+          "text": "[boundary_decision_001] The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_citation_001",
+          "role": "task_success",
+          "text": "[boundary_citation_001] The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"missing\"}, \"reason\": {\"const\": \"insufficient evidence\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_integrity_001",
+          "role": "constraint",
+          "text": "[boundary_integrity_001] The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/grading.json",
+          "size": 10608,
+          "checksum": "ee7f794e2a0a4c9b2019273da21748ca6cb83ca27d9a60a9bd3499022202c59e",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 84,
+          "checksum": "c93d0dddb8b06d05f2fd984e9d26c1e4e17cb11247d199778e626775bedac134",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-01-01-01a08afa-67a4-7730-b049-09a49ab6df16.jsonl",
+          "size": 64797,
+          "checksum": "4efb8e09be1cf26f7a3bdaadc38d11c3a6be6f5456397ef50a8f827a6fc4a6e1",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 4046,
+          "checksum": "4570163a30c46d254812e9e52ca3593869c82e1f29a70a4579544b9f6ebef890",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/response.md",
+          "size": 85,
+          "checksum": "4ab3fdb1a3a9d1a06bcd69e4f85e1cead0e33189323be11f6e8264884b5517d2",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/workspace/review.json",
+          "size": 222,
+          "checksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 72775,
+        "output": 621
+      },
+      "duration_ms": 25226,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "response": "Created and validated [review.json](/data/work/tmp/skill-up-1209988982/review.json).",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source"
+    },
+    {
+      "id": "60ca56c2-a336-489c-9ab9-e4c261526c58",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 2,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "boundary_contract_001",
+          "role": "constraint",
+          "text": "[boundary_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 1, \"maxItems\": 1, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}}}, \"additionalProperties\": false}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_decision_001",
+          "role": "task_success",
+          "text": "[boundary_decision_001] The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_citation_001",
+          "role": "task_success",
+          "text": "[boundary_citation_001] The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"missing\"}, \"reason\": {\"const\": \"insufficient evidence\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_integrity_001",
+          "role": "constraint",
+          "text": "[boundary_integrity_001] The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/grading.json",
+          "size": 10608,
+          "checksum": "ee7f794e2a0a4c9b2019273da21748ca6cb83ca27d9a60a9bd3499022202c59e",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 84,
+          "checksum": "a261c35a850e0e83e872412ee1e03b722151dca1a9e5e45e87ae62334a25fcf3",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-02-00-01a08afb-4d43-7c32-8355-1e7febbf3529.jsonl",
+          "size": 64184,
+          "checksum": "5c0bd35fc5a71bfc02784f5a70603e04213cd61a4f32c88c9899b8cefd1fe27a",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 3904,
+          "checksum": "73479f880cc8422d94f99481232652209434c3650abe22afbfbe4018b7ee2888",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/response.md",
+          "size": 85,
+          "checksum": "86233680e4b426f7cacade6c015d97b68496fae5459ce44d49e2054528a6ed8f",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-2/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/workspace/review.json",
+          "size": 222,
+          "checksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 80759,
+        "output": 660
+      },
+      "duration_ms": 26094,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "response": "Created and validated [review.json](/data/work/tmp/skill-up-3738689516/review.json).",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source"
+    },
+    {
+      "id": "98d33605-5784-4b13-9288-5aff4433e594",
+      "run_id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 3,
+      "result": "PASS",
+      "assertions": [
+        {
+          "id": "boundary_contract_001",
+          "role": "constraint",
+          "text": "[boundary_contract_001] Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+          "areaId": "review_json_contract",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "review_json_contract",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"minItems\": 1, \"maxItems\": 1, \"items\": {\"type\": \"object\", \"required\": [\"id\", \"decision\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"type\": \"string\", \"enum\": [\"PASS\", \"FAIL\"]}, \"findings\": {\"type\": \"array\", \"items\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"type\": \"string\"}, \"reason\": {\"type\": \"string\"}}, \"additionalProperties\": true}}}, \"additionalProperties\": true}}}, \"additionalProperties\": false}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_decision_001",
+          "role": "task_success",
+          "text": "[boundary_decision_001] The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+          "areaId": "qc_decisions",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "qc_decisions",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"decision\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"decision\": {\"const\": \"FAIL\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_citation_001",
+          "role": "task_success",
+          "text": "[boundary_citation_001] The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+          "areaId": "source_citations",
+          "passed": true,
+          "evidence": "json_schema check passed",
+          "required": true,
+          "dimension": "source_citations",
+          "observations": [
+            {
+              "file": "review.json",
+              "actual": "{\"reviews\": [{\"id\": \"missing-source-card\", \"decision\": \"FAIL\", \"findings\": [{\"source_id\": \"missing\", \"reason\": \"insufficient evidence\"}]}]}",
+              "format": "json",
+              "expected": "{\"$schema\": \"https://json-schema.org/draft/2020-12/schema\", \"type\": \"object\", \"required\": [\"reviews\"], \"properties\": {\"reviews\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"id\", \"findings\"], \"properties\": {\"id\": {\"const\": \"missing-source-card\"}, \"findings\": {\"type\": \"array\", \"contains\": {\"type\": \"object\", \"required\": [\"source_id\", \"reason\"], \"properties\": {\"source_id\": {\"const\": \"missing\"}, \"reason\": {\"const\": \"insufficient evidence\"}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}, \"minContains\": 1}}, \"additionalProperties\": true}",
+              "selector": "",
+              "protected": false,
+              "allowedPaths": []
+            }
+          ]
+        },
+        {
+          "id": "boundary_integrity_001",
+          "role": "constraint",
+          "text": "[boundary_integrity_001] The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+          "areaId": "input_integrity",
+          "passed": true,
+          "evidence": "unchanged check passed",
+          "required": true,
+          "dimension": "input_integrity",
+          "observations": [
+            {
+              "file": "inputs/88f48b76-a550-4342-ad08-397a198ef73b-product-cards.json",
+              "actual": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "format": "text",
+              "expected": "\"{\\n  \\\"synthetic\\\": true,\\n  \\\"cards\\\": [\\n    {\\n      \\\"id\\\": \\\"supported\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Tested for consistency. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"unsupported-claim\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n          \\\"F3\\\": \\\"Contains peanuts; the submitted card must include this warning.\\\"\\n        },\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      },\\n      \\\"submitted\\\": {\\n        \\\"copy\\\": \\\"Made from oats. Clinically proven to improve health. Contains peanuts.\\\",\\n        \\\"protected_fields\\\": {\\n          \\\"sku\\\": \\\"DEMO-001\\\",\\n          \\\"seller\\\": \\\"Example Seller\\\",\\n          \\\"price\\\": \\\"100.00 INR\\\",\\n          \\\"quantity\\\": \\\"100 g\\\",\\n          \\\"address\\\": \\\"1 Example Road\\\"\\n        }\\n      }\\n    },\\n    {\\n      \\\"id\\\": \\\"missing-warning\\\",\\n      \\\"source\\\": {\\n        \\\"facts\\\": {\\n          \\\"F1\\\": \\\"Made from oats.\\\",\\n          \\\"F2\\\": \\\"Tested for consistency.\\\",\\n         ",
+              "selector": "",
+              "protected": true,
+              "allowedPaths": []
+            }
+          ]
+        }
+      ],
+      "dimensions": {
+        "qc_decisions": true,
+        "input_integrity": true,
+        "source_citations": true,
+        "review_json_contract": true
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/grading.json",
+          "size": 10608,
+          "checksum": "ee7f794e2a0a4c9b2019273da21748ca6cb83ca27d9a60a9bd3499022202c59e",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/last-message.txt",
+          "size": 139,
+          "checksum": "7d7e37b12b6521f87d3d3ca2e393236df05953c743b99f5aec6e6b2f11452adf",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/rollout-2026-09-10T11-03-02-01a08afc-4095-7c50-8038-62a1a255e640.jsonl",
+          "size": 59249,
+          "checksum": "e7bc307696deeb3364de02e23521a13820b65fc61c0f6ae7a6d1421c5fdc1435",
+          "mediaType": "application/octet-stream"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/agent/run/stdout.json",
+          "size": 3605,
+          "checksum": "b7ea3248864359792d138e83b8f125c7ead619254351fc373afed44f19841b41",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/response.md",
+          "size": 140,
+          "checksum": "07be62c5366371d8d33cc96d9f9bc19bc6605792bb9ae9ccb2803234a71289b7",
+          "mediaType": "text/plain"
+        },
+        {
+          "key": "runs/348bbcc6-ea48-450d-913b-0e369d272c93/evidence/iteration-3/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/workspace/review.json",
+          "size": 222,
+          "checksum": "42711679c3e721d5301a1172ce3c6ae010061c1065025c287a6e405748c4771f",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 57925,
+        "output": 575
+      },
+      "duration_ms": 29786,
+      "error_class": null,
+      "detail": {
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "response": "Created valid [review.json](/data/work/tmp/skill-up-1482947299/review.json) with the required `FAIL` decision and missing-evidence finding.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source"
+    }
+  ]
+}

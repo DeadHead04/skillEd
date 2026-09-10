@@ -1,0 +1,36 @@
+{
+  "id": "348bbcc6-ea48-450d-913b-0e369d272c93",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "eval_version_id": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+  "job_id": "b1559038-9e97-4153-a422-3c3bdb847ba0",
+  "status": "queued",
+  "model": "gpt-5.6-luna",
+  "settings": {
+    "adapter": "real",
+    "retries": {
+      "transient": 1,
+      "correctness": 0
+    },
+    "environment": "none",
+    "parallelism": 1,
+    "profileHash": "addff2a445c7aaf88d88c2a2d936150498ffb823dcbb5b3096840241282cb742",
+    "selectedCaseIds": [
+      "PRODUCT-QC-BATCH-001",
+      "PRODUCT-QC-BOUNDARY-001"
+    ]
+  },
+  "skill_checksum": "99ebd4e933577bbcc16d144da882c040d1d2392fc61420731e85f89bb8046563",
+  "eval_checksum": "12f2d656db315e00ec623dfb89c5462883fd1bb2d8b5344ac530c64bb3923520",
+  "engine_versions": {},
+  "baseline": false,
+  "iterations": 3,
+  "raw_report_key": null,
+  "normalized_key": null,
+  "started_at": null,
+  "completed_at": null,
+  "created_at": "2026-09-10T11:00:25.663Z",
+  "provenance_status": "verified_pipeline",
+  "skill_version": 1,
+  "eval_version": 2,
+  "results": []
+}

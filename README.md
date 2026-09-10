@@ -1,6 +1,6 @@
 # SkillEd
 
-If another person's Docker installation repeatedly reports missing isolation acceptance, use the [Docker execution-readiness diagnostic](docs/operations/docker-execution-readiness.md). Login alone does not satisfy this gate; the preliminary canary does not yet certify all required real execution paths.
+For real execution in Docker, run `./scripts/setup-docker-execution.sh --real` after the deterministic checks. This runs isolation tests, signs in directly inside Docker when necessary, and runs authenticated acceptance in two replacement containers. See the [Docker execution guide](docs/operations/docker-execution-readiness.md). Login alone does not satisfy the gate.
 
 SkillEd helps a trusted team upload an existing Skill, define approved tests, inspect evidence, review an improvement, verify it and explicitly activate or download the candidate. The backend invokes the pinned **Skill-Up CLI**; application code does not import its internal packages.
 
@@ -17,7 +17,7 @@ Upload Skill and task files
 
 ## Current release status
 
-The corrected local workflow and private-service implementation are available on `codex/private-render-pilot`. Hosted real execution is **disabled until the Render feasibility gate passes**. A non-root local canary could not create the namespace required by Codex; this is a blocking result, not a reason to bypass the sandbox. Render also needs GitHub access to the private repository before it can build the canary.
+Hosted real execution remains **disabled until the Render feasibility gate passes**. The local Docker configuration supplies a constrained seccomp profile for Codex's nested sandbox. All 13 isolation and authenticated acceptance checks pass on the tested Docker Desktop host, including real tool use, both judge paths and recovery after container replacement. See the [measured Docker acceptance](docs/acceptance/2026-09-10-codex-docker/README.md) for browser-workflow evidence and remaining limits. Render must demonstrate its own runtime compatibility.
 
 The [69-finding implementation tracker](docs/audits/2026-09-05-implementation-tracker.md) distinguishes implemented code, automated acceptance, pending operational evidence and later releases. The [Render deployment/migration runbook](docs/operations/private-render-pilot.md) covers credentials, service boundaries, all-history migration, restoration and cutover. Neither document claims that real hosted execution has been certified.
 
@@ -77,7 +77,7 @@ Open <http://127.0.0.1:3400/login>. Its initial administrator is `admin` / `dete
 
 Existing deployments need migration **006** and runtime-role provisioning before the new web image starts. New credentials use salted scrypt hashes; existing bcrypt passwords continue to work. Account link secrets are stored only as hashes, shown once to the administrator and carried in URL fragments. They are excluded from history exports, so invitations and recovery links must be reissued after migration. Recovery is administrator-assisted; no email delivery is configured.
 
-The private pilot retains the existing ChatGPT account through official Codex login directly on the executor. Do not read, print, copy, commit or package credential files. Normal development/CI must not receive personal credentials. No real-agent suite should run without explicit authorization after deterministic and isolation gates pass.
+The private pilot uses official Codex login directly inside the executor, persisted in its own Docker volume. Existing host credential files remain untouched; upgraded installations sign in again. Do not read, print, copy, commit or package credential files. Normal development/CI must not receive personal credentials. No real-agent suite should run without explicit authorization after deterministic and isolation gates pass.
 
 ## Architecture
 

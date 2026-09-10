@@ -1,0 +1,85 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+Evaluation in progress
+
+Skill v1 · Test plan v2. Progress is saved as each case finishes.
+
+●
+Queued
+1
+queued
+2
+preparing
+3
+running
+4
+judging
+5
+completed
+Executions
+0 of 6 complete
+○
+PRODUCT-QC-BATCH-001
+With the Skill installed, sample 1
+○
+pending
+○
+PRODUCT-QC-BOUNDARY-001
+With the Skill installed, sample 1
+○
+pending
+○
+PRODUCT-QC-BATCH-001
+With the Skill installed, sample 2
+○
+pending
+○
+PRODUCT-QC-BOUNDARY-001
+With the Skill installed, sample 2
+○
+pending
+○
+PRODUCT-QC-BATCH-001
+With the Skill installed, sample 3
+○
+pending
+○
+PRODUCT-QC-BOUNDARY-001
+With the Skill installed, sample 3
+○
+pending
+Running
+
+Last checked 4:30:25 PM. Progress is rebuilt from durable worker events.
+
+Check now
+Cancel run

@@ -169,7 +169,13 @@ export const GeneratedEvalCaseSchema = z.object({
     .array(
       z.object({
         assertionId: z.string().optional(),
-        kind: z.enum(["equals", "contains", "not_contains", "unchanged"]),
+        kind: z.enum([
+          "equals",
+          "contains",
+          "not_contains",
+          "unchanged",
+          "json_schema",
+        ]),
         value: z
           .union([z.string(), z.number(), z.boolean(), z.null()])
           .optional(),

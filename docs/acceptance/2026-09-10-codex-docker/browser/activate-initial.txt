@@ -1,0 +1,48 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+RELEASE · manual-product-qc
+Choose what your team uses.
+
+Activation follows verification. Every earlier version and its evidence stays available.
+
+Current release
+✓
+Active v1
+
+This is the version used by default for new work.
+
+Version history
+1 retained versions
+1
+Version 1
+Active
+Download ↓

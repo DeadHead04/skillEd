@@ -1,0 +1,299 @@
+{
+  "before": {
+    "id": "PRODUCT-QC-BATCH-001",
+    "title": "Four-card grounded product QC batch",
+    "prompt": "Review inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+    "purpose": "Evaluate supported approval and adversarial rejection of an unsupported claim, an omitted warning, and protected-field drift.",
+    "criteria": [
+      "batch_contract_001: Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews. Concrete script validator: parse review.json and validate the declared Draft 2020-12 schema.",
+      "batch_decisions_001: The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct. Concrete script validator: parse review.json, construct decisionById from reviews, require the exact ID set {supported, unsupported-claim, missing-warning, protected-drift}, and compare it with the exact expected decision map.",
+      "batch_f2_001: The unsupported-claim review contains a finding with source_id exactly F2 and a reason identifying the unsupported clinical or health claim. Threshold: at least one matching finding. Concrete script validator: locate review id unsupported-claim, iterate its findings, require source_id == F2, and require a non-empty reason containing unsupported clinical or health claim.",
+      "batch_f3_001: The missing-warning review contains a finding with source_id exactly F3 and a reason identifying the missing mandatory peanut warning. Threshold: at least one matching finding. Concrete script validator: locate review id missing-warning, iterate its findings, require source_id == F3, and require a non-empty reason containing missing and peanut warning.",
+      "batch_sku_001: The protected-drift review contains a finding with source_id exactly sku and a reason identifying the changed SKU. Threshold: at least one matching finding. Concrete script validator: locate review id protected-drift, iterate its findings, require source_id == sku, and require a non-empty reason containing SKU and drift or changed.",
+      "batch_integrity_001: The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths. Concrete script validator: compare the post-run bytes with the pre-run snapshot and reject any difference."
+    ],
+    "judgeType": "script",
+    "assertions": [
+      {
+        "id": "batch_contract_001",
+        "role": "constraint",
+        "text": "Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+        "areaId": "review_json_contract",
+        "required": true
+      },
+      {
+        "id": "batch_decisions_001",
+        "role": "task_success",
+        "text": "The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+        "areaId": "qc_decisions",
+        "required": true
+      },
+      {
+        "id": "batch_f2_001",
+        "role": "task_success",
+        "text": "The unsupported-claim review contains a finding with source_id exactly F2 and a reason identifying the unsupported clinical or health claim. Threshold: at least one matching finding.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_f3_001",
+        "role": "task_success",
+        "text": "The missing-warning review contains a finding with source_id exactly F3 and a reason identifying the missing mandatory peanut warning. Threshold: at least one matching finding.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_sku_001",
+        "role": "task_success",
+        "text": "The protected-drift review contains a finding with source_id exactly sku and a reason identifying the changed SKU. Threshold: at least one matching finding.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_integrity_001",
+        "role": "constraint",
+        "text": "The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+        "areaId": "input_integrity",
+        "required": true
+      }
+    ],
+    "dimensions": [
+      "qc_decisions",
+      "source_citations",
+      "review_json_contract",
+      "input_integrity"
+    ],
+    "provenance": [
+      "task-description.txt: review.json contract, decision requirements, citations, and byte preservation",
+      "product-cards.json: cards[0..3], source facts, submitted copy, and protected fields",
+      "authority.md: source authority, protected fields, and missing-evidence rule"
+    ],
+    "coverageGroup": "batch_normal_adversarial",
+    "sourceReferences": [
+      {
+        "location": "task-description.txt: output contract, F2/F3/sku rules, and input preservation",
+        "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+      },
+      {
+        "location": "product-cards.json: cards[0..3].source and cards[0..3].submitted",
+        "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      },
+      {
+        "location": "authority.md: paragraphs 1-4",
+        "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+      }
+    ],
+    "deterministicChecks": [
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"type\":\"string\",\"enum\":[\"supported\",\"unsupported-claim\",\"missing-warning\",\"protected-drift\"]},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true}}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "review_json_contract",
+        "assertionId": "batch_contract_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"allOf\":[{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"supported\"},\"decision\":{\"const\":\"PASS\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}]}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "qc_decisions",
+        "assertionId": "batch_decisions_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F2\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_f2_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F3\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_f3_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"sku\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_sku_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json",
+        "kind": "unchanged",
+        "value": null,
+        "format": "text",
+        "selector": "",
+        "dimension": "input_integrity",
+        "assertionId": "batch_integrity_001",
+        "allowedPaths": [],
+        "expectedMaterialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ]
+  },
+  "after": {
+    "id": "PRODUCT-QC-BATCH-001",
+    "title": "Four-card grounded product QC batch",
+    "prompt": "Review inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+    "purpose": "Evaluate supported approval and adversarial rejection of an unsupported claim, an omitted warning, and protected-field drift.",
+    "criteria": [
+      "Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+      "The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+      "The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+      "The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+      "The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+      "The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths."
+    ],
+    "judgeType": "script",
+    "assertions": [
+      {
+        "id": "batch_contract_001",
+        "role": "constraint",
+        "text": "Create a valid review.json with exactly one top-level reviews array containing exactly four review objects; each object has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly four reviews.",
+        "areaId": "review_json_contract",
+        "required": true
+      },
+      {
+        "id": "batch_decisions_001",
+        "role": "task_success",
+        "text": "The four review decisions are supported=PASS, unsupported-claim=FAIL, missing-warning=FAIL, and protected-drift=FAIL, with no missing or extra IDs. Threshold: 4 of 4 decisions correct.",
+        "areaId": "qc_decisions",
+        "required": true
+      },
+      {
+        "id": "batch_f2_001",
+        "role": "task_success",
+        "text": "The unsupported-claim review contains a finding with source_id F2 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_f3_001",
+        "role": "task_success",
+        "text": "The missing-warning review contains a finding with source_id F3 and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_sku_001",
+        "role": "task_success",
+        "text": "The protected-drift review contains a finding with source_id sku and a nonempty reason. Threshold: at least one exact source-ID match; reason meaning is not semantically graded.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "batch_integrity_001",
+        "role": "constraint",
+        "text": "The staged product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+        "areaId": "input_integrity",
+        "required": true
+      }
+    ],
+    "dimensions": [
+      "qc_decisions",
+      "source_citations",
+      "review_json_contract",
+      "input_integrity"
+    ],
+    "provenance": [
+      "task-description.txt: review.json contract, decision requirements, citations, and byte preservation",
+      "product-cards.json: cards[0..3], source facts, submitted copy, and protected fields",
+      "authority.md: source authority, protected fields, and missing-evidence rule"
+    ],
+    "coverageGroup": "batch_normal_adversarial",
+    "sourceReferences": [
+      {
+        "location": "task-description.txt: output contract, F2/F3/sku rules, and input preservation",
+        "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+      },
+      {
+        "location": "product-cards.json: cards[0..3].source and cards[0..3].submitted",
+        "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      },
+      {
+        "location": "authority.md: paragraphs 1-4",
+        "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+      }
+    ],
+    "deterministicChecks": [
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"type\":\"string\",\"enum\":[\"supported\",\"unsupported-claim\",\"missing-warning\",\"protected-drift\"]},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true},\"prefixItems\":[{\"properties\":{\"id\":{\"const\":\"supported\"}}},{\"properties\":{\"id\":{\"const\":\"unsupported-claim\"}}},{\"properties\":{\"id\":{\"const\":\"missing-warning\"}}},{\"properties\":{\"id\":{\"const\":\"protected-drift\"}}}]}},\"additionalProperties\":false}",
+        "format": "json",
+        "selector": "",
+        "dimension": "review_json_contract",
+        "assertionId": "batch_contract_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":4,\"maxItems\":4,\"allOf\":[{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"supported\"},\"decision\":{\"const\":\"PASS\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1},{\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}]}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "qc_decisions",
+        "assertionId": "batch_decisions_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"unsupported-claim\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F2\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_f2_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-warning\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"F3\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_f3_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"protected-drift\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"sku\"},\"reason\":{\"type\":\"string\",\"minLength\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "batch_sku_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json",
+        "kind": "unchanged",
+        "value": null,
+        "format": "text",
+        "selector": "",
+        "dimension": "input_integrity",
+        "assertionId": "batch_integrity_001",
+        "allowedPaths": [],
+        "expectedMaterialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ]
+  },
+  "rationale": "Align citation labels with actual mechanical checks and enforce the public JSON root/order contract. No semantic-accuracy claim is made for free-form reasons."
+}

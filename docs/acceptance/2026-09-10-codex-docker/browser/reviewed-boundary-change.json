@@ -1,0 +1,227 @@
+{
+  "before": {
+    "id": "PRODUCT-QC-BOUNDARY-001",
+    "title": "Missing source evidence boundary",
+    "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+    "purpose": "Evaluate rejection of a claim for which the supplied source facts contain no supporting evidence.",
+    "criteria": [
+      "boundary_contract_001: Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review. Concrete script validator: parse review.json and validate the declared Draft 2020-12 schema.",
+      "boundary_decision_001: The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct. Concrete script validator: locate the review by id and compare decision with FAIL.",
+      "boundary_citation_001: The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding. Concrete script validator: iterate findings and require one object with both exact field values.",
+      "boundary_integrity_001: The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths. Concrete script validator: compare the post-run bytes with the pre-run snapshot."
+    ],
+    "judgeType": "script",
+    "assertions": [
+      {
+        "id": "boundary_contract_001",
+        "role": "constraint",
+        "text": "Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+        "areaId": "review_json_contract",
+        "required": true
+      },
+      {
+        "id": "boundary_decision_001",
+        "role": "task_success",
+        "text": "The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+        "areaId": "qc_decisions",
+        "required": true
+      },
+      {
+        "id": "boundary_citation_001",
+        "role": "task_success",
+        "text": "The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "boundary_integrity_001",
+        "role": "constraint",
+        "text": "The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+        "areaId": "input_integrity",
+        "required": true
+      }
+    ],
+    "dimensions": [
+      "qc_decisions",
+      "source_citations",
+      "review_json_contract",
+      "input_integrity"
+    ],
+    "provenance": [
+      "task-description.txt: missing-evidence rejection and review.json contract",
+      "authority.md: missing evidence must be reported and never manufactured",
+      "Inline boundary input: missing-source-card has a submitted claim with no corresponding source fact"
+    ],
+    "coverageGroup": "boundary_missing_source",
+    "sourceReferences": [
+      {
+        "location": "task-description.txt: missing-source-evidence boundary requirement and output contract",
+        "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+      },
+      {
+        "location": "authority.md: paragraph 4, missing evidence rule",
+        "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+      },
+      {
+        "location": "product-cards.json: uploaded agent_input material whose bytes must remain unchanged",
+        "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ],
+    "deterministicChecks": [
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true}}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "review_json_contract",
+        "assertionId": "boundary_contract_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "qc_decisions",
+        "assertionId": "boundary_decision_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"missing\"},\"reason\":{\"const\":\"insufficient evidence\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "boundary_citation_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json",
+        "kind": "unchanged",
+        "value": null,
+        "format": "text",
+        "selector": "",
+        "dimension": "input_integrity",
+        "assertionId": "boundary_integrity_001",
+        "allowedPaths": [],
+        "expectedMaterialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ]
+  },
+  "after": {
+    "id": "PRODUCT-QC-BOUNDARY-001",
+    "title": "Missing source evidence boundary",
+    "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+    "purpose": "Evaluate rejection of a claim for which the supplied source facts contain no supporting evidence.",
+    "criteria": [
+      "boundary_contract_001: Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review. Concrete script validator: parse review.json and validate the declared Draft 2020-12 schema.",
+      "boundary_decision_001: The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct. Concrete script validator: locate the review by id and compare decision with FAIL.",
+      "boundary_citation_001: The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding. Concrete script validator: iterate findings and require one object with both exact field values.",
+      "boundary_integrity_001: The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths. Concrete script validator: compare the post-run bytes with the pre-run snapshot."
+    ],
+    "judgeType": "script",
+    "assertions": [
+      {
+        "id": "boundary_contract_001",
+        "role": "constraint",
+        "text": "Create a valid review.json with exactly one top-level reviews array containing exactly one review for missing-source-card; the review has id, decision, and findings, and each finding has source_id and reason. Threshold: 100% schema compliance and exactly one review.",
+        "areaId": "review_json_contract",
+        "required": true
+      },
+      {
+        "id": "boundary_decision_001",
+        "role": "task_success",
+        "text": "The missing-source-card review has decision exactly FAIL because the submitted claim lacks supporting source evidence. Threshold: 1 of 1 boundary decision correct.",
+        "areaId": "qc_decisions",
+        "required": true
+      },
+      {
+        "id": "boundary_citation_001",
+        "role": "task_success",
+        "text": "The missing-source-card review contains a finding with source_id exactly missing and reason exactly insufficient evidence. Threshold: both values match exactly in the same finding.",
+        "areaId": "source_citations",
+        "required": true
+      },
+      {
+        "id": "boundary_integrity_001",
+        "role": "constraint",
+        "text": "The uploaded product-card input remains byte-for-byte unchanged after execution. Threshold: zero changed input bytes and no changed input paths.",
+        "areaId": "input_integrity",
+        "required": true
+      }
+    ],
+    "dimensions": [
+      "qc_decisions",
+      "source_citations",
+      "review_json_contract",
+      "input_integrity"
+    ],
+    "provenance": [
+      "task-description.txt: missing-evidence rejection and review.json contract",
+      "authority.md: missing evidence must be reported and never manufactured",
+      "Inline boundary input: missing-source-card has a submitted claim with no corresponding source fact"
+    ],
+    "coverageGroup": "boundary_missing_source",
+    "sourceReferences": [
+      {
+        "location": "task-description.txt: missing-source-evidence boundary requirement and output contract",
+        "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+      },
+      {
+        "location": "authority.md: paragraph 4, missing evidence rule",
+        "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+      },
+      {
+        "location": "product-cards.json: uploaded agent_input material whose bytes must remain unchanged",
+        "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ],
+    "deterministicChecks": [
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"minItems\":1,\"maxItems\":1,\"items\":{\"type\":\"object\",\"required\":[\"id\",\"decision\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"type\":\"string\",\"enum\":[\"PASS\",\"FAIL\"]},\"findings\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"type\":\"string\"},\"reason\":{\"type\":\"string\"}},\"additionalProperties\":true}}},\"additionalProperties\":true}}},\"additionalProperties\":false}",
+        "format": "json",
+        "selector": "",
+        "dimension": "review_json_contract",
+        "assertionId": "boundary_contract_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"decision\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"decision\":{\"const\":\"FAIL\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "qc_decisions",
+        "assertionId": "boundary_decision_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "review.json",
+        "kind": "json_schema",
+        "value": "{\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"type\":\"object\",\"required\":[\"reviews\"],\"properties\":{\"reviews\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"id\",\"findings\"],\"properties\":{\"id\":{\"const\":\"missing-source-card\"},\"findings\":{\"type\":\"array\",\"contains\":{\"type\":\"object\",\"required\":[\"source_id\",\"reason\"],\"properties\":{\"source_id\":{\"const\":\"missing\"},\"reason\":{\"const\":\"insufficient evidence\"}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true},\"minContains\":1}},\"additionalProperties\":true}",
+        "format": "json",
+        "selector": "",
+        "dimension": "source_citations",
+        "assertionId": "boundary_citation_001",
+        "allowedPaths": []
+      },
+      {
+        "file": "inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json",
+        "kind": "unchanged",
+        "value": null,
+        "format": "text",
+        "selector": "",
+        "dimension": "input_integrity",
+        "assertionId": "boundary_integrity_001",
+        "allowedPaths": [],
+        "expectedMaterialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+      }
+    ]
+  },
+  "rationale": "Enforce the declared single top-level reviews field."
+}

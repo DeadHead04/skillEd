@@ -1,0 +1,24 @@
+# Isolated real acceptance installation. Existing 3000/3400 history is untouched.
+# First create its dedicated login volume: docker volume create skilled-docker-login-v2
+# docker compose -p skilled-real-review -f docker-compose.yml -f compose.real-review.yaml ...
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: skilled_test_real
+    ports: !override
+      - 127.0.0.1:36434:5432
+  web:
+    environment:
+      DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled_test_real
+      SKILLED_ADMIN_PASSWORD: deterministic-test-password-only
+      SKILLED_ADAPTER_MODE: real
+    ports: !override
+      - 127.0.0.1:3600:3000
+  worker:
+    environment:
+      DATABASE_URL: postgres://skilled:skilled@postgres:5432/skilled_test_real
+      SKILLED_ADAPTER_MODE: real
+volumes:
+  codex-home:
+    external: true
+    name: skilled-docker-login-v2

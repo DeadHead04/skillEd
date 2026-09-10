@@ -8,7 +8,13 @@ import {
   assessExecutionEvidence,
   acceptsExecutionEvidence,
 } from "@skilled/core";
-import { executionReadiness } from "./readiness.js";
+import { executionReadiness as readExecutionReadiness } from "./readiness.js";
+// Unit fixtures are independent of the built image on the test host.
+const executionReadiness: typeof readExecutionReadiness = (
+  env,
+  login,
+  revision = async () => "",
+) => readExecutionReadiness(env, login, revision);
 
 const report = () => ({
   schemaVersion: "skilled-readiness-v1",
@@ -103,7 +109,7 @@ test("readiness distinguishes missing configuration, unreadable report and login
     );
     assert.equal(
       (await executionReadiness(env, login)).code,
-      "ACCEPTANCE_UNREADABLE",
+      "ACCEPTANCE_MISSING",
     );
     await writeFile(path, "{");
     assert.equal(
@@ -126,7 +132,20 @@ test("readiness distinguishes missing configuration, unreadable report and login
     const ready = await executionReadiness(env, login);
     assert.equal(ready.ready, true);
     assert.equal(ready.code, "READY");
+    assert.equal(ready.imageRevision, "synthetic-release");
+    assert.equal(ready.permissionPolicy, "skilled-workspace-v2");
     assert.equal(calls, 1);
+    const rebuilt = await executionReadiness(
+      env,
+      login,
+      async () => "different-built-runtime",
+    );
+    assert.equal(rebuilt.code, "ACCEPTANCE_REVISION_MISMATCH");
+    assert.equal(
+      calls,
+      1,
+      "A manually matching revision must not override the actual image",
+    );
     assert.equal(
       (
         await executionReadiness(

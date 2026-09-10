@@ -19,7 +19,7 @@ test("derived evals bind fixture paths, source references and protected truth to
       {
         kind: "unchanged",
         dimension: "scope",
-        file: "output.json",
+        file: `inputs/${original}-data.json`,
         format: "json",
         expectedMaterialId: original,
         allowedPaths: ["/target"],
@@ -30,6 +30,10 @@ test("derived evals bind fixture paths, source references and protected truth to
   assert.equal(result.sourceReferences[0]!.materialId, copied);
   assert.equal(result.deterministicChecks[0]!.expectedMaterialId, copied);
   assert.equal(result.prompt, `Read inputs/${copied}-data.json`);
+  assert.equal(
+    result.deterministicChecks[0]!.file,
+    `inputs/${copied}-data.json`,
+  );
   assert.equal(source.sourceReferences[0]!.materialId, original);
   assert.throws(
     () => remapCaseMaterials(source, new Map()),

@@ -1,0 +1,39 @@
+{
+  "reviews": [
+    {
+      "id": "supported",
+      "decision": "PASS",
+      "findings": []
+    },
+    {
+      "id": "unsupported-claim",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F2",
+          "reason": "The claim \"Clinically proven to improve health\" is unsupported; the source only states \"Tested for consistency.\""
+        }
+      ]
+    },
+    {
+      "id": "missing-warning",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "F3",
+          "reason": "The required peanut warning is omitted; the source states \"Contains peanuts; the submitted card must include this warning.\""
+        }
+      ]
+    },
+    {
+      "id": "protected-drift",
+      "decision": "FAIL",
+      "findings": [
+        {
+          "source_id": "sku",
+          "reason": "The submitted SKU \"DEMO-002\" does not exactly match the protected source SKU \"DEMO-001\"."
+        }
+      ]
+    }
+  ]
+}

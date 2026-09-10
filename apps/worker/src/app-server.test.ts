@@ -16,9 +16,15 @@ const send=(value)=>process.stdout.write(JSON.stringify(value)+'\\n');
 createInterface({input:process.stdin}).on('line',line=>{ const r=JSON.parse(line); if(!r.id)return;
 if(r.method==='ignore') return;
 if(r.method==='initialize')return send({id:r.id,result:{}});
-if(r.method==='thread/resume')return send({id:r.id,error:{message:'Thread not found'}});
-if(r.method==='thread/start')return send({id:r.id,result:{thread:{id:'replacement-thread'}}});
+if(r.method==='thread/resume') {
+if(r.params.threadId==='legacy-profile') return send({id:r.id,result:{thread:{id:'legacy-profile'},activePermissionProfile:{id:':workspace'}}});
+if(r.params.threadId==='missing-rollout') return send({id:r.id,error:{message:'no rollout found for thread id missing-rollout'}});
+return send({id:r.id,error:{message:'Thread not found'}}); }
+if(r.method==='thread/start') {
+if(r.params.sandbox || !r.params.model) return send({id:r.id,error:{message:'strict profile was replaced or model omitted'}});
+return send({id:r.id,result:{thread:{id:'replacement-thread'},activePermissionProfile:{id:'skilled-workspace-v2'}}}); }
 if(r.method==='turn/start') {
+if(r.params.sandboxPolicy) return send({id:r.id,error:{message:'strict profile was replaced on turn'}});
 send({method:'item/agentMessage/delta',params:{threadId:'replacement-thread',turnId:'turn-fixture',itemId:'message',delta:'early evidence'}});
 send({method:'turn/completed',params:{threadId:'replacement-thread',turn:{id:'turn-fixture',status:'completed',error:null,items:[{type:'agentMessage',text:'{"reply":"fixture"}',id:'message'}]}}});
 return send({id:r.id,result:{turn:{id:'turn-fixture',items:[]}}}); }
@@ -45,6 +51,26 @@ send({id:r.id,result:{}});
     assert.equal(result.reconstructed, true);
     assert.deepEqual(result.structured, { reply: "fixture" });
     assert.ok(chunks.join("").endsWith("early evidence"));
+    await assert.rejects(
+      client.structuredTurn(root, "Synthetic prompt", {}, "legacy-profile"),
+      /required Docker permission profile/,
+    );
+    const legacy = await client.structuredTurn(
+      root,
+      "Synthetic prompt",
+      {},
+      "legacy-profile",
+      { recoveryContext: "Completed synthetic history" },
+    );
+    assert.equal(legacy.reconstructed, true);
+    const missingRollout = await client.structuredTurn(
+      root,
+      "Synthetic prompt",
+      {},
+      "missing-rollout",
+      { recoveryContext: "Completed synthetic history" },
+    );
+    assert.equal(missingRollout.reconstructed, true);
     await assert.rejects(client.request("ignore", {}), /timed out/);
   } finally {
     await client.stop();

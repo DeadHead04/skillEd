@@ -587,6 +587,7 @@ export default async function EvalPage({
             <>
               <ApiAction
                 url={`/api/v1/evals/${evaluation.id}/clone`}
+                body={{ preserveCases: true }}
                 label="Clone as new draft"
                 kind="secondary"
                 navigateTo={`/evals/:resourceId?skill=${evaluation.skill_id}`}

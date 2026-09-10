@@ -696,18 +696,55 @@ async function post(request: Request, context: Context, sql: Db) {
       return json({ resourceId: id }, 201);
     }
     if (path[0] === "evals" && path[1] && path[2] === "clone") {
+      const input = await request.json();
       const [source] =
         await sql`SELECT * FROM eval_versions WHERE id=${path[1]} FOR SHARE`;
       if (!source) return fail("NOT_FOUND", "Evaluation not found", "", 404);
+      const retained =
+        input.preserveCases === true
+          ? await sql`SELECT * FROM eval_cases WHERE eval_version_id=${source.id} ORDER BY case_id`
+          : [];
+      if (input.preserveCases === true && !retained.length)
+        return fail(
+          "NO_CASES",
+          "No cases to retain",
+          "Create a new test plan",
+          409,
+        );
       const id = crypto.randomUUID();
-      await sql`INSERT INTO eval_versions(id,skill_version_id,status,evidence_level,task_understanding,coverage_plan,answers,questions) VALUES(${id},${source.skill_version_id},'collecting',${source.evidence_level},${sql.json(source.task_understanding)},${sql.json(source.coverage_plan)},${sql.json(source.answers)},${sql.json(source.questions)})`;
-      await sql`INSERT INTO eval_files(eval_version_id,kind,filename,artifact_key,metadata) SELECT ${id},kind,filename,artifact_key,metadata FROM eval_files WHERE eval_version_id=${source.id}`;
+      await sql`INSERT INTO eval_versions(id,skill_version_id,status,evidence_level,task_understanding,coverage_plan,answers,questions) VALUES(${id},${source.skill_version_id},${retained.length ? "generating" : "collecting"},${source.evidence_level},${sql.json(source.task_understanding)},${sql.json(source.coverage_plan)},${sql.json(source.answers)},${sql.json(source.questions)})`;
+      const materialIds = new Map<string, string>();
+      for (const file of await sql`SELECT * FROM eval_files WHERE eval_version_id=${source.id}`) {
+        const copiedId = crypto.randomUUID();
+        materialIds.set(file.id, copiedId);
+        await sql`INSERT INTO eval_files(id,eval_version_id,kind,filename,artifact_key,metadata) VALUES(${copiedId},${id},${file.kind},${file.filename},${file.artifact_key},${sql.json(file.metadata)})`;
+      }
+      if (source.coverage_plan?.areas?.length) {
+        const plan = {
+          ...source.coverage_plan,
+          areas: source.coverage_plan.areas.map((area: any) => ({
+            ...area,
+            sourceReferences: area.sourceReferences.map((reference: any) => ({
+              ...reference,
+              materialId:
+                materialIds.get(reference.materialId) ?? reference.materialId,
+            })),
+          })),
+        };
+        await sql`UPDATE eval_versions SET coverage_plan=${sql.json(plan)} WHERE id=${id}`;
+      }
+      for (const item of retained) {
+        const rebound = remapCaseMaterials(item.source, materialIds);
+        await sql`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,enabled,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${id},${item.case_id},${item.title},${item.coverage_group},${item.enabled},${item.judge_type},${sql.json(item.evidence_provenance)},${sql.json(item.required_dimensions)},${item.yaml_path},${sql.json(item.assertion_mapping)},${sql.json(rebound)})`;
+      }
+      if (retained.length)
+        await enqueue(sql, "eval_generate", id, { rebuild: true });
       await recordDecision(
         sql,
         request.headers.get("x-skilled-user-id"),
         id,
         "clone_eval",
-        { sourceEvalId: source.id },
+        { sourceEvalId: source.id, preserveCases: retained.length > 0 },
       );
       return json({ resourceId: id }, 201);
     }
@@ -1123,6 +1160,9 @@ async function post(request: Request, context: Context, sql: Db) {
       const [draft] =
         await sql`SELECT * FROM eval_versions WHERE id=${path[1]} FOR UPDATE`;
       if (!draft) return fail("NOT_FOUND", "Evaluation not found", "", 404);
+      const approvedProfileHash = draft.coverage_plan?.areas?.length
+        ? profileHash(draft.coverage_plan, draft.task_understanding)
+        : draft.profile_hash;
       if (draft.coverage_plan?.areas?.length) {
         const plan = CoveragePlanSchema.parse(draft.coverage_plan);
         const records =
@@ -1145,14 +1185,19 @@ async function post(request: Request, context: Context, sql: Db) {
           );
       }
       const [row] =
-        await sql`UPDATE eval_versions target SET status='approved',version=(SELECT COALESCE(max(other.version),0)+1 FROM eval_versions other JOIN skill_versions other_sv ON other_sv.id=other.skill_version_id WHERE other.version IS NOT NULL AND other_sv.skill_id=(SELECT target_sv.skill_id FROM skill_versions target_sv WHERE target_sv.id=target.skill_version_id)),approved_at=now() WHERE target.id=${path[1]} AND target.status='ready' AND (target.validation->>'valid')::boolean=true RETURNING target.id`;
+        await sql`UPDATE eval_versions target SET status='approved',profile_hash=${approvedProfileHash ?? null},version=(SELECT COALESCE(max(other.version),0)+1 FROM eval_versions other JOIN skill_versions other_sv ON other_sv.id=other.skill_version_id WHERE other.version IS NOT NULL AND other_sv.skill_id=(SELECT target_sv.skill_id FROM skill_versions target_sv WHERE target_sv.id=target.skill_version_id)),approved_at=now() WHERE target.id=${path[1]} AND target.status='ready' AND (target.validation->>'valid')::boolean=true RETURNING target.id`;
       if (row)
         await recordDecision(
           sql,
           request.headers.get("x-skilled-user-id"),
           row.id,
           "approve_eval",
-          { evalId: row.id },
+          {
+            evalId: row.id,
+            revision: draft.revision,
+            profileHash: approvedProfileHash,
+            bundleHash: draft.checksum,
+          },
         );
       return row
         ? json({ resourceId: row.id, status: "approved" })
@@ -1166,9 +1211,9 @@ async function post(request: Request, context: Context, sql: Db) {
     if (path[0] === "runs" && path[1] === "launch") {
       const input = RunLaunchSchema.parse(await request.json());
       const [sv] =
-        await sql`SELECT checksum,installable_checksum,skill_id FROM skill_versions WHERE id=${input.skillVersionId}`;
+        await sql`SELECT checksum,installable_checksum,skill_id,package_assessment FROM skill_versions WHERE id=${input.skillVersionId}`;
       const [ev] =
-        await sql`SELECT ev.checksum,ev.status,ev.task_understanding,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE ev.id=${input.evalVersionId}`;
+        await sql`SELECT ev.checksum,ev.status,ev.task_understanding,ev.profile_hash,sv.skill_id FROM eval_versions ev JOIN skill_versions sv ON sv.id=ev.skill_version_id WHERE ev.id=${input.evalVersionId}`;
       if (!sv || !ev || ev.status !== "approved" || sv.skill_id !== ev.skill_id)
         return fail(
           "NOT_READY",

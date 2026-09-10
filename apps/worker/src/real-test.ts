@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
+import { requireExecutionReady } from "./readiness.js";
+await requireExecutionReady();
 const mode = process.env.SKILLED_REAL_MODE ?? "smoke";
 const args = [
   "run",

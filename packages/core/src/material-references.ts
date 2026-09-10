@@ -18,10 +18,17 @@ export function remapCaseMaterials(value: unknown, ids: Map<string, string>) {
         : undefined,
     }),
   );
-  for (const [before, after] of ids)
+  for (const [before, after] of ids) {
     definition.prompt = definition.prompt.replaceAll(
       `inputs/${before}-`,
       `inputs/${after}-`,
     );
+    for (const check of definition.deterministicChecks)
+      if (check.file)
+        check.file = check.file.replaceAll(
+          `inputs/${before}-`,
+          `inputs/${after}-`,
+        );
+  }
   return definition;
 }

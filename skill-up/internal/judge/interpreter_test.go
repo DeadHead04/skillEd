@@ -25,9 +25,12 @@ func TestPlanScript_POSIXTarget(t *testing.T) {
 		t.Fatalf("uploadName = %q, want \"script\"", plan.uploadName)
 	}
 	got := plan.command("/tmp/d/script")
-	want := "chmod 700 '/tmp/d/script' && '/tmp/d/script'"
+	want := "'/tmp/d/script'"
 	if got != want {
 		t.Fatalf("command = %q, want %q", got, want)
+	}
+	if got := plan.prepareCommand("/tmp/d/script"); got != "chmod 700 '/tmp/d/script'" {
+		t.Fatalf("unexpected staging command: %q", got)
 	}
 	if got := plan.envPath("/tmp/d/transcript.json"); got != "/tmp/d/transcript.json" {
 		t.Fatalf("POSIX envPath should be identity, got %q", got)

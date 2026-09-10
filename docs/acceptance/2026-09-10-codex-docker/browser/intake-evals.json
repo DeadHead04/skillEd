@@ -1,0 +1,31 @@
+{
+  "id": "da6ebe8f-729a-4e9f-9826-6723a61ff0b5",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "version": null,
+  "revision": 1,
+  "status": "collecting",
+  "evidence_level": "Strong",
+  "task_understanding": {},
+  "coverage_plan": {},
+  "answers": {},
+  "bundle_key": null,
+  "checksum": null,
+  "validation": {},
+  "created_at": "2026-09-10T10:06:34.492Z",
+  "approved_at": null,
+  "questions": [],
+  "generation_notes": [],
+  "profile_hash": null,
+  "cases": [],
+  "messages": [
+    {
+      "id": "9a00d9b9-30ff-42e1-8de9-9e64a0e22269",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "user",
+      "content": "Review the supplied synthetic product cards against their source facts and write review.json with a reviews array. Each review contains id, decision (PASS or FAIL), and findings (an array of objects with source_id and reason). Correctly reject unsupported claims, missing mandatory warnings and changed protected fields; only the fully supported card passes. Cite F2 for an unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift. A correct rejection is a passing evaluation result. Preserve every input file byte for byte. The tested agent receives the source facts and authority, but must not see expected-review.json. For this small real acceptance suite propose exactly TWO cases using concrete script validators: one batch covering all four supplied cards (normal and adversarial behavior), and one boundary case with missing source evidence that must be rejected with an explanation. Use one trial initially; candidate verification will use three. Propose task-specific judging areas, validate the output decisions and cited source identifiers, protect input files, and require an actual review.json artifact. These task instructions and the JSON output contract must be supplied in every relevant case prompt. No dependencies or network calls are needed.",
+      "structured": null,
+      "completed": true,
+      "created_at": "2026-09-10T10:06:34.688Z"
+    }
+  ]
+}

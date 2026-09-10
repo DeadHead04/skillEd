@@ -9,3 +9,5 @@ apps/worker/src/generated/
 docs/screenshots/
 docs/plans/
 pnpm-lock.yaml
+# Captured API responses and downloaded evidence retain their original bytes.
+docs/acceptance/2026-09-10-codex-docker/**/*.json

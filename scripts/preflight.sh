@@ -24,29 +24,9 @@ if [ ! -f .env ]; then
   echo "Warning: .env is absent; trusted-local development defaults will apply."
 fi
 
-if [ "$mode" = "real" ]; then
-  auth_file="${CODEX_AUTH_FILE:-}"
-  if [ -z "$auth_file" ] && [ -f .env ]; then
-    auth_file=$(sed -n 's/^[[:space:]]*CODEX_AUTH_FILE[[:space:]]*=[[:space:]]*//p' .env | tail -n 1)
-    case "$auth_file" in
-      \"*\") auth_file=${auth_file#\"}; auth_file=${auth_file%\"} ;;
-      \'*\') auth_file=${auth_file#\'}; auth_file=${auth_file%\'} ;;
-    esac
-  fi
-  auth_file="${auth_file:-${HOME}/.codex/auth.json}"
-  if [ ! -f "$auth_file" ]; then
-    echo "Codex auth file not found: $auth_file" >&2
-    echo "Run ./scripts/create-codex-login.sh, then set CODEX_AUTH_FILE in .env." >&2
-    exit 1
-  fi
-  if [ ! -r "$auth_file" ] || [ ! -w "$auth_file" ]; then
-    echo "Codex auth file must be readable and writable: $auth_file" >&2
-    exit 1
-  fi
-fi
-
 echo "SkillEd preflight passed ($mode mode)."
 if [ "$mode" = "real" ]; then
   echo "This checks local prerequisites only; it does not certify execution."
+  echo "Login is stored inside Docker. Run ./scripts/setup-docker-execution.sh --real to initialize execution."
   echo "Before generation, run ./scripts/check-execution.sh against the running worker."
 fi

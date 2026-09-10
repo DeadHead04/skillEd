@@ -1,0 +1,113 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+Decide what good looks like.
+
+Review the task, approve its judging areas, then inspect the generated checks.
+
+✓
+Approved
+
+Review · Revision 1
+
+What this Skill will be judged on
+Approved and frozen
+AREA 01
+QC decisions
+Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.
+Read more
+
+Required · task success
+
+Source references
+AREA 02
+Source citations
+Required: yes. Validate F2, F3, sku, and boundary source_id missing with reason insufficient evidence.
+Read more
+
+Required · task success
+
+Source references
+AREA 03
+review.json contract
+Required: yes. Require a written review.json with reviews, valid ids, PASS/FAIL decisions, and findings containing source_id and reason.
+Read more
+
+Required · constraint
+
+Source references
+AREA 04
+Input integrity
+Required: yes. Verify every original input remains byte-for-byte unchanged after execution.
+Read more
+
+Required · constraint
+
+Source references
+Coverage of approved judging areas
+Case	QC decisions	Source citations	review.json contract	Input integrity
+
+Four-card grounded product QC batch
+	✓ Covered	✓ Covered	✓ Covered	✓ Covered
+
+Missing source evidence boundary
+	✓ Covered	✓ Covered	✓ Covered	✓ Covered
+What the task is
+Conversation ▸
+Inputs
+Product-card JSON with source facts, Public product-review rules, Public review.json output contract
+Outputs
+A written review.json containing a reviews array; each item has id, decision (PASS or FAIL), and findings with source_id and reason
+Deciding authority
+Product-card source facts, Public product-review rules, Public review.json output contract
+Must never change
+Only fully supported product cards pass, Unsupported clinical claims are rejected with source_id F2, A missing peanut warning is rejected with source_id F3, SKU drift is rejected with source_id sku, Missing evidence is rejected with source_id missing and reason insufficient evidence, Evidence is never invented or inferred from category norms, Original input files remain byte-for-byte unchanged, The Skill creates review.json only, Hidden expected-review.json and evaluation manifests are not inputs to the Skill, Hidden expected decisions remain outside tested-agent prompts, Runtime dependencies are none
+Inspect or update task material
+Cases
+2 cases · 2 groups
+batch_normal_adversarial
+script
+PRODUCT-QC-BATCH-001
+Four-card grounded product QC batch
+enabled
+▸
+boundary_missing_source
+script
+PRODUCT-QC-BOUNDARY-001
+Missing source evidence boundary
+enabled
+▸
+Suite approved and frozen
+
+Run it against the active Skill to produce evidence.
+
+Clone as new draft
+Configure run

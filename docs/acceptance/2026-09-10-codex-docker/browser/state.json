@@ -1,0 +1,9 @@
+{
+  "skillId": "f78f9ada-364c-42df-ae99-cdc0fa806cf4",
+  "evalId": "554f2b2c-50c1-46b5-812e-e4da7a775ac8",
+  "url": "http://127.0.0.1:3600/runs/824ad69c-96f1-4a44-b347-f8a2848d0846?skill=f78f9ada-364c-42df-ae99-cdc0fa806cf4",
+  "sourceEvalId": "da6ebe8f-729a-4e9f-9826-6723a61ff0b5",
+  "failedSetupRunId": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+  "runId": "348bbcc6-ea48-450d-913b-0e369d272c93",
+  "baselineRunId": "824ad69c-96f1-4a44-b347-f8a2848d0846"
+}

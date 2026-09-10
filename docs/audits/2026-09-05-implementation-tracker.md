@@ -100,3 +100,19 @@ This update does **not** close C01/C02/C05/C06/C10/C11 or other HOST gates. The 
 The [interactive chart follow-up](../acceptance/2026-09-09-evaluation-studio/interactive-charts.md) adds trial/configuration controls, shared filter navigation, correct sample inspection and touch/keyboard checks. It also closes a verification-page refresh race found by browser acceptance. The accompanying check record distinguishes the final targeted rerun, environment-dependent unit skips and unchanged real-execution gates.
 
 The [Docker readiness follow-up](../acceptance/2026-09-09-docker-readiness/README.md) adds O09 evidence: explicit missing/expired/mismatched report reasons, authenticated executor diagnostics, Compose configuration forwarding and browser rechecks without duplicate jobs. A fresh local real-mode installation reproduced the reported blocker. **C01 remains blocked**: its preliminary canary returned 1 passed, 4 failed and 8 pending; no accepted report or real-model evidence was fabricated.
+
+## 10 September — measured local Docker execution
+
+The [Docker correction and acceptance record](../acceptance/2026-09-10-codex-docker/README.md) supersedes the earlier local namespace blocker. All 13 isolation and authenticated runtime checks passed on the tested Docker Desktop host: strict workspace reads/writes, hidden-read and network denial, PID isolation, resource limits, actual Skill-Up script and agent judges, real CLI/App Server tool use, cancellation, login persistence and conversation recovery after container replacement. This supplies local operational evidence for C01/C02/C05/C06/C10/C11 and O04/O06/O07/O09. Render still requires independent measurements; these are not HOST approvals.
+
+Real browser authoring additionally exposed and corrected the Codex structured-output schema contract and invalid generated validators. Bounded correction retains rejected proposals and blocks approval until concrete assertion mappings and material references validate. JSON artifact schemas enforce nested structure, with invalid validators and external references treated as errors. E03/E09/E11/E13/E14/E19 and U05 gain regression coverage from `structured-output.test.ts`, `validated-generation.test.ts`, `judge-harness-json-schema.test.py`, and the launch API tests. The linked record separately tracks the real browser workflow and its remaining checks.
+
+The real product-review workflow subsequently completed: 4/4 Skill/baseline samples
+and 20/20 assertions passed; initial verification passed 6/6 fresh samples and 30/30
+assertions over three trials. The browser explicitly activated v1 and downloaded
+the exact verified package. Real acceptance found and fixed Skill-root fixture
+resolution, retained-case material rebinding and cloned-profile approval provenance.
+The old setup-error run remains immutable. Both configurations passed, so no
+baseline benefit or measured improvement is claimed. The linked report records
+manual validator review and semantic-judging limitations; Render HOST gates and
+real failing-package improvement acceptance remain separate.

@@ -47,20 +47,29 @@ services:
       WORK_ROOT: /data/work
       CODEX_HOME: /home/skilled/.codex
       SKILLED_ADAPTER_MODE: ${SKILLED_ADAPTER_MODE:-real}
-      SKILLED_EXECUTION_EVIDENCE: ${SKILLED_EXECUTION_EVIDENCE:-}
+      SKILLED_EXECUTION_EVIDENCE: /data/acceptance/acceptance.json
       SKILLED_IMAGE_REVISION: ${SKILLED_IMAGE_REVISION:-}
+    cpus: 2
+    mem_limit: 4g
+    pids_limit: 512
+    # Allow the worker's 90-second drain plus database cleanup to complete.
+    stop_grace_period: 110s
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=./infra/docker/codex-seccomp.json
     depends_on:
       postgres:
         condition: service_healthy
     volumes:
       - artifacts:/data/artifacts
       - work:/data/work
-      - type: bind
-        source: ${CODEX_AUTH_FILE:-${HOME}/.codex/auth.json}
-        target: /home/skilled/.codex/auth.json
-        read_only: false
+      - codex-home:/home/skilled/.codex
+      - acceptance:/data/acceptance
 
 volumes:
   postgres-data:
   artifacts:
   work:
+  codex-home:
+  acceptance:

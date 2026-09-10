@@ -1,0 +1,55 @@
+{
+  "PRODUCT-QC-BATCH-001": {
+    "reviews": [
+      {
+        "id": "supported",
+        "decision": "PASS",
+        "findings": []
+      },
+      {
+        "id": "unsupported-claim",
+        "decision": "FAIL",
+        "findings": [
+          {
+            "source_id": "F2",
+            "reason": "Unsupported clinical or health claim: testing alone does not establish clinical benefit."
+          }
+        ]
+      },
+      {
+        "id": "missing-warning",
+        "decision": "FAIL",
+        "findings": [
+          {
+            "source_id": "F3",
+            "reason": "Missing mandatory peanut warning."
+          }
+        ]
+      },
+      {
+        "id": "protected-drift",
+        "decision": "FAIL",
+        "findings": [
+          {
+            "source_id": "sku",
+            "reason": "SKU changed from DEMO-001 to DEMO-002."
+          }
+        ]
+      }
+    ]
+  },
+  "PRODUCT-QC-BOUNDARY-001": {
+    "reviews": [
+      {
+        "id": "missing-source-card",
+        "decision": "FAIL",
+        "findings": [
+          {
+            "source_id": "missing",
+            "reason": "insufficient evidence"
+          }
+        ]
+      }
+    ]
+  }
+}

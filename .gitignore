@@ -27,6 +27,7 @@ bin/
 .tools/
 *.test
 coverage.out
+__pycache__/
 skill-up/docs/.vitepress/dist/
 skill-up/action/__pycache__/
 

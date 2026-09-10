@@ -41,6 +41,8 @@ jobs:
         run: docker compose -f compose.test.yaml up --build -d
       - name: Workbook artifact contract
         run: docker compose -f compose.test.yaml exec -T worker python3 packages/core/src/judge-harness-xlsx.test.py
+      - name: JSON artifact schema and byte preservation contracts
+        run: docker compose -f compose.test.yaml exec -T worker python3 packages/core/src/judge-harness-json-schema.test.py
       - name: Verify deterministic readiness
         run: COMPOSE_FILE=compose.test.yaml SKILLED_BASE_URL=http://127.0.0.1:3100 ./scripts/verify-stack.sh --demo
       - name: Browser journey and responsive checks

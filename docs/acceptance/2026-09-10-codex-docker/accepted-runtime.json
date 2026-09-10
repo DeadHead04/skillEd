@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "skilled-readiness-v1",
+  "status": "ready",
+  "checkedAt": "2026-09-10T10:54:54.854Z",
+  "imageRevision": "skilled-runtime-30aa68835ab99e1e03a0e059dfa4bfa9cb2884ccfa54128166cada91e99504f9",
+  "checks": [
+    {
+      "name": "non_root",
+      "status": "passed",
+      "detail": "Non-root executor, no effective capabilities, no-new-privileges and seccomp enabled"
+    },
+    {
+      "name": "workspace",
+      "status": "passed",
+      "detail": "Workspace read/write passed"
+    },
+    {
+      "name": "hidden_reads",
+      "status": "passed",
+      "detail": "Synthetic home and sibling reads denied"
+    },
+    {
+      "name": "process_isolation",
+      "status": "passed",
+      "detail": "Fresh PID numbering; outside process inaccessible"
+    },
+    {
+      "name": "network_denial",
+      "status": "passed",
+      "detail": "Host-reachable listener inaccessible to sandbox"
+    },
+    {
+      "name": "script_judge",
+      "status": "passed",
+      "detail": "Actual Skill-Up script judge: PASS and intentional FAIL; staged validator/transcript read-only, hidden reads denied"
+    },
+    {
+      "name": "resource_limits",
+      "status": "passed",
+      "detail": "Judge resource limits active; oversized allocation denied; Docker limits {\"memory.max\": \"4294967296\", \"pids.max\": \"512\", \"cpu.max\": \"200000 100000\"}; Actual sandbox cancellation leaves no delayed child; timeout and 10 MiB raw output limit enforced"
+    },
+    {
+      "name": "codex_initial",
+      "status": "passed",
+      "detail": "Real pinned CLI used a tool and produced the expected file under the production permission launcher"
+    },
+    {
+      "name": "codex_resume",
+      "status": "passed",
+      "detail": "Real CLI resumed its durable conversation after container replacement and produced the remembered token"
+    },
+    {
+      "name": "app_server",
+      "status": "passed",
+      "detail": "Actual App Server structuredTurn produced schema-valid output and a real file"
+    },
+    {
+      "name": "judge_correction",
+      "status": "passed",
+      "detail": "Real Skill-Up case and judge recovered from one explicitly injected malformed transport response; second attempt graded PASS"
+    },
+    {
+      "name": "login_persistence",
+      "status": "passed",
+      "detail": "Official login remains available after container replacement; no credential copying"
+    },
+    {
+      "name": "conversation_recovery",
+      "status": "passed",
+      "detail": "Actual App Server resumed after replacement and reconstructed a deliberately missing thread from durable completed context"
+    }
+  ]
+}

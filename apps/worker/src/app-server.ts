@@ -8,11 +8,26 @@ import type { Turn } from "./generated/v2/Turn.js";
 import { remoteExecution } from "./remote-execution.js";
 import { relative } from "node:path";
 import { executionEnvironment, signalTree } from "./process.js";
+import {
+  codexOutputSchema,
+  restoreOptionalFields,
+} from "./structured-output.js";
 
 type Pending = { resolve(value: unknown): void; reject(error: Error): void };
+type PermissionThreadResponse = ThreadStartResponse & {
+  activePermissionProfile?: { id: string };
+};
+function requirePermissionProfile(thread: PermissionThreadResponse) {
+  if (thread.activePermissionProfile?.id !== "skilled-workspace-v2")
+    throw new Error(
+      "Codex did not apply the required Docker permission profile",
+    );
+  return thread;
+}
 export class CodexAppServer {
   constructor(private readonly timeouts = { rpc: 30_000, turn: 15 * 60_000 }) {}
   private child?: ChildProcessWithoutNullStreams;
+  private cwd?: string;
   private requestId = 0;
   private pending = new Map<number, Pending>();
   private turns = new Map<string, Pending>();
@@ -22,9 +37,12 @@ export class CodexAppServer {
     string,
     { callback: (delta: string) => void; buffer: string }
   >();
-  async start() {
+  async start(cwd = process.cwd()) {
+    if (this.child && this.cwd !== cwd) await this.stop();
     if (this.child) return;
+    this.cwd = cwd;
     this.child = spawn(process.env.CODEX_BIN ?? "codex", ["app-server"], {
+      cwd,
       stdio: ["pipe", "pipe", "pipe"],
       env: executionEnvironment(),
       detached: process.platform !== "win32",
@@ -180,25 +198,30 @@ export class CodexAppServer {
         reconstructed: boolean;
       };
     }
-    await this.start();
+    await this.start(cwd);
     const startThread = async () =>
-      (await this.request("thread/start", {
-        cwd,
-        approvalPolicy: "never",
-        sandbox: "workspace-write",
-        ephemeral: false,
-      })) as ThreadStartResponse;
-    let thread: ThreadStartResponse;
+      requirePermissionProfile(
+        (await this.request("thread/start", {
+          cwd,
+          model: process.env.SKILLED_MODEL ?? "gpt-5.6-luna",
+          approvalPolicy: "never",
+          ephemeral: false,
+        })) as PermissionThreadResponse,
+      );
+    let thread: PermissionThreadResponse;
     let reconstructed = false;
     if (threadId) {
       try {
-        thread = (await this.request("thread/resume", {
-          threadId,
-        })) as ThreadStartResponse;
+        thread = requirePermissionProfile(
+          (await this.request("thread/resume", {
+            threadId,
+            cwd,
+          })) as PermissionThreadResponse,
+        );
       } catch (error) {
         if (
           !hooks?.recoveryContext ||
-          !/not found|unknown thread|failed to load|does not exist/i.test(
+          !/not found|no rollout found for thread id|unknown thread|failed to load|does not exist|required Docker permission profile/i.test(
             String(error),
           )
         )
@@ -240,15 +263,8 @@ export class CodexAppServer {
       threadId: id,
       cwd,
       approvalPolicy: "never",
-      sandboxPolicy: {
-        type: "workspaceWrite",
-        writableRoots: [cwd],
-        networkAccess: false,
-        excludeTmpdirEnvVar: true,
-        excludeSlashTmp: true,
-      },
       input,
-      outputSchema,
+      outputSchema: codexOutputSchema(outputSchema),
     })) as TurnStartResponse;
     if (hooks?.onDelta)
       this.deltas.set(started.turn.id, {
@@ -297,7 +313,7 @@ export class CodexAppServer {
       threadId: id,
       turn: completed,
       text,
-      structured: JSON.parse(text) as unknown,
+      structured: restoreOptionalFields(JSON.parse(text), outputSchema),
       reconstructed,
     };
   }

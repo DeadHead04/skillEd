@@ -1,0 +1,746 @@
+{
+  "id": "da6ebe8f-729a-4e9f-9826-6723a61ff0b5",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "version": null,
+  "revision": 1,
+  "status": "awaiting_plan_approval",
+  "evidence_level": "Strong",
+  "task_understanding": {
+    "inputs": [
+      "skill-package/SKILL.md",
+      "task-materials/manifest.json",
+      "agent-visible product-cards.json with four cards",
+      "judge-only authority and past-failures materials",
+      "judge-only expected-review.json, which must remain hidden"
+    ],
+    "outputs": [
+      "Exactly two evaluation cases",
+      "A four-card batch case",
+      "A missing-evidence boundary case requiring rejection with explanation",
+      "Concrete script validators",
+      "A required review.json artifact matching the stated schema"
+    ],
+    "ambiguity": [
+      "The exact synthetic shape of the missing-evidence boundary fixture is unspecified; it can be selected while preserving the required FAIL-with-explanation behavior.",
+      "No engine/model override was specified, so the configured/default engine is appropriate."
+    ],
+    "invariants": [
+      "Only fully supported card passes",
+      "Cite F2 for the unsupported clinical claim",
+      "Cite F3 for the missing peanut warning",
+      "Cite sku for SKU drift",
+      "Missing evidence causes FAIL; evidence must not be invented",
+      "Protected fields and input files remain byte-for-byte unchanged",
+      "Judge-only expected answers never enter tested-agent prompts",
+      "Every relevant prompt includes task instructions and the JSON contract",
+      "Correct rejection counts as evaluation success",
+      "Initial execution uses one trial; verification uses three",
+      "No dependencies or network calls"
+    ],
+    "authorities": [
+      "skill-package/SKILL.md",
+      "Supplied source facts",
+      "Judge-only authority.md",
+      "Task description"
+    ],
+    "dependencies": ["skill-up is installed"],
+    "failureModes": [
+      "Not requiring or validating review.json",
+      "Missing or incorrect source_id citations",
+      "Omitting one of the four batch cards",
+      "Boundary fixture accidentally contains supporting evidence",
+      "Failure to mechanically protect input files",
+      "Validator or prompt exposing judge-only answers",
+      "Introducing unavailable dependencies or network calls"
+    ],
+    "allowedChanges": [
+      "Create evaluation configuration, case prompts, validators, and related evaluation artifacts under skill-package",
+      "Do not modify supplied task materials"
+    ],
+    "likelyHallucinations": [
+      "Treating testing as clinical evidence",
+      "Ignoring the missing allergen warning",
+      "Repairing SKU drift silently",
+      "Inferring or manufacturing absent evidence",
+      "Leaking expected-review.json"
+    ]
+  },
+  "coverage_plan": {
+    "areas": [
+      {
+        "id": "review_artifact",
+        "role": "task_success",
+        "label": "Review artifact",
+        "required": true,
+        "description": "Required: yes. Require a valid review.json containing reviews with id, decision, and findings.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          },
+          {
+            "location": "product-cards.json",
+            "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+          }
+        ]
+      },
+      {
+        "id": "card_decisions",
+        "role": "task_success",
+        "label": "Card decisions",
+        "required": true,
+        "description": "Required: yes. Match PASS/FAIL decisions to supported claims, warnings, and protected-field comparisons.",
+        "sourceReferences": [
+          {
+            "location": "product-cards.json cards[*]",
+            "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+          }
+        ]
+      },
+      {
+        "id": "evidence_citations",
+        "role": "task_success",
+        "label": "Evidence citations",
+        "required": true,
+        "description": "Required: yes. Require F2 for the unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift.",
+        "sourceReferences": [
+          {
+            "location": "product-cards.json cards[*].source.facts",
+            "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+          },
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          }
+        ]
+      },
+      {
+        "id": "missing_evidence_rejection",
+        "role": "task_success",
+        "label": "Missing evidence rejection",
+        "required": true,
+        "description": "Required: yes. Reject a claim lacking source support and explain that the necessary evidence is absent.",
+        "sourceReferences": [
+          {
+            "location": "authority.md",
+            "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+          },
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          }
+        ]
+      },
+      {
+        "id": "output_contract",
+        "role": "constraint",
+        "label": "Output contract",
+        "required": true,
+        "description": "Required: yes. Enforce the exact decision vocabulary and findings object shape without relying on prose outside review.json.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          }
+        ]
+      },
+      {
+        "id": "input_integrity",
+        "role": "constraint",
+        "label": "Input integrity",
+        "required": true,
+        "description": "Required: yes. Confirm supplied input files remain byte-for-byte unchanged after agent execution.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          },
+          {
+            "location": "product-cards.json",
+            "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+          }
+        ]
+      },
+      {
+        "id": "prompt_separation",
+        "role": "constraint",
+        "label": "Prompt separation",
+        "required": true,
+        "description": "Required: yes. Ensure tested-agent inputs contain source material and authority but never expected-review.json or its hidden answer content.",
+        "sourceReferences": [
+          {
+            "location": "task-description.txt",
+            "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+          },
+          {
+            "location": "expected-review.json",
+            "materialId": "faf825c1-6a7c-4607-ad92-d19ad9e54827"
+          }
+        ]
+      },
+      {
+        "id": "grounded_review_method",
+        "role": "informational",
+        "label": "Grounded review",
+        "required": false,
+        "description": "Informational: record whether the output demonstrates source-grounded review without inventing evidence or silently repairing submissions.",
+        "sourceReferences": [
+          {
+            "location": "authority.md",
+            "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+          },
+          {
+            "location": "past-failures.md",
+            "materialId": "7172138c-f470-4de0-b962-60ded552be28"
+          }
+        ]
+      }
+    ],
+    "groups": [
+      {
+        "name": "normal_batch",
+        "judge": "script",
+        "purpose": "Run the four supplied cards together and validate the required review.json decisions, findings, and citations.",
+        "caseCount": 1,
+        "dimensions": [
+          "review_artifact",
+          "card_decisions",
+          "evidence_citations",
+          "output_contract",
+          "input_integrity"
+        ],
+        "iterations": 1,
+        "provenance": [
+          "product-cards.json cards: supported, unsupported-claim, missing-warning, protected-drift",
+          "task-description.txt"
+        ]
+      },
+      {
+        "name": "adversarial_batch",
+        "judge": "script",
+        "purpose": "Use the same batch to test resistance to unsupported clinical claims, omitted warnings, and protected SKU drift.",
+        "caseCount": 1,
+        "dimensions": [
+          "card_decisions",
+          "evidence_citations",
+          "grounded_review_method",
+          "prompt_separation"
+        ],
+        "iterations": 1,
+        "provenance": [
+          "product-cards.json cards: unsupported-claim, missing-warning, protected-drift",
+          "authority.md",
+          "past-failures.md"
+        ]
+      },
+      {
+        "name": "boundary_missing_evidence",
+        "judge": "script",
+        "purpose": "Provide a boundary fixture with absent source support and require a documented FAIL rather than an inferred or manufactured claim.",
+        "caseCount": 1,
+        "dimensions": [
+          "missing_evidence_rejection",
+          "review_artifact",
+          "output_contract",
+          "input_integrity"
+        ],
+        "iterations": 1,
+        "provenance": ["authority.md", "task-description.txt"]
+      }
+    ]
+  },
+  "answers": {},
+  "bundle_key": null,
+  "checksum": null,
+  "validation": {
+    "valid": false,
+    "adapter": "codex"
+  },
+  "created_at": "2026-09-10T10:06:34.492Z",
+  "approved_at": null,
+  "questions": [],
+  "generation_notes": [],
+  "profile_hash": null,
+  "cases": [],
+  "messages": [
+    {
+      "id": "9a00d9b9-30ff-42e1-8de9-9e64a0e22269",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "user",
+      "content": "Review the supplied synthetic product cards against their source facts and write review.json with a reviews array. Each review contains id, decision (PASS or FAIL), and findings (an array of objects with source_id and reason). Correctly reject unsupported claims, missing mandatory warnings and changed protected fields; only the fully supported card passes. Cite F2 for an unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift. A correct rejection is a passing evaluation result. Preserve every input file byte for byte. The tested agent receives the source facts and authority, but must not see expected-review.json. For this small real acceptance suite propose exactly TWO cases using concrete script validators: one batch covering all four supplied cards (normal and adversarial behavior), and one boundary case with missing source evidence that must be rejected with an explanation. Use one trial initially; candidate verification will use three. Propose task-specific judging areas, validate the output decisions and cited source identifiers, protect input files, and require an actual review.json artifact. These task instructions and the JSON output contract must be supplied in every relevant case prompt. No dependencies or network calls are needed.",
+      "structured": null,
+      "completed": true,
+      "created_at": "2026-09-10T10:06:34.688Z"
+    },
+    {
+      "id": "78678018-b8fa-4659-af40-3797c7c84412",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "assistant",
+      "content": "I mapped the task and found no blocking ambiguity.",
+      "structured": {
+        "questions": [],
+        "understanding": {
+          "inputs": [
+            "skill-package/SKILL.md",
+            "task-materials/manifest.json",
+            "agent-visible product-cards.json with four cards",
+            "judge-only authority and past-failures materials",
+            "judge-only expected-review.json, which must remain hidden"
+          ],
+          "outputs": [
+            "Exactly two evaluation cases",
+            "A four-card batch case",
+            "A missing-evidence boundary case requiring rejection with explanation",
+            "Concrete script validators",
+            "A required review.json artifact matching the stated schema"
+          ],
+          "ambiguity": [
+            "The exact synthetic shape of the missing-evidence boundary fixture is unspecified; it can be selected while preserving the required FAIL-with-explanation behavior.",
+            "No engine/model override was specified, so the configured/default engine is appropriate."
+          ],
+          "invariants": [
+            "Only fully supported card passes",
+            "Cite F2 for the unsupported clinical claim",
+            "Cite F3 for the missing peanut warning",
+            "Cite sku for SKU drift",
+            "Missing evidence causes FAIL; evidence must not be invented",
+            "Protected fields and input files remain byte-for-byte unchanged",
+            "Judge-only expected answers never enter tested-agent prompts",
+            "Every relevant prompt includes task instructions and the JSON contract",
+            "Correct rejection counts as evaluation success",
+            "Initial execution uses one trial; verification uses three",
+            "No dependencies or network calls"
+          ],
+          "authorities": [
+            "skill-package/SKILL.md",
+            "Supplied source facts",
+            "Judge-only authority.md",
+            "Task description"
+          ],
+          "dependencies": ["skill-up is installed"],
+          "failureModes": [
+            "Not requiring or validating review.json",
+            "Missing or incorrect source_id citations",
+            "Omitting one of the four batch cards",
+            "Boundary fixture accidentally contains supporting evidence",
+            "Failure to mechanically protect input files",
+            "Validator or prompt exposing judge-only answers",
+            "Introducing unavailable dependencies or network calls"
+          ],
+          "allowedChanges": [
+            "Create evaluation configuration, case prompts, validators, and related evaluation artifacts under skill-package",
+            "Do not modify supplied task materials"
+          ],
+          "likelyHallucinations": [
+            "Treating testing as clinical evidence",
+            "Ignoring the missing allergen warning",
+            "Repairing SKU drift silently",
+            "Inferring or manufacturing absent evidence",
+            "Leaking expected-review.json"
+          ]
+        }
+      },
+      "completed": true,
+      "created_at": "2026-09-10T10:07:23.544Z"
+    },
+    {
+      "id": "0a69ec59-27ed-4998-ba36-241e91618d2b",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "assistant",
+      "content": "The evidence coverage plan is ready for review.",
+      "structured": {
+        "areas": [
+          {
+            "id": "review_artifact",
+            "role": "task_success",
+            "label": "Review artifact",
+            "required": true,
+            "description": "Required: yes. Require a valid review.json containing reviews with id, decision, and findings.",
+            "sourceReferences": [
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              },
+              {
+                "location": "product-cards.json",
+                "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+              }
+            ]
+          },
+          {
+            "id": "card_decisions",
+            "role": "task_success",
+            "label": "Card decisions",
+            "required": true,
+            "description": "Required: yes. Match PASS/FAIL decisions to supported claims, warnings, and protected-field comparisons.",
+            "sourceReferences": [
+              {
+                "location": "product-cards.json cards[*]",
+                "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+              }
+            ]
+          },
+          {
+            "id": "evidence_citations",
+            "role": "task_success",
+            "label": "Evidence citations",
+            "required": true,
+            "description": "Required: yes. Require F2 for the unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift.",
+            "sourceReferences": [
+              {
+                "location": "product-cards.json cards[*].source.facts",
+                "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+              },
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              }
+            ]
+          },
+          {
+            "id": "missing_evidence_rejection",
+            "role": "task_success",
+            "label": "Missing evidence rejection",
+            "required": true,
+            "description": "Required: yes. Reject a claim lacking source support and explain that the necessary evidence is absent.",
+            "sourceReferences": [
+              {
+                "location": "authority.md",
+                "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+              },
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              }
+            ]
+          },
+          {
+            "id": "output_contract",
+            "role": "constraint",
+            "label": "Output contract",
+            "required": true,
+            "description": "Required: yes. Enforce the exact decision vocabulary and findings object shape without relying on prose outside review.json.",
+            "sourceReferences": [
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              }
+            ]
+          },
+          {
+            "id": "input_integrity",
+            "role": "constraint",
+            "label": "Input integrity",
+            "required": true,
+            "description": "Required: yes. Confirm supplied input files remain byte-for-byte unchanged after agent execution.",
+            "sourceReferences": [
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              },
+              {
+                "location": "product-cards.json",
+                "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+              }
+            ]
+          },
+          {
+            "id": "prompt_separation",
+            "role": "constraint",
+            "label": "Prompt separation",
+            "required": true,
+            "description": "Required: yes. Ensure tested-agent inputs contain source material and authority but never expected-review.json or its hidden answer content.",
+            "sourceReferences": [
+              {
+                "location": "task-description.txt",
+                "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+              },
+              {
+                "location": "expected-review.json",
+                "materialId": "faf825c1-6a7c-4607-ad92-d19ad9e54827"
+              }
+            ]
+          },
+          {
+            "id": "grounded_review_method",
+            "role": "informational",
+            "label": "Grounded review",
+            "required": false,
+            "description": "Informational: record whether the output demonstrates source-grounded review without inventing evidence or silently repairing submissions.",
+            "sourceReferences": [
+              {
+                "location": "authority.md",
+                "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+              },
+              {
+                "location": "past-failures.md",
+                "materialId": "7172138c-f470-4de0-b962-60ded552be28"
+              }
+            ]
+          }
+        ],
+        "groups": [
+          {
+            "name": "normal_batch",
+            "judge": "script",
+            "purpose": "Run the four supplied cards together and validate the required review.json decisions, findings, and citations.",
+            "caseCount": 1,
+            "dimensions": [
+              "review_artifact",
+              "card_decisions",
+              "evidence_citations",
+              "output_contract",
+              "input_integrity"
+            ],
+            "iterations": 1,
+            "provenance": [
+              "product-cards.json cards: supported, unsupported-claim, missing-warning, protected-drift",
+              "task-description.txt"
+            ]
+          },
+          {
+            "name": "adversarial_batch",
+            "judge": "script",
+            "purpose": "Use the same batch to test resistance to unsupported clinical claims, omitted warnings, and protected SKU drift.",
+            "caseCount": 1,
+            "dimensions": [
+              "card_decisions",
+              "evidence_citations",
+              "grounded_review_method",
+              "prompt_separation"
+            ],
+            "iterations": 1,
+            "provenance": [
+              "product-cards.json cards: unsupported-claim, missing-warning, protected-drift",
+              "authority.md",
+              "past-failures.md"
+            ]
+          },
+          {
+            "name": "boundary_missing_evidence",
+            "judge": "script",
+            "purpose": "Provide a boundary fixture with absent source support and require a documented FAIL rather than an inferred or manufactured claim.",
+            "caseCount": 1,
+            "dimensions": [
+              "missing_evidence_rejection",
+              "review_artifact",
+              "output_contract",
+              "input_integrity"
+            ],
+            "iterations": 1,
+            "provenance": ["authority.md", "task-description.txt"]
+          }
+        ]
+      },
+      "completed": true,
+      "created_at": "2026-09-10T10:07:54.554Z"
+    },
+    {
+      "id": "da4d55f8-9e06-4976-9630-d0239442c444",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "user",
+      "content": "Please revise this draft before I approve it. The tested Skill's task is product quality review, not authoring evaluation files. Its input is product-card JSON with source facts and public task rules. Its output is review.json containing reviews with id, decision and findings (source_id and reason). Its runtime dependencies are [\"none\"]; Skill-Up is trusted orchestration, not a dependency that the tested Skill must install.\n\nKeep exactly TWO cases in total, not three: one batch case covering all four supplied normal/adversarial cards, plus one missing-source-evidence boundary case. Merge the duplicate normal_batch/adversarial_batch coverage into one group with caseCount 1. The boundary group also has caseCount 1. Both use real script validators and require a written review.json file. Original inputs must remain byte-for-byte unchanged.\n\nUse four concise task-specific judging areas covering correct QC decisions (required task_success), cited source support (required task_success), the JSON output contract (required constraint), and unchanged inputs (required constraint). Validate concrete decisions, IDs and cited source identifiers. For the boundary, explicitly define the source_id as \"missing\" and the reason as \"insufficient evidence\" in the task prompt, so its required evidence is objectively checkable. Do not create generic non-empty-output checks. Keep grounded-review prose as guidance rather than an unvalidated quality score.\n\nRemove prompt_separation from the Skill quality areas. Hidden-answer isolation remains a mandatory pipeline constraint; it is not the Skill's QC task performance. The tested agent must never receive expected-review.json or its hidden decisions. Include the approved public rules and output contract in the task prompts, keep expected answers judge-only, and preserve exact source material references. Return a complete reviewable revision to the task understanding and coverage plan, without generating cases yet.",
+      "structured": null,
+      "completed": true,
+      "created_at": "2026-09-10T10:09:31.952Z"
+    },
+    {
+      "id": "6bc5c113-a139-4b6e-83ae-7d6e0ef9ab20",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "assistant",
+      "content": "Revised understanding and coverage plan below. No files or cases will be created until you approve it.",
+      "structured": {
+        "reply": "Revised understanding and coverage plan below. No files or cases will be created until you approve it.",
+        "revision": {
+          "plan": {
+            "areas": [
+              {
+                "id": "qc_decisions",
+                "role": "task_success",
+                "label": "QC decisions",
+                "required": true,
+                "description": "Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.",
+                "sourceReferences": [
+                  {
+                    "location": "product-cards.json cards[*]",
+                    "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+                  },
+                  {
+                    "location": "task-description.txt",
+                    "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+                  }
+                ]
+              },
+              {
+                "id": "source_citations",
+                "role": "task_success",
+                "label": "Source citations",
+                "required": true,
+                "description": "Required: yes. Validate F2, F3, sku, and the boundary citation missing with the exact reason insufficient evidence.",
+                "sourceReferences": [
+                  {
+                    "location": "product-cards.json cards[*].source.facts and protected_fields",
+                    "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+                  },
+                  {
+                    "location": "task-description.txt",
+                    "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+                  },
+                  {
+                    "location": "authority.md",
+                    "materialId": "9b5757b7-7009-4872-b90b-f93e15621228"
+                  }
+                ]
+              },
+              {
+                "id": "review_json_contract",
+                "role": "constraint",
+                "label": "review.json contract",
+                "required": true,
+                "description": "Required: yes. Require an actual review.json with reviews, valid ids, PASS/FAIL decisions, and findings containing source_id and reason.",
+                "sourceReferences": [
+                  {
+                    "location": "task-description.txt",
+                    "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+                  }
+                ]
+              },
+              {
+                "id": "input_integrity",
+                "role": "constraint",
+                "label": "Input integrity",
+                "required": true,
+                "description": "Required: yes. Verify every original input remains byte-for-byte unchanged after execution.",
+                "sourceReferences": [
+                  {
+                    "location": "task-description.txt",
+                    "materialId": "e9cfa14f-20df-447b-a469-971bab77148c"
+                  },
+                  {
+                    "location": "product-cards.json",
+                    "materialId": "854035b7-4215-4fcf-82b3-26cd60af1423"
+                  }
+                ]
+              }
+            ],
+            "groups": [
+              {
+                "name": "batch_normal_adversarial",
+                "judge": "script",
+                "purpose": "One script-validated batch case reviews supported, unsupported-claim, missing-warning, and protected-drift, requiring review.json with concrete decisions, IDs, and F2/F3/sku findings while preserving inputs.",
+                "caseCount": 1,
+                "dimensions": [
+                  "qc_decisions",
+                  "source_citations",
+                  "review_json_contract",
+                  "input_integrity"
+                ],
+                "iterations": 1,
+                "provenance": [
+                  "product-cards.json cards: supported, unsupported-claim, missing-warning, protected-drift",
+                  "task-description.txt",
+                  "authority.md"
+                ]
+              },
+              {
+                "name": "boundary_missing_source",
+                "judge": "script",
+                "purpose": "One script-validated boundary case supplies a claim without supporting source evidence and requires review.json to reject it with source_id missing and reason insufficient evidence.",
+                "caseCount": 1,
+                "dimensions": [
+                  "qc_decisions",
+                  "source_citations",
+                  "review_json_contract",
+                  "input_integrity"
+                ],
+                "iterations": 1,
+                "provenance": [
+                  "task-description.txt",
+                  "authority.md",
+                  "A dedicated minimal missing-source-evidence fixture created only for this case"
+                ]
+              }
+            ]
+          },
+          "understanding": {
+            "inputs": [
+              "skill-package/SKILL.md",
+              "task-materials/manifest.json",
+              "product-cards.json with four supplied cards",
+              "Public task rules and authority",
+              "Judge-only expected-review.json, retained outside tested-agent inputs"
+            ],
+            "outputs": [
+              "Exactly two evaluation cases",
+              "One batch case covering all four normal/adversarial cards",
+              "One missing-source-evidence boundary case",
+              "A script validator for each case",
+              "A written review.json artifact containing reviews with id, decision, and findings objects using source_id and reason"
+            ],
+            "ambiguity": [
+              "The missing-evidence boundary fixture may be constructed as a minimal product card whose submitted claim has no corresponding source fact, provided its prompt explicitly requires source_id missing and reason insufficient evidence."
+            ],
+            "invariants": [
+              "The tested Skill performs product quality review, not evaluation-file authoring",
+              "Runtime dependencies are exactly none",
+              "Only the fully supported supplied card passes",
+              "The unsupported clinical claim is rejected with source_id F2",
+              "The missing peanut warning is rejected with source_id F3",
+              "SKU drift is rejected with source_id sku",
+              "The boundary case uses source_id missing and reason insufficient evidence",
+              "Missing evidence must not be invented or inferred",
+              "Protected source material and original input files remain byte-for-byte unchanged",
+              "The tested agent receives public rules, source facts, and the output contract",
+              "expected-review.json and hidden decisions remain judge-only",
+              "Correct rejection counts as evaluation success",
+              "Initial execution uses one trial; candidate verification uses three"
+            ],
+            "authorities": [
+              "skill-package/SKILL.md",
+              "task-description.txt",
+              "product-cards.json source facts",
+              "authority.md"
+            ],
+            "dependencies": ["none"],
+            "failureModes": [
+              "A validator accepts prose without a written review.json",
+              "A validator fails to check all four batch IDs and concrete decisions",
+              "Required F2, F3, sku, or boundary missing citations are not checked",
+              "The output contract permits invalid decisions or malformed findings",
+              "Input byte preservation is not mechanically checked",
+              "Hidden expected answers enter a tested-agent prompt",
+              "The two cases are accidentally split into more than two cases",
+              "A script validator requires an unavailable dependency or network access"
+            ],
+            "allowedChanges": [
+              "Create evaluation configuration, exactly two case files, and concrete script validators under the evaluation package",
+              "Add only evaluation-supporting fixtures needed for the missing-evidence boundary case",
+              "Do not modify supplied source, authority, past-failure, or expected-answer files",
+              "Do not add runtime dependencies or network calls"
+            ],
+            "likelyHallucinations": [
+              "Treating testing as evidence for a clinical benefit",
+              "Passing the card that omits the mandatory peanut warning",
+              "Silently repairing SKU drift",
+              "Manufacturing evidence for the boundary claim",
+              "Treating Skill-Up orchestration as a tested-Skill dependency",
+              "Adding generic non-empty-output checks instead of validating review.json"
+            ]
+          }
+        },
+        "baseRevision": 1
+      },
+      "completed": true,
+      "created_at": "2026-09-10T10:10:03.885Z"
+    },
+    {
+      "id": "61b6b452-55f4-4535-a348-938309abd51a",
+      "conversation_id": "19f9e796-c687-44c5-b34d-d0d31f6902a8",
+      "role": "user",
+      "content": "Keep the four judging areas and exactly two groups from your latest proposed revision. Before approval, correct the task understanding to describe only what the TESTED product-review Skill does. Return a complete revision, still based on revision 1.\n\nSet understanding.inputs to product-card JSON with source facts, public product-review rules, and the public output contract. Hidden expected-review.json and evaluation manifests are NOT inputs to this Skill.\nSet understanding.outputs to ONLY a written review.json containing a reviews array; each item has id, decision (PASS or FAIL), and findings with source_id and reason. Do not list evaluation cases, validators or configuration as the Skill's output.\nSet understanding.allowedChanges to ONLY creating review.json and leaving all original input files byte-for-byte unchanged. The tested Skill must not create evaluation cases, validators or fixtures.\nSet understanding.failureModes to incorrect QC decisions, unsupported citations, malformed or absent review.json, invented missing evidence, and changed input bytes. Keep dependencies [\"none\"]. Keep source references and public boundary rule source_id=\"missing\", reason=\"insufficient evidence\". Evaluation construction belongs in the coverage plan, not in the business task understanding. Do not generate cases yet.",
+      "structured": null,
+      "completed": true,
+      "created_at": "2026-09-10T10:13:28.200Z"
+    }
+  ]
+}

@@ -20,6 +20,9 @@ type scriptPlan struct {
 	// uploadName is the basename the script is uploaded as. The extension is
 	// preserved so the interpreter dispatch stays unambiguous.
 	uploadName string
+	// prepareCommand sets staging permissions before the script enters any
+	// read-only process sandbox. It must never execute uploaded content.
+	prepareCommand func(remoteScript string) string
 	// command builds the runtime Exec command string for the uploaded script
 	// at remoteScript (its path inside the runtime).
 	command func(remoteScript string) string
@@ -51,9 +54,11 @@ func planScript(scriptPath string, shell platform.Shell) (scriptPlan, error) {
 	if shell.GOOS != platform.GOOSWindows {
 		return scriptPlan{
 			uploadName: "script",
+			prepareCommand: func(remoteScript string) string {
+				return "chmod 700 " + shellquote.QuotePOSIX(remoteScript)
+			},
 			command: func(remoteScript string) string {
-				q := shellquote.QuotePOSIX(remoteScript)
-				return "chmod 700 " + q + " && " + q
+				return shellquote.QuotePOSIX(remoteScript)
 			},
 			cleanupCommand: func(dir string) string {
 				return "rm -rf " + shellquote.QuotePOSIX(dir)

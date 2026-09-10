@@ -1,0 +1,77 @@
+{
+  "scope": "Fresh container; no mounted data or credentials; no model requests; outer network disabled. This is diagnostic evidence, not isolation acceptance.",
+  "at": "2026-09-10T07:23:29Z",
+  "kernel": "6.10.14-linuxkit",
+  "architecture": "aarch64",
+  "uid": 10002,
+  "probes": {
+    "codex_version": {
+      "exitCode": 0,
+      "stdout": "codex-cli 0.149.0-alpha.4.1\n",
+      "stderr": ""
+    },
+    "skill_up_version": {
+      "exitCode": 0,
+      "stdout": "skill-up version skilled-v2\n",
+      "stderr": ""
+    },
+    "user_namespace": {
+      "exitCode": 1,
+      "stdout": "{'result': -1, 'errno': 1, 'message': 'Operation not permitted'}\n",
+      "stderr": ""
+    },
+    "app_server_initialize": {
+      "response": {
+        "id": 1,
+        "result": {
+          "userAgent": "skilled-diagnostic/0.149.0-alpha.4.1 (Debian 12.0.0; aarch64) unknown (skilled-diagnostic; 0.1.0)",
+          "codexHome": "/tmp/skilled-docker-probe-ayy9_lig/home",
+          "platformFamily": "unix",
+          "platformOs": "linux"
+        }
+      },
+      "stderr": "\u001b[2m2026-09-10T07:23:29.700374Z\u001b[0m \u001b[31mERROR\u001b[0m \u001b[2mcodex_app_server\u001b[0m\u001b[2m:\u001b[0m Codex could not find bubblewrap on PATH. Install bubblewrap with your OS package manager. See the sandbox prerequisites: https://developers.openai.com/codex/concepts/sandboxing#prerequisites. Codex will use the bundled bubblewrap in the meantime.\n"
+    },
+    "legacy_workspace_sandbox": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    "strict_workspace_sandbox": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    "strict_sibling_sandbox": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    "actual_script_judge_wrapper": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Refusing to create helper binaries under temporary dir \"/tmp/skilled-docker-probe-ayy9_lig/workspace\" (codex_home: AbsolutePathBuf(\"/tmp/skilled-docker-probe-ayy9_lig/workspace/skilled-judge-policy-23px8lad\"))\nbwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    "address_space_512m_only": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    },
+    "processes_64_only": {
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "bwrap: No permissions to create a new namespace, likely because the kernel does not allow non-privileged user namespaces. On e.g. debian this can be enabled with 'sysctl kernel.unprivileged_userns_clone=1'.\n"
+    }
+  },
+  "processSecurity": [
+    "CapEff:\t0000000000000000",
+    "NoNewPrivs:\t0",
+    "Seccomp:\t2"
+  ],
+  "kernelSettings": {
+    "/proc/sys/user/max_user_namespaces": "31324",
+    "/proc/sys/kernel/unprivileged_userns_clone": "not present",
+    "/proc/sys/kernel/apparmor_restrict_unprivileged_userns": "not present"
+  },
+  "cpuCount": 10
+}

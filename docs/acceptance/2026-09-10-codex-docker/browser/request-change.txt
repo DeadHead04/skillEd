@@ -1,0 +1,351 @@
+Skip to content
+S
+SkillEd
+STUDIO
+◫
+Dashboard
+▦
+Skills
+manual-product-qc
+⌄
+＋ Add Skill package
+Team
+Diagnostics
+L
+Local administrator
+Administrator
+Sign out
+Skills/manual-product-qc
+Private team workspace
+01
+Package
+02
+Test plan
+03
+Run
+04
+Results
+05
+Improve
+06
+Release
+Decide what good looks like.
+
+Review the task, approve its judging areas, then inspect the generated checks.
+
+●
+Awaiting plan approval
+
+Eval plan · Revision 1
+
+What this Skill will be judged on
+Codex proposal · review required
+AREA 01
+Review artifact
+Required: yes. Require a valid review.json containing reviews with id, decision, and findings.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 02
+Card decisions
+Required: yes. Match PASS/FAIL decisions to supported claims, warnings, and protected-field comparisons.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 03
+Evidence citations
+Required: yes. Require F2 for the unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 04
+Missing evidence rejection
+Required: yes. Reject a claim lacking source support and explain that the necessary evidence is absent.
+Read more
+
+Required · task success
+
+Request change ↗
+Source references
+AREA 05
+Output contract
+Required: yes. Enforce the exact decision vocabulary and findings object shape without relying on prose outside review.json.
+Read more
+
+Required · constraint
+
+Request change ↗
+Source references
+AREA 06
+Input integrity
+Required: yes. Confirm supplied input files remain byte-for-byte unchanged after agent execution.
+Read more
+
+Required · constraint
+
+Request change ↗
+Source references
+AREA 07
+Prompt separation
+Required: yes. Ensure tested-agent inputs contain source material and authority but never expected-review.json or its hidden answer content.
+Read more
+
+Required · constraint
+
+Request change ↗
+Source references
+AREA 08
+Grounded review
+Informational: record whether the output demonstrates source-grounded review without inventing evidence or silently repairing submissions.
+Read more
+
+Optional · informational
+
+Request change ↗
+Source references
+What the task is
+Conversation ▸
+Inputs
+skill-package/SKILL.md, task-materials/manifest.json, agent-visible product-cards.json with four cards, judge-only authority and past-failures materials, judge-only expected-review.json, which must remain hidden
+Outputs
+Exactly two evaluation cases, A four-card batch case, A missing-evidence boundary case requiring rejection with explanation, Concrete script validators, A required review.json artifact matching the stated schema
+Deciding authority
+skill-package/SKILL.md, Supplied source facts, Judge-only authority.md, Task description
+Must never change
+Only fully supported card passes, Cite F2 for the unsupported clinical claim, Cite F3 for the missing peanut warning, Cite sku for SKU drift, Missing evidence causes FAIL; evidence must not be invented, Protected fields and input files remain byte-for-byte unchanged, Judge-only expected answers never enter tested-agent prompts, Every relevant prompt includes task instructions and the JSON contract, Correct rejection counts as evaluation success, Initial execution uses one trial; verification uses three, No dependencies or network calls
+Inspect or update task material
+Planned coverage
+3 cases
+normal_batch
+Run the four supplied cards together and validate the required review.json decisions, findings, and citations.
+1 cases, script judge
+adversarial_batch
+Use the same batch to test resistance to unsupported clinical claims, omitted warnings, and protected SKU drift.
+1 cases, script judge
+boundary_missing_evidence
+Provide a boundary fixture with absent source support and require a documented FAIL rather than an inferred or manufactured claim.
+1 cases, script judge
+Approve this coverage to generate cases
+
+Generation writes real Skill-Up files and validates them.
+
+Generate evals
+Authoring conversation
+One durable Codex thread
+✕
+You
+
+Review the supplied synthetic product cards against their source facts and write review.json with a reviews array. Each review contains id, decision (PASS or FAIL), and findings (an array of objects with source_id and reason). Correctly reject unsupported claims, missing mandatory warnings and changed protected fields; only the fully supported card passes. Cite F2 for an unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift. A correct rejection is a passing evaluation result. Preserve every input file byte for byte. The tested agent receives the source facts and authority, but must not see expected-review.json. For this small real acceptance suite propose exactly TWO cases using concrete script validators: one batch covering all four supplied cards (normal and adversarial behavior), and one boundary case with missing source evidence that must be rejected with an explanation. Use one trial initially; candidate verification will use three. Propose task-specific judging areas, validate the output decisions and cited source identifiers, protect input files, and require an actual review.json artifact. These task instructions and the JSON output contract must be supplied in every relevant case prompt. No dependencies or network calls are needed.
+
+Codex
+
+I mapped the task and found no blocking ambiguity.
+
+Codex
+
+The evidence coverage plan is ready for review.
+
+You
+
+Please revise this draft before I approve it. The tested Skill's task is product quality review, not authoring evaluation files. Its input is product-card JSON with source facts and public task rules. Its output is review.json containing reviews with id, decision and findings (source_id and reason). Its runtime dependencies are ["none"]; Skill-Up is trusted orchestration, not a dependency that the tested Skill must install. Keep exactly TWO cases in total, not three: one batch case covering all four supplied normal/adversarial cards, plus one missing-source-evidence boundary case. Merge the duplicate normal_batch/adversarial_batch coverage into one group with caseCount 1. The boundary group also has caseCount 1. Both use real script validators and require a written review.json file. Original inputs must remain byte-for-byte unchanged. Use four concise task-specific judging areas covering correct QC decisions (required task_success), cited source support (required task_success), the JSON output contract (required constraint), and unchanged inputs (required constraint). Validate concrete decisions, IDs and cited source identifiers. For the boundary, explicitly define the source_id as "missing" and the reason as "insufficient evidence" in the task prompt, so its required evidence is objectively checkable. Do not create generic non-empty-output checks. Keep grounded-review prose as guidance rather than an unvalidated quality score. Remove prompt_separation from the Skill quality areas. Hidden-answer isolation remains a mandatory pipeline constraint; it is not the Skill's QC task performance. The tested agent must never receive expected-review.json or its hidden decisions. Include the approved public rules and output contract in the task prompts, keep expected answers judge-only, and preserve exact source material references. Return a complete reviewable revision to the task understanding and coverage plan, without generating cases yet.
+
+Codex
+
+Revised understanding and coverage plan below. No files or cases will be created until you approve it.
+
+Proposed revision
+
+QC decisions · Source citations · review.json contract · Input integrity
+
+25 reviewable changes. Applying creates a new draft revision and clears generated cases.
+
+inputs
+CURRENT
+skill-package/SKILL.md · task-materials/manifest.json · agent-visible product-cards.json with four cards · judge-only authority and past-failures materials · judge-only expected-review.json, which must remain hidden
+READ MORE
+PROPOSED
+skill-package/SKILL.md · task-materials/manifest.json · product-cards.json with four supplied cards · Public task rules and authority · Judge-only expected-review.json, retained outside tested-agent inputs
+READ MORE
+outputs
+CURRENT
+Exactly two evaluation cases · A four-card batch case · A missing-evidence boundary case requiring rejection with explanation · Concrete script validators · A required review.json artifact matching the stated schema
+READ MORE
+PROPOSED
+Exactly two evaluation cases · One batch case covering all four normal/adversarial cards · One missing-source-evidence boundary case · A script validator for each case · A written review.json artifact containing reviews with id, decision, and findings objects using source_id and reason
+READ MORE
+ambiguity
+CURRENT
+The exact synthetic shape of the missing-evidence boundary fixture is unspecified; it can be selected while preserving the required FAIL-with-explanation behavior. · No engine/model override was specified, so the configured/default engine is appropriate.
+READ MORE
+PROPOSED
+The missing-evidence boundary fixture may be constructed as a minimal product card whose submitted claim has no corresponding source fact, provided its prompt explicitly requires source_id missing and reason insufficient evidence.
+READ MORE
+invariants
+CURRENT
+Only fully supported card passes · Cite F2 for the unsupported clinical claim · Cite F3 for the missing peanut warning · Cite sku for SKU drift · Missing evidence causes FAIL; evidence must not be invented · Protected fields and input files remain byte-for-byte unchanged · Judge-only expected answers never enter tested-agent prompts · Every relevant prompt includes task instructions and the JSON contract · Correct rejection counts as evaluation success · Initial execution uses one trial; verification uses three · No dependencies or network calls
+READ MORE
+PROPOSED
+The tested Skill performs product quality review, not evaluation-file authoring · Runtime dependencies are exactly none · Only the fully supported supplied card passes · The unsupported clinical claim is rejected with source_id F2 · The missing peanut warning is rejected with source_id F3 · SKU drift is rejected with source_id sku · The boundary case uses source_id missing and reason insufficient evidence · Missing evidence must not be invented or inferred · Protected source material and original input files remain byte-for-byte unchanged · The tested agent receives public rules, source facts, and the output contract · expected-review.json and hidden decisions remain judge-only · Correct rejection counts as evaluation success · Initial execution uses one trial; candidate verification uses three
+READ MORE
+authorities
+CURRENT
+skill-package/SKILL.md · Supplied source facts · Judge-only authority.md · Task description
+READ MORE
+PROPOSED
+skill-package/SKILL.md · task-description.txt · product-cards.json source facts · authority.md
+READ MORE
+dependencies
+CURRENT
+skill-up is installed
+READ MORE
+PROPOSED
+none
+READ MORE
+failure Modes
+CURRENT
+Not requiring or validating review.json · Missing or incorrect source_id citations · Omitting one of the four batch cards · Boundary fixture accidentally contains supporting evidence · Failure to mechanically protect input files · Validator or prompt exposing judge-only answers · Introducing unavailable dependencies or network calls
+READ MORE
+PROPOSED
+A validator accepts prose without a written review.json · A validator fails to check all four batch IDs and concrete decisions · Required F2, F3, sku, or boundary missing citations are not checked · The output contract permits invalid decisions or malformed findings · Input byte preservation is not mechanically checked · Hidden expected answers enter a tested-agent prompt · The two cases are accidentally split into more than two cases · A script validator requires an unavailable dependency or network access
+READ MORE
+allowed Changes
+CURRENT
+Create evaluation configuration, case prompts, validators, and related evaluation artifacts under skill-package · Do not modify supplied task materials
+READ MORE
+PROPOSED
+Create evaluation configuration, exactly two case files, and concrete script validators under the evaluation package · Add only evaluation-supporting fixtures needed for the missing-evidence boundary case · Do not modify supplied source, authority, past-failure, or expected-answer files · Do not add runtime dependencies or network calls
+READ MORE
+likely Hallucinations
+CURRENT
+Treating testing as clinical evidence · Ignoring the missing allergen warning · Repairing SKU drift silently · Inferring or manufacturing absent evidence · Leaking expected-review.json
+READ MORE
+PROPOSED
+Treating testing as evidence for a clinical benefit · Passing the card that omits the mandatory peanut warning · Silently repairing SKU drift · Manufacturing evidence for the boundary claim · Treating Skill-Up orchestration as a tested-Skill dependency · Adding generic non-empty-output checks instead of validating review.json
+READ MORE
+Review artifact
+CURRENT
+Review artifact: Required: yes. Require a valid review.json containing reviews with id, decision, and findings.. Required · task success
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Card decisions
+CURRENT
+Card decisions: Required: yes. Match PASS/FAIL decisions to supported claims, warnings, and protected-field comparisons.. Required · task success
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Evidence citations
+CURRENT
+Evidence citations: Required: yes. Require F2 for the unsupported clinical claim, F3 for the missing peanut warning, and sku for SKU drift.. Required · task success
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Missing evidence rejection
+CURRENT
+Missing evidence rejection: Required: yes. Reject a claim lacking source support and explain that the necessary evidence is absent.. Required · task success
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Output contract
+CURRENT
+Output contract: Required: yes. Enforce the exact decision vocabulary and findings object shape without relying on prose outside review.json.. Required · constraint
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Input integrity
+CURRENT
+Input integrity: Required: yes. Confirm supplied input files remain byte-for-byte unchanged after agent execution.. Required · constraint
+READ MORE
+PROPOSED
+Input integrity: Required: yes. Verify every original input remains byte-for-byte unchanged after execution.. Required · constraint
+READ MORE
+Prompt separation
+CURRENT
+Prompt separation: Required: yes. Ensure tested-agent inputs contain source material and authority but never expected-review.json or its hidden answer content.. Required · constraint
+READ MORE
+PROPOSED
+Not included
+READ MORE
+Grounded review
+CURRENT
+Grounded review: Informational: record whether the output demonstrates source-grounded review without inventing evidence or silently repairing submissions.. Optional · informational
+READ MORE
+PROPOSED
+Not included
+READ MORE
+QC decisions
+CURRENT
+Not included
+READ MORE
+PROPOSED
+QC decisions: Required: yes. Validate the concrete PASS/FAIL decision for every supplied card and the missing-evidence boundary card.. Required · task success
+READ MORE
+Source citations
+CURRENT
+Not included
+READ MORE
+PROPOSED
+Source citations: Required: yes. Validate F2, F3, sku, and the boundary citation missing with the exact reason insufficient evidence.. Required · task success
+READ MORE
+review.json contract
+CURRENT
+Not included
+READ MORE
+PROPOSED
+review.json contract: Required: yes. Require an actual review.json with reviews, valid ids, PASS/FAIL decisions, and findings containing source_id and reason.. Required · constraint
+READ MORE
+normal_batch
+CURRENT
+1 cases · review_artifact, card_decisions, evidence_citations, output_contract, input_integrity · script judge
+READ MORE
+PROPOSED
+Not included
+READ MORE
+adversarial_batch
+CURRENT
+1 cases · card_decisions, evidence_citations, grounded_review_method, prompt_separation · script judge
+READ MORE
+PROPOSED
+Not included
+READ MORE
+boundary_missing_evidence
+CURRENT
+1 cases · missing_evidence_rejection, review_artifact, output_contract, input_integrity · script judge
+READ MORE
+PROPOSED
+Not included
+READ MORE
+batch_normal_adversarial
+CURRENT
+Not included
+READ MORE
+PROPOSED
+1 cases · qc_decisions, source_citations, review_json_contract, input_integrity · script judge
+READ MORE
+boundary_missing_source
+CURRENT
+Not included
+READ MORE
+PROPOSED
+1 cases · qc_decisions, source_citations, review_json_contract, input_integrity · script judge
+READ MORE
+Full revision data
+Apply proposed revision
+Message Codex
+Send to Codex
+Queued
+Cancel operation

@@ -6,8 +6,9 @@ services:
     region: singapore
     numInstances: 1
     autoDeployTrigger: off
-    dockerContext: ./infra/render-canary
-    dockerfilePath: ./infra/render-canary/Dockerfile
+    dockerContext: .
+    dockerfilePath: ./apps/worker/Dockerfile
+    dockerCommand: node /opt/skilled/canary.mjs
     envVars:
       - key: PORT
         value: "10000"

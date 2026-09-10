@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 const active = new Set<ChildProcess>();
-export function executionEnvironment(): NodeJS.ProcessEnv {
-  const env: NodeJS.ProcessEnv = { TZ: "UTC" };
+export function executionEnvironment(): Record<string, string> {
+  const env: Record<string, string> = { TZ: "UTC" };
   for (const key of [
     "PATH",
     "HOME",

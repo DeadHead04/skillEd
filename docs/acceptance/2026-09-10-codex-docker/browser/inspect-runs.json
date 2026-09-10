@@ -1,0 +1,268 @@
+{
+  "id": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+  "skill_version_id": "37144936-2350-4131-ba16-179c2c514f3a",
+  "eval_version_id": "da6ebe8f-729a-4e9f-9826-6723a61ff0b5",
+  "job_id": "ced48d71-1b09-4760-bdd6-b59b2ff37f47",
+  "status": "completed",
+  "model": "gpt-5.6-luna",
+  "settings": {
+    "adapter": "real",
+    "retries": {
+      "transient": 1,
+      "correctness": 0
+    },
+    "environment": "none",
+    "parallelism": 1,
+    "profileHash": "c931e0fb25d2811506b0170ddeab81ef92765a79d5e5e465d817a77501e9b586",
+    "selectedCaseIds": ["PRODUCT-QC-BATCH-001", "PRODUCT-QC-BOUNDARY-001"]
+  },
+  "skill_checksum": "99ebd4e933577bbcc16d144da882c040d1d2392fc61420731e85f89bb8046563",
+  "eval_checksum": "cddb781600eaafd724b488aca10b1e8986f4ffe70970cfdec1f6c8571403537a",
+  "engine_versions": {
+    "model": "gpt-5.6-luna",
+    "hashes": {
+      "approvedEval": "cddb781600eaafd724b488aca10b1e8986f4ffe70970cfdec1f6c8571403537a",
+      "originalSkill": "99ebd4e933577bbcc16d144da882c040d1d2392fc61420731e85f89bb8046563",
+      "installableSkill": "1c259d9fc7da193c16d7e5a452404a7e775eb5b6c40212df43cb3568ea3f1e3e",
+      "evaluationProfile": "c931e0fb25d2811506b0170ddeab81ef92765a79d5e5e465d817a77501e9b586"
+    },
+    "adapter": "real",
+    "settings": {
+      "adapter": "real",
+      "retries": {
+        "transient": 1,
+        "correctness": 0
+      },
+      "baseline": true,
+      "iterations": 1,
+      "environment": "none",
+      "parallelism": 1,
+      "profileHash": "c931e0fb25d2811506b0170ddeab81ef92765a79d5e5e465d817a77501e9b586",
+      "selectedCaseIds": ["PRODUCT-QC-BATCH-001", "PRODUCT-QC-BOUNDARY-001"]
+    },
+    "versions": {
+      "node": "v24.13.0",
+      "codex": "0.149.0-alpha.4.1",
+      "skillUp": "skilled-v2"
+    },
+    "toolchain": {
+      "limits": {
+        "cases": 50,
+        "trials": 3,
+        "logBytes": 10485760,
+        "parallelism": 1,
+        "uploadBytes": 209715200,
+        "artifactBytes": 262144000
+      },
+      "liveMcp": false,
+      "available": [
+        "python3",
+        "node",
+        "openpyxl",
+        "python-docx",
+        "pypdf",
+        "jsonschema"
+      ],
+      "networkTools": false,
+      "schemaVersion": "skilled-toolchain-v1",
+      "artifactFormats": ["text", "json", "csv", "xlsx"],
+      "packageInstallation": false
+    },
+    "imageRevision": "skilled-runtime-3bd0d778f96311d0ebe21cb608f898384d5406df02633b27b67f1a37929cbca1",
+    "schemaVersion": "skilled-run-provenance-v1",
+    "permissionPolicy": "skilled-workspace-v2",
+    "normalizationVersion": "skilled-grading-v3"
+  },
+  "baseline": true,
+  "iterations": 1,
+  "raw_report_key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/raw-report.zip",
+  "normalized_key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/normalized.json",
+  "started_at": "2026-09-10T10:47:55.920Z",
+  "completed_at": "2026-09-10T10:48:04.053Z",
+  "created_at": "2026-09-10T10:47:55.066Z",
+  "provenance_status": "verified_pipeline",
+  "skill_version": 1,
+  "eval_version": 1,
+  "results": [
+    {
+      "id": "cdb53a37-ae1a-4308-8f5e-5d65e916872d",
+      "run_id": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "configuration": "baseline",
+      "iteration": 1,
+      "result": "ERROR",
+      "assertions": [
+        {
+          "id": "ingestion-error",
+          "text": "Evidence validation",
+          "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "passed": false,
+          "evidence": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "required": true,
+          "dimension": "stability"
+        }
+      ],
+      "dimensions": {
+        "stability": false
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/evidence/iteration-1/PRODUCT-QC-BATCH-001/without_skill/outputs/response.md",
+          "size": 1,
+          "checksum": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 0,
+        "output": 0
+      },
+      "duration_ms": 0,
+      "error_class": "agent_or_judge_execution",
+      "detail": {
+        "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+        "prompt": "Review inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial"
+    },
+    {
+      "id": "b4b2d8a0-9ae8-4a5c-829e-fe78ac51b2b7",
+      "run_id": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+      "case_id": "PRODUCT-QC-BATCH-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "result": "ERROR",
+      "assertions": [
+        {
+          "id": "ingestion-error",
+          "text": "Evidence validation",
+          "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "passed": false,
+          "evidence": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "required": true,
+          "dimension": "stability"
+        }
+      ],
+      "dimensions": {
+        "stability": false
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/evidence/iteration-1/PRODUCT-QC-BATCH-001/with_skill/outputs/response.md",
+          "size": 1,
+          "checksum": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 0,
+        "output": 0
+      },
+      "duration_ms": 0,
+      "error_class": "agent_or_judge_execution",
+      "detail": {
+        "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+        "prompt": "Review inputs/854035b7-4215-4fcf-82b3-26cd60af1423-product-cards.json and create only review.json.\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported, every required meaning is present, and protected fields match exactly.\n- Use FAIL for unsupported claims, omitted required meaning, changed protected fields, or insufficient evidence.\n- Do not infer claims, manufacture evidence, or silently repair submitted copy or protected fields.\n- Cite the exact source identifier for each finding. Relevant identifiers include F2 for testing-only evidence, F3 for the mandatory peanut warning, and sku for SKU drift.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array. Include one review for each input card, in input order. Each review must contain id, decision exactly PASS or FAIL, and findings as an array of objects containing source_id and reason. Do not create evaluation files or expected-answer files. Do not modify any input file.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Four-card grounded product QC batch",
+      "coverage_group": "batch_normal_adversarial"
+    },
+    {
+      "id": "489d0ecc-4e36-45f1-aadb-dee57bb486d1",
+      "run_id": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "baseline",
+      "iteration": 1,
+      "result": "ERROR",
+      "assertions": [
+        {
+          "id": "ingestion-error",
+          "text": "Evidence validation",
+          "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "passed": false,
+          "evidence": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "required": true,
+          "dimension": "stability"
+        }
+      ],
+      "dimensions": {
+        "stability": false
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/without_skill/outputs/response.md",
+          "size": 1,
+          "checksum": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 0,
+        "output": 0
+      },
+      "duration_ms": 0,
+      "error_class": "agent_or_judge_execution",
+      "detail": {
+        "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source"
+    },
+    {
+      "id": "1ca9c628-4a13-414d-8994-d173820fc6a8",
+      "run_id": "59fdbe3f-9ffe-4a6f-9166-75b062c388fb",
+      "case_id": "PRODUCT-QC-BOUNDARY-001",
+      "configuration": "skill",
+      "iteration": 1,
+      "result": "ERROR",
+      "assertions": [
+        {
+          "id": "ingestion-error",
+          "text": "Evidence validation",
+          "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "passed": false,
+          "evidence": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+          "required": true,
+          "dimension": "stability"
+        }
+      ],
+      "dimensions": {
+        "stability": false
+      },
+      "stable": null,
+      "artifacts": [
+        {
+          "key": "runs/59fdbe3f-9ffe-4a6f-9166-75b062c388fb/evidence/iteration-1/PRODUCT-QC-BOUNDARY-001/with_skill/outputs/response.md",
+          "size": 1,
+          "checksum": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "mediaType": "text/plain"
+        }
+      ],
+      "transcript_key": null,
+      "tokens": {
+        "input": 0,
+        "output": 0
+      },
+      "duration_ms": 0,
+      "error_class": "agent_or_judge_execution",
+      "detail": {
+        "error": "failed to setup case environment: failed to upload fixtures: repo_fixture \"/data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures\" not found: stat /data/work/run-59fdbe3f-9ffe-4a6f-9166-75b062c388fb/fixtures: no such file or directory",
+        "prompt": "Review this boundary product-card JSON and create only review.json. The boundary input is inline; do not create a fixture file.\n\n{\n  \"synthetic\": true,\n  \"cards\": [{\n    \"id\": \"missing-source-card\",\n    \"source\": {\"facts\": {\"F1\": \"Made from oats.\"}, \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}},\n    \"submitted\": {\"copy\": \"Clinically proven to improve health.\", \"protected_fields\": {\"sku\": \"BOUNDARY-001\", \"seller\": \"Example Seller\", \"price\": \"10.00 INR\", \"quantity\": \"100 g\", \"address\": \"1 Example Road\"}}\n  }]\n}\n\nPublic product-review rules:\n- Source facts are the only authority for product claims and protected fields.\n- PASS is allowed only when every material claim is supported and protected fields match exactly.\n- Missing evidence must cause FAIL; never infer or manufacture evidence.\n- For this boundary case, use source_id exactly missing and reason exactly insufficient evidence for the missing-evidence finding.\n- A correct rejection is successful.\n\nOutput contract:\nWrite valid JSON to review.json with exactly one top-level reviews array containing one review for missing-source-card. The review must contain id, decision exactly PASS or FAIL, and findings as an array of objects with source_id and reason. Do not modify any uploaded input or create evaluation artifacts.",
+        "normalizationVersion": "skilled-grading-v3"
+      },
+      "title": "Missing source evidence boundary",
+      "coverage_group": "boundary_missing_source"
+    }
+  ]
+}
