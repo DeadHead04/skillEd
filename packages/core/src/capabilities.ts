@@ -25,7 +25,16 @@ export function unsupportedRequirements(dependencies: unknown): string[] {
   if (!Array.isArray(dependencies)) return [];
   const supported =
     /^(?:python(?:3)?|node(?:\.js)?|openpyxl(?:[= ]+3\.1\.5)?|python-docx(?:[= ]+1\.2\.0)?|pypdf(?:[= ]+6\.1\.1)?|jsonschema(?:[= ]+4\.25\.1)?|standard library|none)$/i;
+  // Task understanding also records the material and orchestration context
+  // used to author an evaluation. Those inputs are already supplied by
+  // SkillEd and are not dependencies of the tested-agent runtime.
+  const authoringContext =
+    /^(?:(?:the )?target skill directory|(?:the )?(?:target )?skill instructions?|existing target evaluation configuration(?:,? if present)?|skill-up cli and credentials only if evaluations are run|uploaded (?:authority )?material)$/i;
   return dependencies
-    .filter((item) => typeof item !== "string" || !supported.test(item.trim()))
+    .filter(
+      (item) =>
+        typeof item !== "string" ||
+        (!supported.test(item.trim()) && !authoringContext.test(item.trim())),
+    )
     .map(String);
 }

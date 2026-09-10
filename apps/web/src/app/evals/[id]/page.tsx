@@ -580,7 +580,7 @@ export default async function EvalPage({
             <ExecutionAction
               availability={availability}
               url={`/api/v1/evals/${evaluation.id}/retry`}
-              label="Retry generation"
+              label="Retry interrupted step"
             />
           )}
           {status === "approved" && (

@@ -42,7 +42,8 @@ if (process.env.DATABASE_URL || process.env.ARTIFACT_SIGNING_KEY)
     "Executor must not receive database or artifact signing credentials",
   );
 delete process.env.ARTIFACT_SERVICE_URL;
-delete process.env.ARTIFACT_SERVICE_HOSTPORT; // This service uses grants supplied by the controller, never a broad storage client.
+// This service uses controller-supplied grants, never a broad storage client.
+delete process.env.ARTIFACT_SERVICE_HOSTPORT;
 const root = process.env.EXECUTOR_STATE_ROOT ?? "/data/executor";
 await mkdir(join(root, "records"), { recursive: true });
 let active: string | null = null,

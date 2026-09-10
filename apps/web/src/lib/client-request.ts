@@ -18,7 +18,8 @@ export async function apiFetch(
       headers,
       signal: options.signal ?? AbortSignal.timeout(120_000),
     });
-    await response.clone().json(); // Proxy HTML or malformed responses are recoverable network errors.
+    // Proxy HTML or malformed responses are recoverable network errors.
+    await response.clone().json();
     if (response.ok || response.status < 500) pending.delete(identity);
     return response;
   } catch {

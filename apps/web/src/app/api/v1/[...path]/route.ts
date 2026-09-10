@@ -1142,18 +1142,26 @@ async function post(request: Request, context: Context, sql: Db) {
       return json({ jobId, resourceId: path[1] }, 202);
     }
     if (path[0] === "evals" && path[1] && path[2] === "retry") {
+      const [failedJob] =
+        await sql`SELECT type,payload FROM jobs WHERE resource_id=${path[1]} AND status='failed' ORDER BY completed_at DESC NULLS LAST,created_at DESC LIMIT 1`;
+      const retryAuthoring = failedJob?.type === "eval_author";
       const [row] =
-        await sql`UPDATE eval_versions SET status='generating',validation='{}' WHERE id=${path[1]} AND status='failed' RETURNING id`;
+        await sql`UPDATE eval_versions SET status=${retryAuthoring ? "understanding" : "generating"},validation='{}' WHERE id=${path[1]} AND status='failed' RETURNING id`;
       if (!row)
         return fail(
           "INVALID_TRANSITION",
           "Eval cannot be retried",
-          "Only a failed generation can be retried.",
+          "Only failed evaluation work can be retried.",
           409,
         );
-      const jobId = await enqueue(sql, "eval_generate", path[1], {
-        retry: true,
-      });
+      const jobId = await enqueue(
+        sql,
+        retryAuthoring ? "eval_author" : "eval_generate",
+        path[1],
+        retryAuthoring
+          ? { ...(failedJob.payload ?? {}), retry: true }
+          : { retry: true },
+      );
       return json({ jobId, resourceId: path[1] }, 202);
     }
     if (path[0] === "evals" && path[1] && path[2] === "approve") {
