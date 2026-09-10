@@ -117,7 +117,7 @@ Real acceptance is a separate release step. The existing `test:real:smoke`, `tes
 
 ## Repository map
 
-- `apps/web`: Next.js browser UI, auth, API, SSE and downloads.
+- `apps/web`: Next.js browser UI, auth, API, SSE and downloads. Unit and integration tests live in each source folder's `__test__` subdirectory.
 - `apps/worker`: controller, executor/artifact private services, App Server and CLI ingestion.
 - `packages/core`: contracts, migrations, lifecycle guards, result adapter, archives, artifact validators and history tooling.
 - `skill-up`: pinned vendored source; invoke its binary, never import `internal/*` in product code.

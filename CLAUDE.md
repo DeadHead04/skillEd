@@ -30,8 +30,8 @@ pnpm dev                   # web + worker in parallel (web binds 127.0.0.1 only)
 Single unit test file / single test name:
 
 ```bash
-node --import tsx --test apps/worker/src/runner.test.ts
-node --import tsx --test --test-name-pattern 'derives PARTIAL' packages/core/src/results.test.ts
+node --import tsx --test apps/worker/src/__test__/runner.test.ts
+node --import tsx --test --test-name-pattern 'derives PARTIAL' packages/core/src/__test__/results.test.ts
 ```
 
 Browser tests (Playwright projects are viewport tiers: `desktop`, `laptop`, `mobile`):

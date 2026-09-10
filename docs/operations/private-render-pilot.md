@@ -98,7 +98,7 @@ pnpm build
 docker compose -f compose.test.yaml up -d --build
 COMPOSE_FILE=compose.test.yaml SKILLED_BASE_URL=http://127.0.0.1:3100 ./scripts/verify-stack.sh --demo
 PLAYWRIGHT_TEST_BASE_URL=http://127.0.0.1:3100 SKILLED_E2E_PASSWORD=deterministic-test-password-only pnpm test:e2e
-docker compose -f compose.test.yaml exec -T worker python3 packages/core/src/judge-harness-xlsx.test.py
+docker compose -f compose.test.yaml exec -T worker python3 packages/core/src/__test__/judge-harness-xlsx.test.py
 git diff --check
 ```
 

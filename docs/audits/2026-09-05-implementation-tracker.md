@@ -4,10 +4,10 @@ This checklist tracks the [original audit](2026-09-05-backend-cloud-readiness.md
 
 Evidence abbreviations:
 
-- **GR**: `packages/core/src/grading.test.ts`, `results.test.ts` — conservative grading, matrix and per-assertion verification.
-- **CLI**: `packages/core/src/pinned-cli.test.ts` — rebuilt pinned CLI, synthetic script judges, no model calls; upstream Go agent/judge/CLI tests.
-- **DB**: `apps/worker/src/integration.test.ts` — actual PostgreSQL, old-schema upgrade, lifecycle, claims/fencing, cancellation and history rehearsal.
-- **API**: `apps/web/src/lib/api.integration.test.ts` — actual route functions, duplicate launch, stale approval, immutable edits and activation.
+- **GR**: `packages/core/src/__test__/grading.test.ts`, `results.test.ts` — conservative grading, matrix and per-assertion verification.
+- **CLI**: `packages/core/src/__test__/pinned-cli.test.ts` — rebuilt pinned CLI, synthetic script judges, no model calls; upstream Go agent/judge/CLI tests.
+- **DB**: `apps/worker/src/__test__/integration.test.ts` — actual PostgreSQL, old-schema upgrade, lifecycle, claims/fencing, cancellation and history rehearsal.
+- **API**: `apps/web/src/lib/__test__/api.integration.test.ts` — actual route functions, duplicate launch, stale approval, immutable edits and activation.
 - **ART**: `artifact-integrity.test.ts`, `archive.test.ts`, `multipart.test.ts`, `judge-harness.test.ts`, `judge-harness-xlsx.test.py`, `material-references.test.ts`.
 - **OPS**: `process.test.ts`, `app-server.test.ts`, `private-services.test.ts`, `roles.integration.test.ts`.
 - **UI**: `apps/web/e2e/pilot-workflow.spec.ts`, users/workbench tests and desktop/laptop/mobile screenshot review. These are explicit demo evidence.
