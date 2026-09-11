@@ -549,7 +549,10 @@ export default async function EvalPage({
             </>
           ) : (
             <>
-              <b>{humanize(status)}</b>
+              <b className="processing-label">
+                <Spinner />
+                {humanize(status)}
+              </b>
               <p>Codex is working. Progress is recorded durably.</p>
             </>
           )}

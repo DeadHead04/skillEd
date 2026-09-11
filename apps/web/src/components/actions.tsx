@@ -291,6 +291,7 @@ export function EvalQuestionsForm({
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [job, setJob] = useState<string>();
+  const router = useRouter();
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -308,11 +309,21 @@ export function EvalQuestionsForm({
       body: JSON.stringify({ answers }),
     });
     const data = await response.json();
-    if (!response.ok)
+    if (!response.ok) {
       setError(data.detail ?? "The answers could not be saved.");
-    else setJob(data.jobId);
+    } else {
+      setJob(data.jobId);
+      router.refresh();
+    }
     setBusy(false);
   }
+  if (job)
+    return (
+      <JobStream
+        jobId={job}
+        initialEvent="Answers saved. Building the eval plan…"
+      />
+    );
   return (
     <form className="question-form" onSubmit={submit}>
       {questions.map((question) => (

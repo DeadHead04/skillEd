@@ -1,1 +1,1 @@
-export const MAX_NUM_TEST_CASES = 2;
+export const MAX_NUM_TEST_CASES = 5;

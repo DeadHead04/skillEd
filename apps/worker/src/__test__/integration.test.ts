@@ -87,7 +87,7 @@ test(
       await t.test(
         "authoring follows the enforced lifecycle without skipping understanding",
         async () => {
-          const { authorEval } = await import("../evals.js");
+          const { authorEval } = await import("../eval/index.js");
           const [draft] =
             await sql`INSERT INTO eval_versions(skill_version_id,status) VALUES(${version!.id},'collecting') RETURNING id`;
           await sql`INSERT INTO eval_files(eval_version_id,kind,filename) VALUES(${draft!.id},'expected','truth.json')`;

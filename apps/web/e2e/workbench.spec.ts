@@ -39,6 +39,59 @@ test("protected workbench requires a named user session", async ({ page }) => {
   );
 });
 
+test("saving blocking answers immediately advances beyond the questions step", async ({
+  page,
+}, info) => {
+  const dir = await mkdtemp(join(tmpdir(), "skilled-answer-transition-"));
+  const name = `answer-transition-${info.project.name}-${Date.now()}`;
+  await writeFile(
+    join(dir, "SKILL.md"),
+    `---\nname: ${name}\ndescription: Summarize a supplied task using its source of truth.\n---\nRead the task and return a grounded summary.\n`,
+  );
+  const zip = join(dir, "fixture.zip");
+  await createZip(dir, ["SKILL.md"], zip);
+
+  try {
+    await signIn(page);
+    await page.goto("/skill?new=1");
+    await page.getByLabel("Skill ZIP").setInputFiles(zip);
+    await page
+      .getByLabel("What should this Skill reliably accomplish?")
+      .fill("Summarize the supplied task using the rule named by the user.");
+    await page.getByRole("button", { name: "Upload and inspect" }).click();
+    await page.waitForURL(/\/skill\?skill=/, { timeout: 15_000 });
+    await page.getByRole("button", { name: "Create evals" }).click();
+    await page.waitForURL(/\/evals\/[0-9a-f-]+/, { timeout: 15_000 });
+    await expect(
+      page.getByRole("heading", { name: "Answer before the plan is built" }),
+    ).toBeVisible({ timeout: 30_000 });
+
+    // The successful mutation itself must advance the server-rendered state;
+    // progress streaming is recovery/telemetry, not the only refresh trigger.
+    await page.route("**/api/v1/jobs/*/events", (route) => route.abort());
+    await page
+      .getByPlaceholder(
+        "Give the rule Codex should apply when it designs the cases.",
+      )
+      .fill("Treat the user's named rule as the deciding authority.");
+    const saved = page.waitForResponse(
+      (response) =>
+        response.request().method() === "POST" &&
+        response.url().endsWith("/answers"),
+    );
+    await page.getByRole("button", { name: "Save answers" }).click();
+    expect((await saved).ok()).toBe(true);
+    await expect(
+      page.getByRole("button", { name: "Save answers" }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("heading", { name: "Answer before the plan is built" }),
+    ).toHaveCount(0);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("sidebar shows uploaded packages without depending on another test's activation", async ({
   page,
 }, info) => {

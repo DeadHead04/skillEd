@@ -7,7 +7,7 @@ import {
   type Db,
 } from "@skilled/core";
 import { codexAppServer } from "../app-server.js";
-import { authorEval, generateEval } from "../evals.js";
+import { authorEval, generateEval } from "../eval/index.js";
 import { heartbeat } from "../heartbeat/index.js";
 import { touchHeartbeat } from "../heartbeat/queries.js";
 import { fencedDatabase } from "../jobs.js";

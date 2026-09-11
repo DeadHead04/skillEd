@@ -5,8 +5,14 @@ import { apiFetch } from "../lib/client-request";
 import { humanize } from "../lib/labels";
 import { Spinner } from "./ui";
 
-export function JobStream({ jobId }: { jobId?: string }) {
-  const [event, setEvent] = useState("Waiting for the worker");
+export function JobStream({
+  jobId,
+  initialEvent = "Waiting for the worker",
+}: {
+  jobId?: string;
+  initialEvent?: string;
+}) {
+  const [event, setEvent] = useState(initialEvent);
   const [cancelling, setCancelling] = useState(false);
   const router = useRouter();
   useEffect(() => {
