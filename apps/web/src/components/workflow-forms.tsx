@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "../lib/client-request";
 import { ApiAction } from "./actions";
+import { Spinner } from "./processing";
 
 export function NewEvaluationForm({
   versions,
@@ -64,7 +65,7 @@ export function NewEvaluationForm({
           {error}
         </p>
       )}
-      <button className="btn" disabled={busy}>
+      <button className="btn" disabled={busy} aria-busy={busy}>
         {busy ? "Creating…" : "New evaluation"}
       </button>
     </form>
@@ -191,7 +192,15 @@ export function MaterialManager({
       <div className="section-head">
         <h2>Task material</h2>
         <span className="section-note">
-          {editable ? "Editable while this suite is a draft" : "Frozen"}
+          {busy ? (
+            <span className="processing-label">
+              <Spinner /> Updating materials…
+            </span>
+          ) : editable ? (
+            "Editable while this suite is a draft"
+          ) : (
+            "Frozen"
+          )}
         </span>
       </div>
       <div>
@@ -219,6 +228,7 @@ export function MaterialManager({
                   aria-label={`Category for ${file.filename}`}
                   value={file.kind}
                   disabled={busy}
+                  aria-busy={busy}
                   onChange={(e) => change(file.id, { kind: e.target.value })}
                 >
                   {[
@@ -240,6 +250,7 @@ export function MaterialManager({
                       (file.kind === "dataset" ? "agent_input" : "judge_only")
                     }
                     disabled={busy || file.kind === "expected"}
+                    aria-busy={busy}
                     onChange={(e) =>
                       change(file.id, { visibility: e.target.value })
                     }
@@ -251,6 +262,7 @@ export function MaterialManager({
                 <button
                   className="btn secondary"
                   disabled={busy}
+                  aria-busy={busy}
                   onClick={() => change(file.id, { remove: true })}
                 >
                   Remove
@@ -284,7 +296,7 @@ export function MaterialManager({
               multiple
               required
             />
-            <button className="btn secondary" disabled={busy}>
+            <button className="btn secondary" disabled={busy} aria-busy={busy}>
               Add materials
             </button>
           </form>

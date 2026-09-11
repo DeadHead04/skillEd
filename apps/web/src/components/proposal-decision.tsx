@@ -22,12 +22,12 @@ export function ProposalDecision({
 }) {
   const [skillApproved, setSkillApproved] = useState(true);
   const [evalApproved, setEvalApproved] = useState(false);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"" | "approve" | "reject">("");
   const [error, setError] = useState("");
   const router = useRouter();
 
   async function decide(approve: boolean) {
-    setBusy(true);
+    setBusy(approve ? "approve" : "reject");
     setError("");
     const response = await apiFetch(`/api/v1/updates/${proposalId}/decide`, {
       method: "POST",
@@ -39,7 +39,7 @@ export function ProposalDecision({
       }),
     });
     const data = await response.json();
-    setBusy(false);
+    setBusy("");
     if (!response.ok) {
       setError(data.detail ?? "The decision could not be recorded.");
       return;
@@ -104,17 +104,19 @@ export function ProposalDecision({
         <div className="decision-actions">
           <button
             className="btn secondary"
-            disabled={busy}
+            disabled={busy !== ""}
+            aria-busy={busy === "reject"}
             onClick={() => decide(false)}
           >
-            Reject
+            {busy === "reject" ? "Rejecting…" : "Reject"}
           </button>
           <button
             className="btn"
-            disabled={busy || (!skillApproved && !evalApproved)}
+            disabled={busy !== "" || (!skillApproved && !evalApproved)}
+            aria-busy={busy === "approve"}
             onClick={() => decide(true)}
           >
-            {busy
+            {busy === "approve"
               ? "Working…"
               : skillApproved && evalApproved
                 ? "Approve Skill and eval"

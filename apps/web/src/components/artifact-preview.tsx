@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { apiFetch } from "../lib/client-request";
+import { Spinner } from "./processing";
 function csvRows(text: string) {
   const rows: string[][] = [],
     row: string[] = [];
@@ -65,6 +66,7 @@ export function ArtifactPreview({
           <button
             className="text-button"
             disabled={busy}
+            aria-busy={busy && selected === a.key}
             onClick={() => preview(a.key)}
           >
             {a.key.split("/").pop()}
@@ -77,7 +79,11 @@ export function ArtifactPreview({
           </a>
         </div>
       ))}
-      {busy && <p role="status">Loading preview…</p>}
+      {busy && (
+        <p className="processing-label" role="status">
+          <Spinner /> Loading preview…
+        </p>
+      )}
       {error && (
         <p className="hint" role="status">
           {error}

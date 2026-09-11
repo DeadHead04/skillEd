@@ -137,6 +137,8 @@ export async function currentEval(
     await sql`SELECT * FROM eval_files WHERE eval_version_id=${evaluation.id} ORDER BY created_at`;
   const [activeJob] =
     await sql`SELECT id,status FROM jobs WHERE resource_id=${evaluation.id} AND status IN ('queued','running') ORDER BY created_at DESC LIMIT 1`;
+  const [failedJob] =
+    await sql`SELECT id,type,status,error FROM jobs WHERE resource_id=${evaluation.id} AND type IN ('eval_author','eval_generate') AND status IN ('failed','interrupted') ORDER BY completed_at DESC NULLS LAST,created_at DESC LIMIT 1`;
   const messages =
     await sql`SELECT m.* FROM conversation_messages m JOIN conversations c ON c.id=m.conversation_id WHERE c.resource_id=${evaluation.id} ORDER BY m.created_at`;
   const [conversation] =
@@ -146,6 +148,7 @@ export async function currentEval(
     cases,
     files,
     activeJob,
+    failedJob,
     messages,
     conversation,
     evidenceMode:

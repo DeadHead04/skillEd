@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useEvidenceNavigation } from "./evidence-navigation";
+import { Spinner } from "./processing";
 import type { AreaEvidence } from "@skilled/core";
 
 export type EvidenceSeries = {
@@ -439,10 +440,17 @@ export function EvidenceChart({ series }: { series: EvidenceSeries[] }) {
           Missing evidence stays in every denominator.{" "}
           {radar ? "" : "All areas are available in the bars."}
         </p>
-        <p className="chart-caption" role="status">
-          {pending
-            ? "Updating linked cases…"
-            : `${scope.area ? (areas.find((a) => a.id === scope.area)?.label ?? "All areas") : "All areas"} · ${trialLabel} · ${scope.view === "compare" ? "Both configurations" : plotted[0]!.label}`}
+        <p
+          className={`chart-caption ${pending ? "processing-label" : ""}`}
+          role="status"
+        >
+          {pending ? (
+            <>
+              <Spinner /> Updating linked cases…
+            </>
+          ) : (
+            `${scope.area ? (areas.find((a) => a.id === scope.area)?.label ?? "All areas") : "All areas"} · ${trialLabel} · ${scope.view === "compare" ? "Both configurations" : plotted[0]!.label}`
+          )}
         </p>
       </div>
     </section>

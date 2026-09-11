@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../lib/client-request";
+import { Spinner } from "./processing";
 type LinkRecord = {
   id: string;
   kind: string;
@@ -22,17 +23,23 @@ export function AccountLinks({
   }[];
 }) {
   const [links, setLinks] = useState<LinkRecord[]>([]),
-    [busy, setBusy] = useState(false),
+    [busy, setBusy] = useState(""),
+    [linksBusy, setLinksBusy] = useState(false),
     [error, setError] = useState("");
   const [issued, setIssued] = useState<{ url: string; expires: string } | null>(
       null,
     ),
     [copied, setCopied] = useState(false);
   async function refresh() {
-    const response = await apiFetch("/api/v1/users/access-links");
-    const result = await response.json();
-    if (response.ok) setLinks(result.links);
-    else setError(result.detail ?? "Account links could not be loaded.");
+    setLinksBusy(true);
+    try {
+      const response = await apiFetch("/api/v1/users/access-links");
+      const result = await response.json();
+      if (response.ok) setLinks(result.links);
+      else setError(result.detail ?? "Account links could not be loaded.");
+    } finally {
+      setLinksBusy(false);
+    }
   }
   useEffect(() => {
     void refresh();
@@ -42,7 +49,7 @@ export function AccountLinks({
     kind: "invitation" | "password_reset",
   ) {
     event.preventDefault();
-    setBusy(true);
+    setBusy(kind);
     setError("");
     setIssued(null);
     setCopied(false);
@@ -53,7 +60,7 @@ export function AccountLinks({
       body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), kind }),
     });
     const result = await response.json();
-    setBusy(false);
+    setBusy("");
     if (!response.ok) {
       setError(
         result.detail ??
@@ -69,14 +76,14 @@ export function AccountLinks({
     await refresh();
   }
   async function revoke(id: string) {
-    setBusy(true);
+    setBusy(`revoke:${id}`);
     setError("");
     const response = await apiFetch("/api/v1/users/access-links", {
       method: "DELETE",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    setBusy(false);
+    setBusy("");
     if (!response.ok) {
       setError((await response.json()).detail ?? "Revocation failed.");
       return;
@@ -113,8 +120,12 @@ export function AccountLinks({
             <option value="administrator">Administrator</option>
           </select>
         </div>
-        <button className="btn" disabled={busy}>
-          {busy ? "Working…" : "Create signup link"}
+        <button
+          className="btn"
+          disabled={busy !== ""}
+          aria-busy={busy === "invitation"}
+        >
+          {busy === "invitation" ? "Working…" : "Create signup link"}
         </button>
       </form>
       <p className="hint">
@@ -182,17 +193,30 @@ export function AccountLinks({
                 ))}
             </select>
           </div>
-          <button className="btn secondary" disabled={busy}>
-            Create reset link
+          <button
+            className="btn secondary"
+            disabled={busy !== ""}
+            aria-busy={busy === "password_reset"}
+          >
+            {busy === "password_reset" ? "Working…" : "Create reset link"}
           </button>
         </form>
       </details>
       <details className="account-recovery">
-        <summary>Issued links ({links.length})</summary>
+        <summary>
+          Issued links ({links.length})
+          {linksBusy && (
+            <span className="processing-label account-links-progress">
+              <Spinner /> Refreshing…
+            </span>
+          )}
+        </summary>
         <button
           type="button"
           className="text-button"
           onClick={() => void refresh()}
+          disabled={linksBusy}
+          aria-busy={linksBusy}
         >
           Refresh links
         </button>
@@ -222,11 +246,12 @@ export function AccountLinks({
                 {state === "Available" && (
                   <button
                     className="btn quiet"
-                    disabled={busy}
+                    disabled={busy !== ""}
+                    aria-busy={busy === `revoke:${link.id}`}
                     onClick={() => void revoke(link.id)}
                     aria-label={`Revoke ${link.label || link.login_id}`}
                   >
-                    Revoke
+                    {busy === `revoke:${link.id}` ? "Revoking…" : "Revoke"}
                   </button>
                 )}
               </div>

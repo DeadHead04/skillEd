@@ -2,6 +2,8 @@ import { InspectorFocus } from "./inspector-focus";
 import Link from "next/link";
 import { ObservationComparison } from "./artifact-preview";
 import { resultCopy } from "../lib/labels";
+import { Spinner } from "./processing";
+export { Spinner } from "./processing";
 
 /* -------------------------------------------------------------------------
    Status — colour is never the only carrier. Every state has a glyph and a
@@ -31,7 +33,7 @@ export function Status({
   return (
     <span className={`status ${key}`} title={resultCopy(String(value))}>
       <span className="glyph" aria-hidden="true">
-        {GLYPH[key] ?? "·"}
+        {key === "active" ? <Spinner /> : (GLYPH[key] ?? "·")}
       </span>
       {word}
       {flaky && <span className="flaky">unstable</span>}

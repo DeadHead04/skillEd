@@ -1143,7 +1143,14 @@ async function post(request: Request, context: Context, sql: Db) {
     }
     if (path[0] === "evals" && path[1] && path[2] === "retry") {
       const [failedJob] =
-        await sql`SELECT type,payload FROM jobs WHERE resource_id=${path[1]} AND status='failed' ORDER BY completed_at DESC NULLS LAST,created_at DESC LIMIT 1`;
+        await sql`SELECT type,payload FROM jobs WHERE resource_id=${path[1]} AND type IN ('eval_author','eval_generate') AND status IN ('failed','interrupted') ORDER BY completed_at DESC NULLS LAST,created_at DESC LIMIT 1`;
+      if (!failedJob)
+        return fail(
+          "NO_FAILED_STEP",
+          "No failed evaluation step found",
+          "Refresh to recover the latest evaluation state.",
+          409,
+        );
       const retryAuthoring = failedJob?.type === "eval_author";
       const [row] =
         await sql`UPDATE eval_versions SET status=${retryAuthoring ? "understanding" : "generating"},validation='{}' WHERE id=${path[1]} AND status='failed' RETURNING id`;
@@ -1158,9 +1165,7 @@ async function post(request: Request, context: Context, sql: Db) {
         sql,
         retryAuthoring ? "eval_author" : "eval_generate",
         path[1],
-        retryAuthoring
-          ? { ...(failedJob.payload ?? {}), retry: true }
-          : { retry: true },
+        { ...(failedJob.payload ?? {}), retry: true },
       );
       return json({ jobId, resourceId: path[1] }, 202);
     }

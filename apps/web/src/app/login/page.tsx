@@ -130,7 +130,7 @@ export default function LoginPage() {
                 {error}
               </div>
             )}
-            <button className="btn" disabled={busy}>
+            <button className="btn" disabled={busy} aria-busy={busy}>
               {busy ? "Signing in…" : "Sign in"}
             </button>
           </form>

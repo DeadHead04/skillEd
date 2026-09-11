@@ -144,6 +144,7 @@ export function UserManagement({
                 <div className="user-actions">
                   <button
                     className="btn secondary"
+                    aria-busy={busy === `/api/v1/users/${user.id}`}
                     disabled={
                       busy !== "" ||
                       self ||
@@ -164,6 +165,7 @@ export function UserManagement({
                   </button>
                   <button
                     className="btn secondary"
+                    aria-busy={busy === `/api/v1/users/${user.id}`}
                     disabled={busy !== "" || self || lastAdministrator}
                     onClick={() => {
                       if (
@@ -204,6 +206,7 @@ export function UserManagement({
                     </div>
                     <button
                       className="btn"
+                      aria-busy={busy === `/api/v1/users/${user.id}`}
                       disabled={
                         busy !== "" || (passwords[user.id]?.length ?? 0) < 12
                       }
@@ -277,7 +280,11 @@ export function UserManagement({
             />
             <small>12 to 128 characters. Share it outside SkillEd.</small>
           </div>
-          <button className="btn" disabled={busy !== ""}>
+          <button
+            className="btn"
+            disabled={busy !== ""}
+            aria-busy={busy === "/api/v1/users"}
+          >
             {busy === "/api/v1/users" ? "Creating…" : "Create account"}
           </button>
         </form>

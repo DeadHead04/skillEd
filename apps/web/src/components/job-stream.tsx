@@ -3,9 +3,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "../lib/client-request";
 import { humanize } from "../lib/labels";
+import { Spinner } from "./ui";
 
 export function JobStream({ jobId }: { jobId?: string }) {
   const [event, setEvent] = useState("Waiting for the worker");
+  const [cancelling, setCancelling] = useState(false);
   const router = useRouter();
   useEffect(() => {
     if (!jobId) return;
@@ -27,11 +29,16 @@ export function JobStream({ jobId }: { jobId?: string }) {
   if (!jobId) return null;
   return (
     <div className="job-stream" role="status">
-      <span>{event}</span>
+      <span className="processing-label">
+        <Spinner /> {event}
+      </span>
       <button
         className="btn quiet"
         type="button"
+        disabled={cancelling}
+        aria-busy={cancelling}
         onClick={async () => {
+          setCancelling(true);
           const response = await apiFetch(`/api/v1/jobs/${jobId}/cancel`, {
             method: "POST",
           });
@@ -40,9 +47,10 @@ export function JobStream({ jobId }: { jobId?: string }) {
               ? "Cancellation requested"
               : "Cancellation could not be sent. Retry.",
           );
+          setCancelling(false);
         }}
       >
-        Cancel operation
+        {cancelling ? "Requesting cancellation…" : "Cancel operation"}
       </button>
     </div>
   );

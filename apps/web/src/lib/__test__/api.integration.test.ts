@@ -77,6 +77,30 @@ test(
       );
       await sql`DELETE FROM jobs WHERE resource_id=${failedAuthorEval!.id}`;
       await sql`DELETE FROM eval_versions WHERE id=${failedAuthorEval!.id}`;
+      const [failedGenerateEval] =
+        await sql`INSERT INTO eval_versions(skill_version_id,status) VALUES(${v!.id},'failed') RETURNING id`;
+      await sql`INSERT INTO jobs(type,resource_id,status,payload,adapter,error,completed_at) VALUES('eval_generate',${failedGenerateEval!.id},'interrupted','{"rebuild":true}','real','{"code":"LEASE_EXPIRED"}',now())`;
+      const retriedGeneration = await send(
+        ["evals", failedGenerateEval!.id, "retry"],
+        {},
+      );
+      assert.equal(retriedGeneration.status, 202);
+      const retriedGenerationBody = await retriedGeneration.json();
+      const [retriedGenerationJob] =
+        await sql`SELECT type,payload FROM jobs WHERE id=${retriedGenerationBody.jobId}`;
+      assert.equal(retriedGenerationJob!.type, "eval_generate");
+      assert.deepEqual(retriedGenerationJob!.payload, {
+        rebuild: true,
+        retry: true,
+      });
+      assert.equal(
+        (
+          await sql`SELECT status FROM eval_versions WHERE id=${failedGenerateEval!.id}`
+        )[0]!.status,
+        "generating",
+      );
+      await sql`DELETE FROM jobs WHERE resource_id=${failedGenerateEval!.id}`;
+      await sql`DELETE FROM eval_versions WHERE id=${failedGenerateEval!.id}`;
       const emptyStream = new ReadableStream({
         start(controller) {
           controller.close();

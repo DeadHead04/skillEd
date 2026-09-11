@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiAction } from "./actions";
-import { Status } from "./ui";
+import { Spinner, Status } from "./ui";
 import { type RunStatusExecution } from "../lib/run-progress";
 import { createRunStatusPoller } from "../lib/run-status-poller";
 
@@ -105,7 +105,8 @@ export function LiveRunProgress({ runId }: { runId: string }) {
       </ol>
 
       {delayed && (
-        <p className="notice" role="status">
+        <p className="notice processing-label" role="status">
+          <Spinner />
           <b>Waiting</b>
           The worker has not answered the last status check. Retrying.
         </p>
@@ -115,9 +116,13 @@ export function LiveRunProgress({ runId }: { runId: string }) {
         <div className="progress-head">
           <h2>Executions</h2>
           <span className="section-note num">
-            {snapshot
-              ? `${snapshot.completed} of ${snapshot.total} complete`
-              : "reading durable progress…"}
+            {snapshot ? (
+              `${snapshot.completed} of ${snapshot.total} complete`
+            ) : (
+              <span className="processing-label">
+                <Spinner /> reading durable progress…
+              </span>
+            )}
           </span>
         </div>
         <div className="rows" aria-live="polite">
@@ -130,7 +135,7 @@ export function LiveRunProgress({ runId }: { runId: string }) {
               >
                 <span aria-hidden="true">
                   {execution.state === "active" ? (
-                    <span className="spinner" />
+                    <Spinner />
                   ) : execution.state === "completed" ? (
                     "✓"
                   ) : (

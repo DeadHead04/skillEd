@@ -18,6 +18,7 @@ import {
   FileView,
   Inspector,
   Status,
+  Spinner,
   Verdict,
   Work,
 } from "../../../components/ui";
@@ -70,6 +71,7 @@ export default async function EvalPage({
     );
 
   const status = String(evaluation.status);
+  const failedDuringGeneration = evaluation.failedJob?.type === "eval_generate";
   const availability = await currentExecutionAvailability();
   const understanding = evaluation.task_understanding as any;
   const plan = evaluation.coverage_plan as any;
@@ -250,8 +252,14 @@ export default async function EvalPage({
         lede="Review the task, approve its judging areas, then inspect the generated checks."
         status={
           <Status
-            value={status === "approved" ? "pass" : "active"}
-            label={humanize(status)}
+            value={
+              status === "approved"
+                ? "pass"
+                : status === "failed"
+                  ? "error"
+                  : "active"
+            }
+            label={status === "failed" ? "Error" : humanize(status)}
           />
         }
       />
@@ -347,12 +355,6 @@ export default async function EvalPage({
             </div>
           )}
         </section>
-      )}
-
-      {status === "failed" && (
-        <div className="error-box" role="alert" style={{ marginBottom: 20 }}>
-          {evaluation.validation?.error ?? "Evaluation preparation stopped."}
-        </div>
       )}
 
       {status === "collecting" ? (
@@ -530,10 +532,15 @@ export default async function EvalPage({
             <>
               <b>
                 {availability.available
-                  ? "Generation stopped"
-                  : "Generation blocked"}
+                  ? failedDuringGeneration
+                    ? "Test plan generation stopped"
+                    : "Task understanding stopped"
+                  : "Codex execution is unavailable"}
               </b>
-              <p>Nothing was frozen. The saved task and plan are preserved.</p>
+              <p>
+                Nothing was frozen. Your saved task, answers, and approved plan
+                are preserved.
+              </p>
             </>
           ) : status === "approved" ? (
             <>
@@ -553,7 +560,14 @@ export default async function EvalPage({
               availability={availability}
               url={`/api/v1/evals/${evaluation.id}/author`}
               label="Start understanding"
+              pendingLabel="Understanding skill…"
             />
+          )}
+          {status === "understanding" && (
+            <span className="processing-label" role="status" aria-live="polite">
+              <Spinner />
+              Understanding skill…
+            </span>
           )}
           {status === "awaiting_plan_approval" && (
             <ExecutionAction
@@ -580,7 +594,16 @@ export default async function EvalPage({
             <ExecutionAction
               availability={availability}
               url={`/api/v1/evals/${evaluation.id}/retry`}
-              label="Retry interrupted step"
+              label={
+                failedDuringGeneration
+                  ? "Retry test plan"
+                  : "Retry task understanding"
+              }
+              pendingLabel={
+                failedDuringGeneration
+                  ? "Restarting test plan…"
+                  : "Restarting task understanding…"
+              }
             />
           )}
           {status === "approved" && (

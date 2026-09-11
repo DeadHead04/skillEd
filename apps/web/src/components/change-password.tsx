@@ -42,7 +42,7 @@ export function ChangePassword() {
       <p className="hint">
         Changing your password signs out every session, including this one.
       </p>
-      <button className="btn" disabled={busy}>
+      <button className="btn" disabled={busy} aria-busy={busy}>
         {busy ? "Saving…" : "Change password and sign out"}
       </button>
     </form>

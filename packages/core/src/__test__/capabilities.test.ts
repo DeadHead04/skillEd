@@ -32,11 +32,33 @@ describe("runtime capabilities", () => {
     );
   });
 
+  it("accepts a dependency-free plain-text task description", () => {
+    assert.deepEqual(
+      unsupportedRequirements([
+        "No external tools or packages are required; plain-text generation is sufficient.",
+        "A language-model runtime able to read user-provided clause text.",
+        "No external tools, packages, network access, MCP services, or files are required by the tested agent.",
+      ]),
+      [],
+    );
+  });
+
   it("continues to reject unavailable and malformed runtime requirements", () => {
-    assert.deepEqual(unsupportedRequirements(["pandas", "live MCP", 42]), [
-      "pandas",
-      "live MCP",
-      "42",
-    ]);
+    assert.deepEqual(
+      unsupportedRequirements([
+        "pandas",
+        "live MCP",
+        "No external tools or packages are required; plain-text generation is sufficient; live MCP is also required",
+        "A language-model runtime able to read user-provided clause text and access the network.",
+        42,
+      ]),
+      [
+        "pandas",
+        "live MCP",
+        "No external tools or packages are required; plain-text generation is sufficient; live MCP is also required",
+        "A language-model runtime able to read user-provided clause text and access the network.",
+        "42",
+      ],
+    );
   });
 });

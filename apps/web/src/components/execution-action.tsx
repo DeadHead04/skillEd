@@ -14,6 +14,7 @@ export function ExecutionAction({
   url: string;
   label: string;
   body?: unknown;
+  pendingLabel?: string;
 }) {
   const router = useRouter();
   const [checking, setChecking] = useState(false);
@@ -55,6 +56,7 @@ export function ExecutionAction({
         type="button"
         className="btn secondary"
         disabled={checking}
+        aria-busy={checking}
         onClick={recheck}
       >
         {checking ? "Checking readiness…" : "Recheck execution"}

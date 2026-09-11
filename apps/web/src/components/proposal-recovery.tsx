@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Spinner } from "./ui";
 
 /** The proposal may finish between its record read and the active-job read.
  * Recover from durable state even when there is no remaining job to stream. */
@@ -47,7 +48,8 @@ export function ProposalRecovery({
   }, [active, id, status, router]);
   if (!active) return null;
   return (
-    <p className="hint" role="status">
+    <p className="hint processing-label" role="status">
+      <Spinner />
       {interrupted
         ? "Connection interrupted. Retrying saved progress…"
         : "Checking saved progress. You can safely refresh this page."}

@@ -142,6 +142,7 @@ export function AppShell({
             className="text-button"
             onClick={logout}
             disabled={signingOut}
+            aria-busy={signingOut}
           >
             {signingOut ? "Signing out…" : "Sign out"}
           </button>

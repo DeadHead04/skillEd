@@ -146,7 +146,7 @@ export function AccountEntry({ kind }: { kind: "signup" | "reset-password" }) {
               {error}
             </div>
           )}
-          <button className="btn" disabled={busy || !token}>
+          <button className="btn" disabled={busy || !token} aria-busy={busy}>
             {busy ? "Saving…" : signup ? "Create account" : "Set new password"}
           </button>
         </form>

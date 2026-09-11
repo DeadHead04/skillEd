@@ -3,6 +3,7 @@ import { useState } from "react";
 import { apiFetch } from "../lib/client-request";
 import { useRouter } from "next/navigation";
 import { JobStream } from "./job-stream";
+import { Spinner } from "./processing";
 
 export function ApiAction({
   url,
@@ -10,12 +11,14 @@ export function ApiAction({
   body,
   kind = "primary",
   navigateTo,
+  pendingLabel,
 }: {
   url: string;
   label: string;
   body?: unknown;
   kind?: "primary" | "secondary" | "danger";
   navigateTo?: string;
+  pendingLabel?: string;
 }) {
   const [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -40,8 +43,15 @@ export function ApiAction({
     const target = navigateTo?.replace(":resourceId", data.resourceId ?? "");
     if (target) router.push(target);
     else router.refresh();
-    setBusy(false);
+    if (!pendingLabel) setBusy(false);
   }
+  if (busy && pendingLabel)
+    return (
+      <span className="processing-label" role="status" aria-live="polite">
+        <Spinner />
+        {pendingLabel}
+      </span>
+    );
   return (
     <>
       {error && (
@@ -52,6 +62,7 @@ export function ApiAction({
       <button
         className={`btn ${kind === "secondary" ? "secondary" : kind === "danger" ? "danger" : ""}`}
         disabled={busy}
+        aria-busy={busy}
         onClick={act}
       >
         {busy ? "Working…" : label}
@@ -87,6 +98,7 @@ export function CaseToggle({
     <button
       className="btn quiet"
       disabled={busy}
+      aria-busy={busy}
       aria-pressed={enabled}
       onClick={async () => {
         setBusy(true);
@@ -255,7 +267,7 @@ export function UploadForm({
         </div>
       )}
 
-      <button className="btn" disabled={busy}>
+      <button className="btn" disabled={busy} aria-busy={busy}>
         {busy ? "Inspecting package…" : "Upload and inspect"}
       </button>
     </form>
@@ -328,7 +340,7 @@ export function EvalQuestionsForm({
           {error}
         </div>
       )}
-      <button className="btn" disabled={busy}>
+      <button className="btn" disabled={busy} aria-busy={busy}>
         {busy ? "Saving answers…" : "Save answers"}
       </button>
       <JobStream jobId={job} />
@@ -384,7 +396,7 @@ export function ConversationForm({
           {error}
         </div>
       )}
-      <button className="btn secondary" disabled={busy}>
+      <button className="btn secondary" disabled={busy} aria-busy={busy}>
         {busy ? "Sending…" : "Send to Codex"}
       </button>
       <JobStream jobId={job} />
