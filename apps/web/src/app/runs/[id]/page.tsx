@@ -136,12 +136,11 @@ export default async function RunPage({
   if (!["completed", "failed", "cancelled", "interrupted"].includes(run.status))
     return (
       <Work>
-        <Verdict
-          title="Evaluation in progress"
+        <LiveRunProgress
+          runId={String(run.id)}
+          initialStatus={run.status}
           lede={`Skill v${run.skill_version} · Test plan v${run.eval_version}. Progress is saved as each case finishes.`}
-          status={<Status value="active" label={humanize(run.status)} />}
         />
-        <LiveRunProgress runId={String(run.id)} />
       </Work>
     );
   const results = run.results as any[];

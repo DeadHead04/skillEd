@@ -10,9 +10,11 @@ import {
 
 test("persists a normalized Skill-Up case result with valid INSERT SQL", async () => {
   const statements: string[] = [];
-  const fakeSql = ((strings: TemplateStringsArray) => {
+  const values: unknown[][] = [];
+  const fakeSql = ((strings: TemplateStringsArray, ...params: unknown[]) => {
     const statement = strings.join("?");
     statements.push(statement);
+    values.push(params);
     if (statement.startsWith("SELECT * FROM eval_cases"))
       return Promise.resolve([
         {
@@ -21,9 +23,14 @@ test("persists a normalized Skill-Up case result with valid INSERT SQL", async (
               dimension: "correctness",
               required: true,
             },
+            "Adapts to sparse input": {
+              dimension: "input_adaptation",
+              role: "informational",
+              required: false,
+            },
           },
           judge_type: "agent",
-          required_dimensions: ["correctness"],
+          required_dimensions: ["correctness", "input_adaptation"],
         },
       ]);
     return Promise.resolve([]);
@@ -52,6 +59,8 @@ test("persists a normalized Skill-Up case result with valid INSERT SQL", async (
   assert.equal(statements.length, 2);
   assert.match(statements[1]!, /^INSERT INTO case_results/);
   assert.match(statements[1]!, /VALUES\(.*\)$/);
+  assert.equal(values[1]?.[4], "PASS");
+  assert.equal(values[1]?.[9], null);
 });
 
 test("parses split lines, ignores noise, and maps out-of-order baseline slots", async () => {

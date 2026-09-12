@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ApiAction } from "./actions";
-import { Spinner, Status } from "./ui";
+import { Spinner, Status, Verdict } from "./ui";
+import { humanize } from "../lib/labels";
 import { type RunStatusExecution } from "../lib/run-progress";
 import { createRunStatusPoller } from "../lib/run-status-poller";
 
@@ -20,12 +21,12 @@ type Snapshot = {
 // The known stage sequence. No percentage is invented from it.
 const STAGES = ["queued", "preparing", "running", "judging", "completed"];
 
-function executionState(execution: RunStatusExecution) {
+function executionState(execution: RunStatusExecution, runIsComplete: boolean) {
   if (!execution.provisional && execution.result)
     return { value: execution.result.toLowerCase(), label: execution.result };
   if (execution.reportedStatus)
     return {
-      value: "active",
+      value: runIsComplete ? execution.reportedStatus.toLowerCase() : "active",
       label: `reported ${execution.reportedStatus.toLowerCase()}`,
     };
   if (execution.state === "active")
@@ -35,7 +36,15 @@ function executionState(execution: RunStatusExecution) {
   return { value: "absent", label: "pending" };
 }
 
-export function LiveRunProgress({ runId }: { runId: string }) {
+export function LiveRunProgress({
+  runId,
+  initialStatus,
+  lede,
+}: {
+  runId: string;
+  initialStatus: string;
+  lede: string;
+}) {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [delayed, setDelayed] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
@@ -87,6 +96,16 @@ export function LiveRunProgress({ runId }: { runId: string }) {
 
   return (
     <>
+      <Verdict
+        title="Evaluation in progress"
+        lede={lede}
+        status={
+          <Status
+            value="active"
+            label={humanize(snapshot?.stage ?? initialStatus)}
+          />
+        }
+      />
       <ol className="steps" style={{ marginTop: 20 }}>
         {STAGES.map((item, index) => (
           <li
@@ -127,7 +146,10 @@ export function LiveRunProgress({ runId }: { runId: string }) {
         </div>
         <div className="rows" aria-live="polite">
           {snapshot?.executions.map((execution) => {
-            const state = executionState(execution);
+            const state = executionState(
+              execution,
+              snapshot.status === "completed",
+            );
             return (
               <div
                 className="row case"

@@ -7,6 +7,7 @@ import {
   extractZip,
   type Db,
   definitionsFromMapping,
+  requiredAssertionDimensions,
   normalizeGrading,
   configuration,
   compareVerification,
@@ -567,11 +568,12 @@ export async function persistSkillUpCaseResult(
     await sql`SELECT * FROM eval_cases WHERE eval_version_id=${run.eval_version_id} AND case_id=${value.case_id}`;
   if (!caseMeta)
     throw new Error(`Unclassified case in report: ${value.case_id}`);
+  const definitions = definitionsFromMapping(caseMeta.assertion_mapping);
   const graded = normalizeGrading(
     value,
-    definitionsFromMapping(caseMeta.assertion_mapping),
+    definitions,
     caseMeta.judge_type,
-    caseMeta.required_dimensions,
+    requiredAssertionDimensions(definitions),
   );
   const mapped = graded.assertions;
   const result = graded.result;

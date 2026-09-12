@@ -226,6 +226,8 @@ export async function currentProposal(
     await sql`SELECT codex_thread_id FROM conversations WHERE resource_id=${p.id} AND kind='skill_update' ORDER BY created_at DESC LIMIT 1`;
   const [activeJob] =
     await sql`SELECT id,status FROM jobs WHERE (resource_id=${p.id} OR resource_id=${p.current_verification_run_id} OR resource_id=${p.candidate_verification_run_id}) AND status IN ('queued','running') ORDER BY created_at DESC LIMIT 1`;
+  const [latestFailedJob] =
+    await sql`SELECT id,type,status,error FROM jobs WHERE (resource_id=${p.id} OR resource_id=${p.current_verification_run_id} OR resource_id=${p.candidate_verification_run_id}) AND status IN ('failed','interrupted','cancelled') ORDER BY completed_at DESC NULLS LAST,created_at DESC LIMIT 1`;
   return {
     ...p,
     activeVersionId:
@@ -233,6 +235,10 @@ export async function currentProposal(
         await sql`SELECT active_version_id FROM skills WHERE id=${p.skill_id}`
       )[0]?.active_version_id ?? null,
     activeJob,
+    failureDetail:
+      typeof latestFailedJob?.error?.detail === "string"
+        ? latestFailedJob.error.detail
+        : null,
     targetedEvidence,
     skillPatch,
     evalPatch,

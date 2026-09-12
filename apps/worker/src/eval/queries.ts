@@ -1,4 +1,8 @@
-import type { Db } from "@skilled/core";
+import {
+  definitionsFromMapping,
+  requiredAssertionDimensions,
+  type Db,
+} from "@skilled/core";
 
 type PendingCase = {
   definition: Record<string, any>;
@@ -170,7 +174,10 @@ export async function completeEvalGeneration(
     await tx`DELETE FROM eval_cases WHERE eval_version_id=${input.evalId}`;
     for (const item of input.pendingCases) {
       const definition = item.definition;
-      await tx`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${input.evalId},${definition.id},${definition.title},${definition.coverageGroup},${item.judge},${tx.json(definition.provenance)},${tx.json(definition.dimensions)},${`evals/cases/${definition.id.toLowerCase()}.yaml`},${tx.json(item.assertions as never)},${tx.json(definition)})`;
+      const requiredDimensions = requiredAssertionDimensions(
+        definitionsFromMapping(item.assertions),
+      );
+      await tx`INSERT INTO eval_cases(eval_version_id,case_id,title,coverage_group,judge_type,evidence_provenance,required_dimensions,yaml_path,assertion_mapping,source) VALUES(${input.evalId},${definition.id},${definition.title},${definition.coverageGroup},${item.judge},${tx.json(definition.provenance)},${tx.json(requiredDimensions)},${`evals/cases/${definition.id.toLowerCase()}.yaml`},${tx.json(item.assertions as never)},${tx.json(definition)})`;
     }
     await tx`UPDATE eval_versions SET status='ready',bundle_key=${input.bundleKey},checksum=${input.checksum},generation_notes=${tx.json(input.generationNotes)},validation=${tx.json({ valid: true, validator: "skill-up validate", output: input.validationOutput, cases: input.caseCount, adapter: input.adapter })} WHERE id=${input.evalId}`;
   });

@@ -70,6 +70,41 @@ export default async function ImprovePage({
       </Work>
     );
 
+  if (status === "failed" && !proposal.candidate_version_id)
+    return (
+      <Work>
+        <Verdict
+          title="Improvement proposal was not created"
+          lede={`The worker stopped before it produced a reviewable patch. Base v${proposal.base_version} is unchanged and no candidate exists.`}
+          status={<Status value="fail" label="Generation failed" />}
+        />
+        <div className="error-box" role="alert">
+          <b>Why it stopped</b>
+          <p>
+            {proposal.failureDetail ??
+              "The proposal job ended without a usable error description. Check Diagnostics for the worker record."}
+          </p>
+        </div>
+        <div className="decision">
+          <div>
+            <b>No Skill or eval changes were applied</b>
+            <p>
+              Rerun the approved suite to produce trustworthy failure evidence,
+              then request a new improvement from those results.
+            </p>
+          </div>
+          <div className="decision-actions">
+            <Link
+              className="btn"
+              href={`/runs/${proposal.source_run_id}?skill=${proposal.skill_id}`}
+            >
+              Return to results
+            </Link>
+          </div>
+        </div>
+      </Work>
+    );
+
   const inspector =
     query.panel === "diff" ? (
       <Inspector

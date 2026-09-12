@@ -12,6 +12,25 @@ import { join } from "node:path";
 import { z } from "zod";
 import { codexAppServer } from "./app-server.js";
 
+export function eligibleProposalTargetIds(
+  failures: Array<Record<string, any>>,
+): string[] {
+  return [
+    ...new Set<string>(
+      failures.flatMap((row) =>
+        (row.assertions ?? [])
+          .filter(
+            (assertion: any) =>
+              assertion.required !== false &&
+              assertion.passed === false &&
+              !assertion.error,
+          )
+          .map((assertion: any) => String(assertion.id)),
+      ),
+    ),
+  ];
+}
+
 export async function generateProposal(sql: Db, job: Record<string, any>) {
   const [proposal] =
     await sql`SELECT p.*,sv.name,sv.installable_key,sv.selected_root FROM update_proposals p JOIN skill_versions sv ON sv.id=p.base_version_id WHERE p.id=${job.resource_id}`;
@@ -22,15 +41,8 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
   await emit(sql, job.id, "stage_changed", { stage: "analyzing_failures" });
   const failures =
     await sql`SELECT cr.case_id,cr.result,cr.assertions,cr.dimensions,cr.error_class,cr.detail,ec.title,ec.source FROM case_results cr LEFT JOIN eval_cases ec ON ec.eval_version_id=${proposal.eval_version_id} AND ec.case_id=cr.case_id WHERE cr.run_id=${proposal.source_run_id} AND cr.configuration IN ('skill','with_skill') AND cr.result <> 'PASS' ORDER BY cr.case_id,cr.iteration`;
-  const targets = new Set<string>(
-    failures.flatMap((row) =>
-      (row.assertions ?? [])
-        .filter(
-          (a: any) => a.required !== false && a.passed === false && !a.error,
-        )
-        .map((a: any) => a.id),
-    ),
-  );
+  const eligibleTargetAssertionIds = eligibleProposalTargetIds(failures);
+  const targets = new Set(eligibleTargetAssertionIds);
   if (!targets.size)
     throw new Error(
       "No trustworthy failed task assertions are available. Resolve execution or grading errors before proposing a package change.",
@@ -85,6 +97,14 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
           sourceRunId: proposal.source_run_id,
           baseVersionId: proposal.base_version_id,
           evalVersionId: proposal.eval_version_id,
+          eligibleSkillChangeTargetAssertionIds: eligibleTargetAssertionIds,
+          evaluationErrors: failures
+            .filter((row) => row.error_class)
+            .map((row) => ({
+              caseId: row.case_id,
+              errorClass: row.error_class,
+              detail: row.detail,
+            })),
           failures,
         },
         null,
@@ -94,7 +114,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
     const revision = String(job.payload?.message ?? "").trim();
     const turn = await codexAppServer.structuredTurn(
       cwd,
-      `Use $skill-upper. Inspect base-skill and failure-evidence.json. ${revision ? `The user requested this revision: ${revision}` : "Diagnose the failures and propose the smallest grounded correction."} Return complete replacement content for every Skill file you change. Each change must name targetAssertionIds drawn from the actual failed required assertions in failure-evidence.json; never invent an ID. Eval changes must strengthen evidence or fix an invalid test; never weaken a criterion merely to obtain a pass. Do not edit files directly and do not include credentials or paths outside the Skill root.`,
+      `Use $skill-upper. Inspect base-skill and failure-evidence.json. ${revision ? `The user requested this revision: ${revision}` : "Diagnose the failures and propose the smallest grounded correction."} Return complete replacement content for every Skill file you change. Every targetAssertionIds entry must come only from eligibleSkillChangeTargetAssertionIds; ingestion-error and assertions belonging to evaluationErrors are never valid Skill-change targets. Address evaluationErrors only through evalChanges when an eval repair is warranted. Skill change paths are relative to the selected Skill root: use paths such as SKILL.md, never base-skill/... or the Skill directory name. Eval changes must strengthen evidence or fix an invalid test; never weaken a criterion merely to obtain a pass. Do not edit files directly and do not include credentials or paths outside the Skill root.`,
       z.toJSONSchema(UpdateProposalOutputSchema),
       conversation.codex_thread_id,
       {
@@ -123,7 +143,7 @@ export async function generateProposal(sql: Db, job: Record<string, any>) {
       change.targetAssertionIds.some((id) => !targets.has(id))
     )
       throw new Error(
-        "Every package change must target existing failed assertions without duplicate or invented IDs",
+        `Every package change must target only eligible failed assertion IDs without duplicates. Eligible IDs: ${eligibleTargetAssertionIds.join(", ")}`,
       );
   const baseRoot =
     process.env.SKILLED_ADAPTER_MODE === "fake"

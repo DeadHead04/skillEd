@@ -63,6 +63,19 @@ export function definitionsFromMapping(
   );
 }
 
+/** Required dimensions come from required assertions, not every area a case observes. */
+export function requiredAssertionDimensions(
+  definitions: AssertionDefinition[],
+): string[] {
+  return [
+    ...new Set(
+      definitions
+        .filter((definition) => definition.required)
+        .map((definition) => definition.dimension),
+    ),
+  ];
+}
+
 /** Raw backend results remain available; normalization never invents missing evidence. */
 export function normalizeGrading(
   raw: Record<string, any>,

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   normalizeGrading,
+  requiredAssertionDimensions,
   validateResultMatrix,
   compareVerification,
   type AssertionDefinition,
@@ -29,6 +30,22 @@ test("missing, malformed, duplicate, and incomplete grading never passes", () =>
     assert.equal(normalizeGrading(value, definitions, "agent").result, "ERROR");
   assert.equal(deriveResult([]), "ERROR");
   assert.equal(worstResult([]), "ERROR");
+});
+test("informational assertion areas are not treated as required dimensions", () => {
+  const withInformational: AssertionDefinition[] = [
+    ...definitions,
+    {
+      id: "adaptation",
+      text: "Adaptation",
+      dimension: "input_adaptation",
+      role: "informational",
+      required: false,
+    },
+  ];
+  assert.deepEqual(requiredAssertionDimensions(withInformational), [
+    "correctness",
+    "scope",
+  ]);
 });
 test("real script wrapper shape maps stable IDs and retains PARTIAL", () => {
   const evidence = JSON.stringify({
