@@ -1,0 +1,10 @@
+node_modules/
+dist/
+artifacts/
+evidence/runs/
+evidence/phase3-reports/
+.env
+*.tsbuildinfo
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+.tools/

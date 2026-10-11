@@ -1,0 +1,9 @@
+skilled
+
+Copyright 2026 Alibaba Group
+
+This distribution includes modified software licensed under the Apache
+License, Version 2.0. Application, plugin, and Action runtime modules have
+been adapted into TypeScript. Product names, documentation, installation,
+packaging, and release tooling have been modified for this distribution.
+The original copyright and license terms are retained in LICENSE.

@@ -1,0 +1,96 @@
+{
+  "name": "skilled",
+  "version": "0.1.0-dev.0",
+  "private": true,
+  "type": "module",
+  "description": "Skill evaluation CLI",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.21.0 <25"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "test": "node --test --test-concurrency=1 \"dist/tests/**/*.test.js\"",
+    "test:real": "npm run build && npm test",
+    "audit:brand": "node scripts/audit-brand.mjs",
+    "package": "npm run build && node scripts/package.mjs",
+    "gate:phase1": "node scripts/gate-phase1.mjs",
+    "gate:services": "node scripts/with-service-env.mjs",
+    "gate": "node scripts/gate.mjs",
+    "package:plugins": "node scripts/package-plugins.mjs",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "distribution:stage": "node scripts/distribution.mjs",
+    "distribution:verify": "node scripts/distribution-check.mjs",
+    "verify": "npm run typecheck && npm run build && npm run audit:brand",
+    "test:action": "node --test \"dist/tests/action/*.test.js\"",
+    "release:version": "node scripts/set-version.mjs",
+    "release:build": "node scripts/release-build.mjs"
+  },
+  "exports": {
+    ".": "./dist/src/index.js",
+    "./api": "./dist/src/api/index.js"
+  },
+  "bin": {
+    "skilled": "./dist/src/bootstrap.js"
+  },
+  "files": [
+    "dist/src",
+    "dist/assets",
+    "dist/bundled-plugins",
+    "assets",
+    "skills",
+    "schemas",
+    "LICENSE",
+    "NOTICE",
+    "dist/action",
+    "dist/examples",
+    "examples",
+    "install.sh",
+    "install.ps1"
+  ],
+  "dependencies": {
+    "@alibaba-group/opensandbox": "1.1.1",
+    "@anthropic-ai/sdk": "0.133.0",
+    "@opentelemetry/api": "1.9.1",
+    "@opentelemetry/core": "2.12.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "0.223.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "0.223.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "0.223.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "0.223.0",
+    "@opentelemetry/exporter-trace-otlp-http": "0.223.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.223.0",
+    "@opentelemetry/resources": "2.12.0",
+    "@opentelemetry/sdk-metrics": "2.12.0",
+    "@opentelemetry/sdk-node": "0.223.0",
+    "@opentelemetry/sdk-trace-node": "2.12.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "commander": "15.0.0",
+    "openai": "7.32.0",
+    "picomatch": "4.0.7",
+    "re2-wasm": "1.0.2",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@types/node": "24.19.2",
+    "@types/picomatch": "4.0.3",
+    "playwright": "1.64.0",
+    "typescript": "7.0.2",
+    "vitepress": "1.6.4"
+  },
+  "overrides": {
+    "vite": "6.4.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DeadHead04/skillEd.git"
+  },
+  "homepage": "https://github.com/DeadHead04/skillEd#readme",
+  "bugs": {
+    "url": "https://github.com/DeadHead04/skillEd/issues"
+  }
+}
