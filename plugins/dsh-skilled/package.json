@@ -15,7 +15,9 @@
     "dist/skilled-improve/",
     "dist/skill-observation/",
     "cordis.patch.yml",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "keywords": [
     "dsh",
