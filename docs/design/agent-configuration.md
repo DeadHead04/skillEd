@@ -1,0 +1,185 @@
+> Historical design reference, adapted for the TypeScript port and current product names. Go snippets describe the earlier contracts; executable modules are TypeScript under `src/`. Earlier live-model results do not certify this version. See [verification status](../verification.md) for current coverage.
+
+# Agent configuration semantics
+
+This document records the current `v1alpha1` behavior that future agent
+configuration refactors must preserve. It is a compatibility contract, not a
+claim that every current precedence rule is ideal.
+
+## Terms
+
+| Term | Meaning |
+| --- | --- |
+| Engine | The CLI adapter skilled executes, such as `claude_code`, `codex`, `qodercli`, `qwen_code`, or a custom engine. |
+| Protocol | The API protocol selected by the engine adapter. It is not selected by `provider`. |
+| Provider | The namespace used to look up model, credential, and endpoint configuration. |
+| Model name | The upstream model identifier. It may contain `/` when the upstream service uses an opaque slashed identifier. |
+| Requested configuration | Values supplied by eval YAML, CLI flags, environment variables, or the credential file. |
+| Applied configuration | Values skilled passes to the agent CLI after adapter-specific normalization. Local CLI settings may still override them. |
+| Observed configuration | Values explicitly reported by the running agent. Missing values are unknown, not inferred from the applied configuration. |
+| Local-login delegation | No credential is injected; the agent CLI may use its existing local login state. This does not prove that the login is valid. |
+
+The engine determines the protocol. For example, `provider: dashscope` with a
+`codex` engine uses an OpenAI-compatible endpoint, while the same provider with
+`claude_code` uses an Anthropic-compatible endpoint.
+
+## Built-in engine behavior
+
+| Engine | Protocol and auth surface | Model behavior | Unsupported or delegated behavior |
+| --- | --- | --- | --- |
+| `claude_code` | Anthropic-compatible; `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` | Passes an explicit model through to Claude Code | Missing credentials delegate to Claude Code's local login. |
+| `codex` | OpenAI-compatible; `OPENAI_API_KEY` and `OPENAI_BASE_URL` | A non-OpenAI provider requires a base URL before skilled emits a custom Codex provider and model override | Without the required custom-provider endpoint, the model override is omitted and Codex uses local settings. Missing credentials may delegate to local login. |
+| `opencode` | OpenAI or Anthropic credentials through the runtime environment; custom endpoints through inline OpenCode config | Passes `provider/model` to `opencode run` | Missing credentials delegate to OpenCode's local login. |
+| `qodercli` | Qoder-managed auth; Global uses `QODER_PERSONAL_ACCESS_TOKEN`, CN uses `QODERCN_PERSONAL_ACCESS_TOKEN` (or the `QODER_CN_ACCESS_TOKEN` input alias), with local-login fallback | Passes through non-empty model names/IDs and historical tiers after trimming whitespace; Qoder validates availability | `engine.kwargs.edition` selects `global` (default) or `cn` and switches the CLI, installer, auth, and session root together. Provider routing and `base_url` are not forwarded. Explicit model failures never silently fall back to the default. |
+| `qwen_code` | OpenAI-compatible; `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and `OPENAI_MODEL` | Passes an explicit model to Qwen Code | Missing credentials may delegate to Qwen OAuth or another existing local login. |
+| Custom engine | Defined by `engine.custom` | Receives the configured provider/model values through session input and template variables | Capabilities and auth behavior belong to the custom-engine contract. |
+
+`Agent.Check` only inspects installation or availability. Credential checks are
+static and do not make a model request. The first real agent run is therefore
+the first validation of a delegated local login.
+
+Before each case, skilled runs a static runtime preflight: the adapter's
+availability check followed by its `--version` command. With `environment.type:
+none`, the host installation is never modified; a configured concrete version
+is only validated against the host CLI. In an isolated runtime, supported npm
+adapters (`claude_code`, `codex`, `opencode`, and `qwen_code`) install the configured
+exact semantic version before the same preflight. For compatibility, tags,
+ranges, and other non-exact selectors are retained as requested configuration
+but warned and ignored rather than passed to an installer.
+QoderCLI's installer does not support version
+selection, so `engine.version` remains unsupported there, while its detected
+version is still reported. These commands do not inspect login state or make a
+model request.
+
+## Current resolution order
+
+The runner path resolves values in these stages:
+
+1. Load the eval YAML, apply `--engine`, and retain the raw `--model` value.
+2. Load `~/.skilled/credentials.yaml` and provider-scoped environment values.
+3. Build one role-aware `ResolvedAgentConfig`. Legacy slash disambiguation is
+   performed once at this point instead of mutating and later repairing the
+   loaded eval config.
+4. Resolve a provider-scoped `MODEL` value as a default when no explicit model
+   was selected from YAML or CLI.
+5. Preserve explicit CLI `--model` and `--api-key` precedence.
+6. Apply the selected adapter's declared protocol and capability contract,
+   then resolve credentials and endpoints for that `(provider, protocol)`.
+   Keep the requested model intact, compute the applied model once, remove
+   unsupported kwargs, and emit warnings for ignored or invalid explicit
+   settings before case execution.
+7. Pass the applied connection to the selected adapter, which constructs its
+   command and environment without repeating credential or model resolution.
+
+Runner and judge roles use the same resolution flow. Until an explicit judge
+engine schema is introduced, the judge inherits the runner engine lifecycle and
+kwargs, while resolving its provider/model and credentials as a separate role.
+Connection inheritance is limited to the same provider namespace. A judge that
+selects a different provider resolves its own key and endpoint by protocol;
+missing values delegate to agent-local state, never to the runner connection.
+Reports use the resolved runner identity rather than reconstructing it from a
+CLI-mutated eval config. `result.json` retains the legacy `engine_name` and
+`model_name` fields while also recording credential-free
+`requested_configuration`, `applied_configuration`, and optional
+`observed_configuration` objects. Per-session results carry the requested and
+applied values, capability warnings, an observed `model` only when the agent
+explicitly reports it, and the CLI version returned by static runtime
+inspection. An absent observation remains unknown; skilled does not probe
+authentication or spend tokens to infer local CLI state.
+An applied provider is recorded only when the adapter actively selects that
+provider. If Codex falls back to local provider selection, both the applied
+provider and model are empty and credentials resolved for the rejected provider
+are not injected into the fallback invocation.
+
+## Model connection boundary
+
+Provider configuration, a resolved model connection, and an agent's native
+configuration are related but distinct layers:
+
+1. Provider configuration is static input. It may contain credentials and
+   protocol-specific endpoints for a named namespace such as `dashscope`.
+2. A resolved model connection selects one `(provider, protocol)` combination,
+   preserves the source of each selected value, and records whether auth and
+   routing are injected or delegated to agent-local state.
+3. The adapter materializes that connection as CLI flags, environment
+   variables, or native agent configuration. Native configuration files and
+   local login databases remain owned by the agent and may be opaque to
+   skilled.
+
+`ResolvedAgentConfig` retains requested values and its `AppliedConnection`
+records the protocol-aware `ResolvedModelConnection` selected by the capability
+pass. The connection must not be confused with observed runtime state: it
+describes what skilled materializes for the adapter, not proof of the provider,
+model, credential, or local login ultimately used by the agent.
+
+This layering is informed by Harbor's
+[`ProviderAccess`, `ModelConnectionSpec`, and `ResolvedModelConnection`](https://github.com/harbor-framework/harbor/blob/71180a2e6fb40626b661c13f261b1d44517ad91a/src/harbor/agents/model_connection.py),
+while retaining skilled's different compatibility constraints. In particular,
+skilled must not infer the provider from an opaque model ID, fan one credential
+out to unrelated provider aliases, or treat a resolved connection as an
+observation. Explicit empty values must also remain distinguishable from absent
+values where an empty value intentionally suppresses inherited configuration.
+
+Native agent configuration support, if added later, belongs after connection
+resolution. It must use the same adapter materialization boundary rather than
+becoming a second provider/model/credential resolver.
+
+## Legacy slashed model compatibility
+
+`--model provider/name` is a public, historical CLI form and remains supported.
+Because `/` is also valid inside an opaque upstream model ID, skilled uses the
+following compatibility behavior:
+
+OpenCode does not apply this legacy split. Without `--provider`,
+`engine.model.provider`, or `engine.model.base_url`, a slashed `--model` value
+remains opaque and is passed to OpenCode unchanged. An explicit provider is
+combined with the full model ID.
+If `engine.model.base_url` is set without a provider, the adapter uses its
+default `openai` provider while preserving the full opaque model ID.
+
+| Input | Current interpretation |
+| --- | --- |
+| `--model openai/gpt-4` | `provider=openai`, `name=gpt-4`; `openai` and `anthropic` are always-known framework namespaces. |
+| `--model dashscope/qwen3.6-plus` with DashScope credentials or endpoint configured | `provider=dashscope`, `name=qwen3.6-plus`. |
+| `--model anthropic_modelscope/deepseek-v4-pro` with no matching provider configuration | `provider=""`, `name=anthropic_modelscope/deepseek-v4-pro`; the full ID is preserved. |
+| YAML `model.provider` plus `model.name` | Always treated as an explicit pair, including when local login is the only auth source. |
+
+Provider detection is a disambiguation signal, not an authentication check. A
+known provider can still fail authentication during the real agent run.
+
+## Public GitHub Action compatibility
+
+The root GitHub Action exposes separate `engine`, `provider`, and `model`
+inputs. Its current translation is part of the public compatibility surface:
+
+- an explicit `codex` engine folds a bare provider and model into the legacy
+  `provider/model` CLI value so skilled constructs Codex custom-provider
+  configuration;
+- other explicit engines receive the model name without a provider prefix and
+  get protocol-specific environment variables;
+- an empty engine does not add `--engine`, allowing eval YAML to select the
+  adapter, and exports both protocol endpoint variables when a known provider
+  is selected;
+- absent credentials are not synthesized, preserving agent-local login flows.
+
+These translations are covered by `action/main_test.py`. The Action now checks
+the installed CLI's static `run --help` output: new CLIs with an explicit engine
+receive separate `--provider` and opaque `--model` arguments. Older CLIs and
+engine-deferred runs retain their historical translation because the Action
+cannot choose a protocol-specific provider endpoint before reading eval YAML.
+Tagged Actions and historical commands therefore remain valid.
+
+## Known gaps for later phases
+
+- The legacy flattened credential lookup remains available to older internal
+  callers, but adapter construction uses the protocol-aware connection.
+- `engine.entry` and `engine.model.params` are legacy no-op fields. They remain
+  accepted by the v1alpha1 loader for compatibility, emit migration warnings,
+  and are dropped before role resolution reaches an adapter. Custom executable
+  configuration belongs under `engine.custom.local`; adapter-specific options
+  belong under `engine.kwargs` or `engine.custom.kwargs`.
+- QoderCLI does not support selecting an installer version, so an explicit
+  `engine.version` is warned and ignored for that adapter.
+
+See Issue #196 (historical reference checkout) for the staged
+cleanup plan.
