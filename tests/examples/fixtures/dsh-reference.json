@@ -1,0 +1,678 @@
+[
+  {
+    "op": "safeSegment",
+    "args": [
+      "a",
+      "fallback"
+    ],
+    "expected": "a"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      " ../unsafe/中文 .. ",
+      "fallback"
+    ],
+    "expected": "unsafe"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "...",
+      "fallback"
+    ],
+    "expected": "fallback"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "_ok-2",
+      "fallback"
+    ],
+    "expected": "_ok-2"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "é/abcd",
+      "fallback"
+    ],
+    "expected": "abcd"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "你好",
+      "fallback"
+    ],
+    "expected": "fallback"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "A._B",
+      "fallback"
+    ],
+    "expected": "A._B"
+  },
+  {
+    "op": "safeSegment",
+    "args": [
+      "-x-",
+      "fallback"
+    ],
+    "expected": "x"
+  },
+  {
+    "op": "redactSecrets",
+    "args": [
+      "normal"
+    ],
+    "expected": "normal"
+  },
+  {
+    "op": "redactSecrets",
+    "args": [
+      "fixture-secret-one and fixture-secret-two"
+    ],
+    "expected": "[REDACTED] and [REDACTED]"
+  },
+  {
+    "op": "redactSecrets",
+    "args": [
+      "fixture-secret-onefixture-secret-one"
+    ],
+    "expected": "[REDACTED][REDACTED]"
+  },
+  {
+    "op": "redactData",
+    "args": [
+      {
+        "fixture-secret-one": [
+          {
+            "x": "fixture-secret-two"
+          }
+        ]
+      }
+    ],
+    "expected": {
+      "[REDACTED]": [
+        {
+          "x": "[REDACTED]"
+        }
+      ]
+    }
+  },
+  {
+    "op": "redactData",
+    "args": [
+      [
+        "x",
+        1,
+        null,
+        true
+      ]
+    ],
+    "expected": [
+      "x",
+      1,
+      null,
+      true
+    ]
+  },
+  {
+    "op": "redactData",
+    "args": [
+      null
+    ],
+    "expected": null
+  },
+  {
+    "op": "encodeSessionRef",
+    "args": [
+      "case-1",
+      "session-1"
+    ],
+    "expected": "dsh1.eyJydW4iOiJjYXNlLTEiLCJzZXNzaW9uIjoic2Vzc2lvbi0xIn0"
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "dsh1.eyJydW4iOiJjYXNlLTEiLCJzZXNzaW9uIjoic2Vzc2lvbi0xIn0"
+    ],
+    "expected": [
+      "case-1",
+      "session-1"
+    ]
+  },
+  {
+    "op": "encodeSessionRef",
+    "args": [
+      "unicode",
+      "你好😀"
+    ],
+    "expected": "dsh1.eyJydW4iOiJ1bmljb2RlIiwic2Vzc2lvbiI6Ilx1NGY2MFx1NTk3ZFx1ZDgzZFx1ZGUwMCJ9"
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "dsh1.eyJydW4iOiJ1bmljb2RlIiwic2Vzc2lvbiI6Ilx1NGY2MFx1NTk3ZFx1ZDgzZFx1ZGUwMCJ9"
+    ],
+    "expected": [
+      "unicode",
+      "你好😀"
+    ]
+  },
+  {
+    "op": "encodeSessionRef",
+    "args": [
+      "",
+      "s"
+    ],
+    "expected": "dsh1.eyJydW4iOiIiLCJzZXNzaW9uIjoicyJ9"
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "dsh1.eyJydW4iOiIiLCJzZXNzaW9uIjoicyJ9"
+    ],
+    "expected": [
+      "",
+      "s"
+    ]
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "not-a-ref"
+    ],
+    "error": "unsupported DSH session reference"
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "dsh1.eyJydW4iOiIuLi9iYWQiLCJzZXNzaW9uIjoicyJ9"
+    ],
+    "error": "invalid DSH session reference"
+  },
+  {
+    "op": "decodeSessionRef",
+    "args": [
+      "dsh1.eyJydW4iOiJjYXNlIiwic2Vzc2lvbiI6IiJ9"
+    ],
+    "error": "invalid DSH session reference"
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      null
+    ],
+    "expected": {}
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      []
+    ],
+    "expected": {}
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      {}
+    ],
+    "expected": {}
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      "broken"
+    ],
+    "expected": {
+      "_raw": "broken"
+    }
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      "[1,2]"
+    ],
+    "expected": {
+      "_raw": "[1,2]"
+    }
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      "{\"text\":\"fixture-secret-one\"}"
+    ],
+    "expected": {
+      "text": "[REDACTED]"
+    }
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      {
+        "secret": "fixture-secret-two"
+      }
+    ],
+    "expected": {
+      "secret": "[REDACTED]"
+    }
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      "false"
+    ],
+    "expected": {
+      "_raw": "false"
+    }
+  },
+  {
+    "op": "parseArguments",
+    "args": [
+      "null"
+    ],
+    "expected": {
+      "_raw": "null"
+    }
+  },
+  {
+    "op": "contentText",
+    "args": [
+      null
+    ],
+    "expected": ""
+  },
+  {
+    "op": "contentText",
+    "args": [
+      []
+    ],
+    "expected": ""
+  },
+  {
+    "op": "contentText",
+    "args": [
+      [
+        {
+          "type": "text",
+          "text": "first"
+        },
+        {
+          "type": "tool-result",
+          "content": [
+            {
+              "type": "text",
+              "text": "fixture-secret-one"
+            }
+          ]
+        }
+      ]
+    ],
+    "expected": "first\n[REDACTED]"
+  },
+  {
+    "op": "contentText",
+    "args": [
+      [
+        1,
+        null,
+        {
+          "type": "image"
+        },
+        {
+          "type": "text",
+          "text": ""
+        }
+      ]
+    ],
+    "expected": ""
+  },
+  {
+    "op": "transcript",
+    "args": [
+      [],
+      "answer"
+    ],
+    "expected": [
+      {
+        "role": "assistant",
+        "content": "answer",
+        "turn": 1
+      }
+    ]
+  },
+  {
+    "op": "transcript",
+    "args": [
+      [
+        {
+          "role": "user",
+          "content": "fixture-secret-one"
+        }
+      ],
+      "answer"
+    ],
+    "expected": [
+      {
+        "role": "user",
+        "content": "[REDACTED]",
+        "turn": 1
+      },
+      {
+        "role": "assistant",
+        "content": "answer",
+        "turn": 1
+      }
+    ]
+  },
+  {
+    "op": "transcript",
+    "args": [
+      [
+        {
+          "role": "system",
+          "content": "rules"
+        },
+        {
+          "role": "user",
+          "content": "one"
+        },
+        {
+          "role": "assistant",
+          "content": "previous"
+        },
+        {
+          "role": "user",
+          "content": "two"
+        }
+      ],
+      "answer"
+    ],
+    "expected": [
+      {
+        "role": "system",
+        "content": "rules",
+        "turn": 1
+      },
+      {
+        "role": "user",
+        "content": "one",
+        "turn": 2
+      },
+      {
+        "role": "assistant",
+        "content": "previous",
+        "turn": 2
+      },
+      {
+        "role": "user",
+        "content": "two",
+        "turn": 3
+      },
+      {
+        "role": "assistant",
+        "content": "answer",
+        "turn": 3
+      }
+    ]
+  },
+  {
+    "op": "readSession",
+    "args": [
+      [],
+      [
+        {
+          "role": "user",
+          "content": "question"
+        }
+      ],
+      ""
+    ],
+    "expected": [
+      "session",
+      "",
+      [
+        {
+          "role": "user",
+          "content": "question",
+          "turn": 1
+        },
+        {
+          "role": "assistant",
+          "content": "",
+          "turn": 1
+        }
+      ],
+      0,
+      0,
+      1
+    ]
+  },
+  {
+    "op": "readSession",
+    "args": [
+      [
+        {
+          "type": "session",
+          "id": "exact-id"
+        },
+        {
+          "type": "assistant/message",
+          "data": {
+            "turn": 1,
+            "message": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "first"
+                }
+              ]
+            },
+            "usage": {
+              "inputTokens": 2,
+              "cacheReadTokens": 3,
+              "cacheWriteTokens": 4,
+              "outputTokens": 5
+            }
+          }
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "question"
+        }
+      ],
+      ""
+    ],
+    "expected": [
+      "exact-id",
+      "first",
+      [
+        {
+          "role": "user",
+          "content": "question",
+          "turn": 1
+        },
+        {
+          "role": "assistant",
+          "content": "first",
+          "turn": 1
+        }
+      ],
+      9,
+      5,
+      1
+    ]
+  },
+  {
+    "op": "readSession",
+    "args": [
+      [
+        {
+          "type": "assistant/message",
+          "data": {
+            "turn": 1,
+            "message": {
+              "content": [
+                {
+                  "type": "text",
+                  "text": "old"
+                }
+              ]
+            },
+            "usage": {
+              "inputTokens": 100
+            }
+          }
+        },
+        {
+          "type": "assistant/attempt",
+          "data": {
+            "turn": 2,
+            "stream": [
+              {
+                "type": "chunk",
+                "chunk": {
+                  "type": "usage",
+                  "usage": {
+                    "inputTokens": 1,
+                    "cacheReadTokens": 2,
+                    "cacheWriteTokens": 3,
+                    "outputTokens": 4
+                  }
+                }
+              },
+              {
+                "type": "chunk",
+                "chunk": {
+                  "type": "block-end",
+                  "block": {
+                    "type": "text",
+                    "text": "latest fixture-secret-one"
+                  }
+                }
+              },
+              {
+                "type": "chunk",
+                "chunk": {
+                  "type": "block-end",
+                  "block": {
+                    "type": "tool-call",
+                    "id": "call1",
+                    "name": "read",
+                    "arguments": "{\"path\":\"file\"}"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "tool/result",
+          "data": {
+            "turn": 2,
+            "message": {
+              "content": [
+                {
+                  "type": "tool-result",
+                  "toolCallId": "call1",
+                  "isError": true,
+                  "content": [
+                    {
+                      "type": "text",
+                      "text": "fixture-secret-two"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ],
+      [
+        {
+          "role": "user",
+          "content": "question"
+        }
+      ],
+      ""
+    ],
+    "expected": [
+      "session",
+      "latest [REDACTED]",
+      [
+        {
+          "role": "user",
+          "content": "question",
+          "turn": 1
+        },
+        {
+          "role": "assistant",
+          "content": "latest [REDACTED]",
+          "turn": 1
+        },
+        {
+          "role": "tool_call",
+          "turn": 1,
+          "tool_call": {
+            "id": "call1",
+            "name": "read",
+            "arguments": {
+              "path": "file"
+            }
+          }
+        },
+        {
+          "role": "tool_result",
+          "turn": 1,
+          "content": "[REDACTED]",
+          "tool_result": {
+            "call_id": "call1",
+            "status": "error",
+            "content": "[REDACTED]"
+          }
+        }
+      ],
+      6,
+      4,
+      1
+    ]
+  },
+  {
+    "op": "readSession",
+    "args": [
+      null,
+      [
+        {
+          "role": "user",
+          "content": "question"
+        }
+      ],
+      "answer"
+    ],
+    "expected": [
+      "",
+      "answer",
+      [
+        {
+          "role": "user",
+          "content": "question",
+          "turn": 1
+        },
+        {
+          "role": "assistant",
+          "content": "answer",
+          "turn": 1
+        }
+      ],
+      0,
+      0,
+      1
+    ]
+  }
+]
