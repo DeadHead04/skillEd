@@ -5,9 +5,16 @@ requested_version="${SKILLED_VERSION:-latest}"
 install_dir="${INSTALL_DIR:-$HOME/.local/bin}"
 repository="${SKILLED_REPOSITORY:-}"
 release_base="${SKILLED_RELEASE_BASE_URL:-}"
+use_gh="${SKILLED_USE_GH:-0}"
 need_cmd() { command -v "$1" >/dev/null 2>&1 || { printf 'error: required command not found: %s\n' "$1" >&2; exit 1; }; }
 fail() { printf 'error: %s\n' "$*" >&2; exit 1; }
-need_cmd curl
+case "$use_gh" in 0|1) ;; *) fail 'SKILLED_USE_GH must be 0 or 1';; esac
+if [ "$use_gh" = 1 ]; then
+  [ -z "$release_base" ] && [ -z "${SKILLED_LATEST_VERSION_URL:-}" ] || fail 'SKILLED_USE_GH cannot be combined with a custom release or latest-version URL'
+  need_cmd gh
+else
+  need_cmd curl
+fi
 need_cmd awk
 need_cmd tar
 case "$(uname -s)" in Linux) target_os=linux;; Darwin) target_os=darwin;; MINGW*|MSYS*|CYGWIN*) target_os=win32;; *) fail "unsupported OS: $(uname -s)";; esac
@@ -19,7 +26,9 @@ if [ -z "$release_base" ]; then
 fi
 case "$release_base" in https://*|http://*) ;; *) fail 'release base URL must use HTTP or HTTPS';; esac
 if [ "$requested_version" = latest ]; then
-  if [ -n "${SKILLED_LATEST_VERSION_URL:-}" ]; then
+  if [ "$use_gh" = 1 ]; then
+    requested_version="$(gh release view --repo "$repository" --json tagName --jq .tagName)"
+  elif [ -n "${SKILLED_LATEST_VERSION_URL:-}" ]; then
     requested_version="$(curl -fsSL --retry 3 "$SKILLED_LATEST_VERSION_URL")"
   elif [ -n "$repository" ]; then
     latest_url="$(curl -fsSLI --retry 3 -o /dev/null -w '%{url_effective}' "https://github.com/$repository/releases/latest")"
@@ -39,9 +48,15 @@ base_url="${release_base%/}/$tag"
 tmp_dir="$(mktemp -d)"
 staged_install=''
 trap 'rm -rf "$tmp_dir"; if [ -n "$staged_install" ]; then rm -rf "$staged_install"; fi' EXIT
-printf 'Downloading %s\n' "$base_url/$archive"
-curl -fL --retry 3 "$base_url/$archive" -o "$tmp_dir/$archive"
-curl -fL --retry 3 "$base_url/$archive.sha256" -o "$tmp_dir/checksums.txt"
+if [ "$use_gh" = 1 ]; then
+  printf 'Downloading %s from %s release %s with GitHub CLI\n' "$archive" "$repository" "$tag"
+  gh release download "$tag" --repo "$repository" --pattern "$archive" --pattern "$archive.sha256" --dir "$tmp_dir"
+  mv "$tmp_dir/$archive.sha256" "$tmp_dir/checksums.txt"
+else
+  printf 'Downloading %s\n' "$base_url/$archive"
+  curl -fL --retry 3 "$base_url/$archive" -o "$tmp_dir/$archive"
+  curl -fL --retry 3 "$base_url/$archive.sha256" -o "$tmp_dir/checksums.txt"
+fi
 expected="$(awk -v wanted="$archive" '$2 == wanted || $2 == "*" wanted {print $1}' "$tmp_dir/checksums.txt")"
 [[ "$expected" =~ ^[a-fA-F0-9]{64}$ ]] || fail "missing or ambiguous checksum for $archive"
 if command -v sha256sum >/dev/null 2>&1; then actual="$(sha256sum "$tmp_dir/$archive" | awk '{print $1}')"

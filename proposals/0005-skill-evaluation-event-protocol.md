@@ -11,8 +11,6 @@ status: draft
 
 # SUP-0005: Skill Evaluation Event Log Protocol
 
-Language: English | [中文](zh/0005-skill-evaluation-event-protocol.md)
-
 <!-- toc -->
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -888,7 +886,7 @@ For this documentation-only PR:
 - verify contiguous sequence numbers, protocol/event versions, typed field
   constraints, task totals, progress invariants, heartbeat examples, terminal
   invariants, and the single `last_event` marker;
-- verify that the English and Chinese event tables match.
+- verify that the documented event tables match the implementation.
 
 Future implementations must add serialization, unsupported protocol rejection,
 unknown envelope/event/version skipping, attribute validation and transparent

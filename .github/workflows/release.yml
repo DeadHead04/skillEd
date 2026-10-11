@@ -104,3 +104,48 @@ jobs:
         run: |
           gh release create "$RELEASE_TAG" candidate/artifacts/*.tar.gz candidate/artifacts/*.tgz candidate/artifacts/*.zip candidate/artifacts/*.sha256 candidate/artifacts/checksums.txt candidate/artifacts/release-manifest.json candidate/install.sh candidate/install.ps1 --repo "$GITHUB_REPOSITORY" --verify-tag --title "$RELEASE_TAG" --generate-notes
 # No tag is created by this workflow. Maintainers choose the version and tag.
+  install-acceptance:
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      SKILLED_USE_GH: '1'
+      SKILLED_REPOSITORY: ${{ github.repository }}
+    steps:
+      - name: Install and update published CLI on macOS or Linux
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          export INSTALL_DIR="$RUNNER_TEMP/skilled-installed/bin"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern install.sh --dir installer
+          SKILLED_VERSION="$RELEASE_TAG" bash installer/install.sh
+          test "$("$INSTALL_DIR/skilled" --version)" = "skilled version ${RELEASE_TAG#v}"
+          "$INSTALL_DIR/skilled" init --print
+          "$INSTALL_DIR/skilled" run --help
+          SKILLED_VERSION=latest bash installer/install.sh
+          test "$("$INSTALL_DIR/skilled" --version)" = "skilled version ${RELEASE_TAG#v}"
+      - name: Install and update published CLI on Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:INSTALL_DIR = Join-Path $env:RUNNER_TEMP 'skilled-installed/bin'
+          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern install.ps1 --dir installer
+          if ($LASTEXITCODE -ne 0) { throw 'Installer download failed' }
+          & ./installer/install.ps1 -UseGh -Version $env:RELEASE_TAG -InstallDir $env:INSTALL_DIR
+          $cli = Join-Path $env:INSTALL_DIR 'skilled.cmd'
+          $expected = 'skilled version ' + $env:RELEASE_TAG.TrimStart('v')
+          if ((& $cli --version) -ne $expected -or $LASTEXITCODE -ne 0) { throw 'Installed version mismatch' }
+          & $cli init --print
+          if ($LASTEXITCODE -ne 0) { throw 'Installed init failed' }
+          & $cli run --help
+          if ($LASTEXITCODE -ne 0) { throw 'Installed help failed' }
+          & ./installer/install.ps1 -UseGh -Version latest -InstallDir $env:INSTALL_DIR
+          if ((& $cli --version) -ne $expected -or $LASTEXITCODE -ne 0) { throw 'Updated version mismatch' }

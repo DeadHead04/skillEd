@@ -426,7 +426,8 @@ try {
       ? execFileSync(
           process.env.COMSPEC || "cmd.exe",
           ["/d", "/s", "/c", `""${join(install, "skilled.cmd")}" --version"`],
-          { cwd: temp, env, encoding: "utf8" },
+          // The command string is already quoted for cmd.exe /s /c.
+          { cwd: temp, env, encoding: "utf8", windowsVerbatimArguments: true },
         )
       : execFileSync(join(install, "skilled"), ["--version"], {
           cwd: temp,

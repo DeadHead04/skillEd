@@ -176,7 +176,7 @@ for (const passing of [true, false])
       `exit-code=${passing ? 0 : 1}\nreport-dir=skilled-workspace\n`,
     );
   });
-test("action detects current candidate capabilities with real CLI despite reset version numbering", async (t) => {
+test("action detects capabilities and the committed version from the real CLI", async (t) => {
   const dir = await temp(t),
     bin = await installLocalLauncher(dir),
     env = { PATH: bin + path.delimiter + process.env.PATH, HOME: dir };
@@ -188,7 +188,11 @@ test("action detects current candidate capabilities with real CLI despite reset 
     await action.commandSupportsExplicitProvider("skilled run", env),
     true,
   );
-  assert.equal(await action.getSkilledVersion(env), null);
+  const { version } = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
+  assert.deepEqual(
+    await action.getSkilledVersion(env),
+    /^\d+\.\d+\.\d+$/.test(version) ? version.split(".").map(Number) : null,
+  );
 });
 test("action rejects unknown engine before running evaluation", async (t) => {
   const dir = await temp(t);

@@ -2,13 +2,48 @@
 
 # skilled
 
-[简体中文](README.zh.md)
-
 Build repeatable checks for Agent Skills, agents and workspaces. Describe the task and expected behavior in YAML, choose an engine, and run the same cases locally or in an isolated environment. `skilled` records results as JSON, JUnit and HTML; `skilled-improve` helps your agent use those results to revise a Skill or strengthen its evaluations.
 
 ![Evaluation and improvement workflow](docs/public/overview.svg)
 
-The TypeScript source is maintained in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The command and package are named **`skilled`**; the current development version is `0.1.0-dev.0`. This port preserves the existing evaluation contracts and original Alibaba copyright notices under [Apache-2.0](LICENSE). Repository access requires authorization while it is private. Source installation is available to authorized users. Check [GitHub Releases](https://github.com/DeadHead04/skillEd/releases) for published archives; npm, container and documentation hosting are not yet published.
+The CLI is **`skilled`**, and the improvement workflow is **`skilled-improve`**. Download version **0.1.0** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0). The CLI archives include Node and application dependencies, so you do not need Go, Node or npm to run an installed archive. Original copyright notices are retained under [Apache-2.0](LICENSE).
+
+## Install the CLI
+
+This repository is private. Install [GitHub CLI](https://cli.github.com/), sign in with an account that can access it, then install the versioned release:
+
+```sh
+gh auth login
+installer_dir="$(mktemp -d)"
+gh release download v0.1.0 --repo DeadHead04/skillEd --pattern install.sh --dir "$installer_dir"
+SKILLED_USE_GH=1 SKILLED_VERSION=0.1.0 bash "$installer_dir/install.sh"
+export PATH="$HOME/.local/bin:$PATH"
+skilled --version
+skilled --help
+```
+
+Add `export PATH="$HOME/.local/bin:$PATH"` to your shell startup file for future terminals. The installer detects your OS/CPU, downloads the matching archive, verifies its checksum, and installs a launcher. Windows PowerShell instructions, updates and removal are in the [installation guide](docs/guide/installation.md).
+
+The familiar public installation command is supported when this repository is public:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
+```
+
+Anonymous `curl` cannot read private GitHub files; use the authenticated commands above while the repository is private. This CLI is distributed through GitHub Releases. Do not use `npm install -g skilled` from the public registry: this project has not published that registry name.
+
+## Run your first evaluation
+
+Configure your chosen engine/provider using the [user configuration guide](docs/guide/user-config.md), then run the installed command against your Skill's evaluations:
+
+```sh
+skilled init --print
+skilled validate /path/to/my-skill/evals/eval.yaml
+skilled run /path/to/my-skill/evals/eval.yaml --dry-run
+skilled run /path/to/my-skill/evals/eval.yaml --format json --format html --format junit
+```
+
+`--dry-run` validates/selects cases without calling a model. The actual run requires the selected engine and provider credentials. To create the evaluation suite and improve the Skill through your agent, install [skilled-improve](skills/skilled-improve/README.md) and ask: “Use skilled-improve to evaluate this Skill, fix failures, add regression cases, and rerun.”
 
 ## Build and run locally
 
@@ -36,18 +71,18 @@ node dist/src/bootstrap.js run /path/to/skill/evals/eval.yaml --format json --fo
 
 Automatic discovery supports `evals/eval.yaml` and Anthropic-style `evals/evals.json`. `run --baseline` compares with/without Skill configurations; `--iteration N` repeats N iterations, and the default appends the next numbered iteration. `--event-log /path/to/events.jsonl` writes structured lifecycle events. See the [CLI reference](docs/guide/cli-reference.md).
 
-For archive extraction, PATH setup, npm installation, Windows, hosted installers, updates and removal, see [Branding and installation](docs/guide/installation.md).
+For archive extraction, PATH setup, npm tarballs, Windows, updates and removal, see [Installation](docs/guide/installation.md).
 
 ## Install a local archive
 
 ```sh
 npm run package -- --target=darwin-arm64
-node scripts/verify-package.mjs artifacts/skilled_0.1.0-dev.0_darwin-arm64.tar.gz
+node scripts/verify-package.mjs artifacts/skilled_0.1.0_darwin-arm64.tar.gz
 ```
 
-Archives bundle Node, compiled code, production dependencies, assets and a launcher. Choose the target matching the machine. Build targets are Linux, macOS and Windows on x64/arm64; producing an archive does not establish native compatibility. Execution checks cover macOS arm64, Linux arm64 in Docker, macOS x64 through Rosetta and Linux x64 through Docker emulation. Native Windows, other native hosts and authenticated model combinations remain unverified.
+Archives bundle Node, compiled code, production dependencies, assets and a launcher. Choose the target matching the machine. Build targets are Linux, macOS and Windows on x64/arm64; producing an archive does not establish native compatibility. Execution checks cover macOS arm64, Linux arm64 in Docker, macOS x64 through Rosetta and Linux x64 through Docker emulation. The release workflow separately checks native Linux, macOS and Windows archives before publication. Authenticated model combinations require provider credentials and remain outside those package checks.
 
-Use the extracted archive's `skilled` launcher (`skilled.cmd` on Windows). Once a version has assets on [GitHub Releases](https://github.com/DeadHead04/skillEd/releases), follow the [release installation instructions](docs/guide/installation.md#hosted-installation-after-publishing). Private release downloads use authenticated GitHub CLI; the HTTP installer requires anonymously readable assets or an accessible mirror.
+Use the extracted archive's `skilled` launcher (`skilled.cmd` on Windows). Use the [release installation instructions](docs/guide/installation.md#install-from-github-releases) for prebuilt archives. Private downloads use GitHub CLI authentication; public downloads and mirrors use HTTP.
 
 ## Workflow and plugins
 
@@ -92,9 +127,9 @@ The tested OpenSandbox execd 1.0.16 loses stdout line separators in both impleme
 
 ## Documentation
 
-- [Getting started](docs/guide/getting-started.md) · [快速上手](docs/zh/guide/getting-started.md)
+- [Getting started](docs/guide/getting-started.md)
 - [Writing evaluations](docs/guide/writing-evals.md) · [User configuration](docs/guide/user-config.md)
 - [CLI reference](docs/guide/cli-reference.md) · [Migration](docs/guide/migration.md)
 - [Code statistics example](examples/code-stats/README.md) · [DSH custom engine](examples/deepseek-harness/README.md) · [User simulator](examples/user-simulator/README.md)
 
-`npm run docs:dev` starts the local bilingual VitePress site. `npm run docs:build` writes static files under `docs/.vitepress/dist`; set `SKILLED_DOCS_BASE` when serving under a subpath. The [contribution guide](CONTRIBUTING.md) covers development checks; [CI maintenance](docs/guide/ci-maintenance.md) explains release verification and publication.
+`npm run docs:dev` starts the local English VitePress site. `npm run docs:build` writes static files under `docs/.vitepress/dist`; set `SKILLED_DOCS_BASE` when serving under a subpath. The [contribution guide](CONTRIBUTING.md) covers development checks; [CI maintenance](docs/guide/ci-maintenance.md) explains release verification and publication.

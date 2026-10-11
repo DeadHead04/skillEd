@@ -72,6 +72,71 @@ test("installer resolves its default repository before validating the version", 
   assert.match(out.stderr, /invalid or unresolved release version/);
   assert.doesNotMatch(out.stdout, /Downloading/);
 });
+test("installer rejects conflicting authenticated download settings before network access", async (t) => {
+  const dir = await mkdtemp(path.join(tmpdir(), "skilled-install-gh-settings-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  for (const settings of [
+    { SKILLED_USE_GH: "invalid" },
+    { SKILLED_USE_GH: "1", SKILLED_RELEASE_BASE_URL: "https://example.invalid/releases" },
+    { SKILLED_USE_GH: "1", SKILLED_LATEST_VERSION_URL: "https://example.invalid/latest" },
+  ]) {
+    const out = await run(["bash", path.join(root, "install.sh")], dir, settings);
+    assert.equal(out.code, 1);
+    assert.match(out.stderr, /SKILLED_USE_GH (must be 0 or 1|cannot be combined)/);
+    assert.doesNotMatch(out.stdout, /Downloading/);
+  }
+});
+test(
+  "authenticated GitHub release installation and latest reinstall execute the published CLI",
+  {
+    skip: process.env.SKILLED_GITHUB_INSTALLER_INTEGRATION === "1"
+      ? false
+      : "enable SKILLED_GITHUB_INSTALLER_INTEGRATION=1 after publishing a release and authenticating gh",
+    timeout: 420000,
+  },
+  async (t) => {
+    const dir = await mkdtemp(path.join(tmpdir(), "skilled-install-github-"));
+    t.after(() => rm(dir, { recursive: true, force: true }));
+    const bin = path.join(dir, "installed cli", "bin");
+    // Reuse the user's actual gh login while keeping the installation HOME isolated.
+    // Credentials remain in gh's existing storage and never enter release artifacts.
+    const authEnv: NodeJS.ProcessEnv = {
+      GH_CONFIG_DIR: process.env.GH_CONFIG_DIR ?? path.join(
+        process.env.XDG_CONFIG_HOME ?? path.join(process.env.HOME!, ".config"),
+        "gh",
+      ),
+      GH_TOKEN: process.env.GH_TOKEN,
+      GITHUB_TOKEN: process.env.GITHUB_TOKEN,
+      GH_HOST: process.env.GH_HOST,
+      GH_PROMPT_DISABLED: "1",
+      SKILLED_USE_GH: "1",
+      SKILLED_REPOSITORY: process.env.SKILLED_GITHUB_INSTALLER_REPOSITORY ?? "DeadHead04/skillEd",
+      INSTALL_DIR: bin,
+    };
+    const launcher = path.join(bin, "skilled");
+    let wrapper = "";
+    for (const version of [releaseVersion, "latest"]) {
+      const installed = await run(["bash", path.join(root, "install.sh")], dir, {
+        ...authEnv,
+        SKILLED_VERSION: version,
+      });
+      assert.equal(installed.code, 0, installed.stdout + installed.stderr);
+      assert.match(installed.stdout, /with GitHub CLI/);
+      const actual = await run([launcher, "--version"], dir);
+      assert.equal(actual.code, 0, actual.stderr);
+      assert.equal(actual.stdout, `skilled version ${releaseVersion}\n`);
+      const initialized = await run([launcher, "init", "--print"], dir);
+      assert.equal(initialized.code, 0, initialized.stderr);
+      assert.match(initialized.stdout, /kind: SkilledConfig/);
+      const help = await run([launcher, "run", "--help"], dir);
+      assert.equal(help.code, 0, help.stderr);
+      assert.match(help.stdout, /--event-log/);
+      const currentWrapper = await readFile(launcher, "utf8");
+      if (wrapper) assert.equal(currentWrapper, wrapper);
+      wrapper = currentWrapper;
+    }
+  },
+);
 test(
   "real HTTP release installation, CLI execution, reinstall, latest resolution and corruption protection",
   {

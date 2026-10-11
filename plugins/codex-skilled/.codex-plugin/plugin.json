@@ -1,6 +1,6 @@
 {
   "name": "codex-skilled",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0",
   "description": "Capture privacy-aware Skill observations locally and turn approved observations into candidate skilled regression cases.",
   "skills": "./skills/",
   "interface": {

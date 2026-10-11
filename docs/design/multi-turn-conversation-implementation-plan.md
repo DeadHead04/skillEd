@@ -356,7 +356,6 @@ optional and omitted for single-turn cases.
 Files:
 
 - `docs/guide/writing-evals.md`
-- `docs/zh/guide/writing-evals.md`
 - `skills/skilled-improve/references/case-yaml.md`
 - `skills/skilled-improve/assets/case.yaml.tmpl`
 - `e2e/testdata/multi-turn-conversation/*`

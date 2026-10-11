@@ -22,6 +22,6 @@ Acceptance uses actual production functions, files, processes, services and host
 
 ## Documentation and release
 
-Update English and Chinese user documentation when changing setup or CLI behavior. Historical design/proposal documents describe the original design and may retain explanatory Go snippets; executable application code is TypeScript.
+Update English user documentation when changing setup or CLI behavior. Historical design/proposal documents describe the original design and may retain explanatory Go snippets; executable application code is TypeScript.
 
 Only configured owner-controlled repositories, registries and documentation hosts may be used for publishing. Do not invent public endpoints or claim that builds certify untested platforms. Release tags and publication are separate from local packaging.

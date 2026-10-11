@@ -11,8 +11,6 @@ status: draft
 
 # SUP-0004: Agent Judge Context Delivery and Scale Control
 
-Language: English | [中文](zh/0004-agent-judge-context-delivery.md)
-
 <!-- toc -->
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -116,7 +114,7 @@ A single boolean such as `include_transcript: false` would help one scenario but
 | S1 | Profile presets | `minimal` and `standard` documented with clear semantics |
 | S2 | `attachments` support | Authors can attach business artifacts (for example `diff-result.json`) by path |
 | S3 | Engine parity | `codex`, `qodercli`, `qwen_code` use the same `PromptDelivery` helper |
-| S4 | Writing guide updates | English and Chinese eval writing guides include `judge.context` examples |
+| S4 | Writing guide updates | The evaluation writing guide include `judge.context` examples |
 
 ### Nice to Have
 
@@ -448,7 +446,6 @@ level=INFO msg="prompt delivery" mode=file bytes=2048 threshold=32768
 Update:
 
 1. `docs/guide/writing-evals.md` — `judge.context` and profiles.
-2. `docs/zh/guide/writing-evals.md` — Chinese mirror.
 3. `skills/skilled-improve/assets/eval.yaml.tmpl` — mention `agent_judge` context profiles.
 4. `CHANGELOG.md` — note default behavior change for `agent_judge`.
 5. Product workspace doc may link to `proposals/0004-agent-judge-context-delivery.md`.

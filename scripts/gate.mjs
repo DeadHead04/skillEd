@@ -63,7 +63,9 @@ function run(name, args) {
     maxBuffer: 32 * 1024 * 1024,
   });
   const log = `${result.stdout || ""}${result.stderr || ""}${result.error ? String(result.error) : ""}`;
-  writeFileSync(join(output, `${name}.log`), log);
+  // Evidence must also be uploadable and extractable on Windows.
+  const logName = name.replace(/[<>:"/\\|?*\x00-\x1f]/g, "-");
+  writeFileSync(join(output, `${logName}.log`), log);
   process.stdout.write(log);
   const entry = {
     name,

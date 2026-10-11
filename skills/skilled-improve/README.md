@@ -18,4 +18,4 @@ node dist/src/bootstrap.js run skills/skilled-improve/evals/eval.yaml
 
 The run requires the selected real engine, provider credentials and permission to incur model costs. The DashScope variant is `evals/eval-dashscope.yaml`; it requires `DASHSCOPE_API_KEY` and OpenCode. Those authenticated workflow scenarios have not been rerun during local migration acceptance. `test-model` in simulator-generation scenarios is a placeholder for configuration validation, not proof of a real simulator response.
 
-Local installation details are in `references/install.md`. Hosted release destinations are pending the release phase.
+Local installation details are in `references/install.md`. CLI and workflow archives are distributed through [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0).

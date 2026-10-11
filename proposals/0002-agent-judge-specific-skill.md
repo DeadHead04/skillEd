@@ -11,8 +11,6 @@ status: draft
 
 # SUP-0002: agent_judge Judge-Specific Skill Support
 
-Language: English | [中文](zh/0002-agent-judge-specific-skill.md)
-
 <!-- toc -->
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -111,7 +109,7 @@ The current code path exposes the gap:
 | S1 | Multiple judge Skills | `judge.skills` can declare multiple Skills, installed in configuration order |
 | S2 | Case-level override | Case-level `judge.skills` can override eval-level judge configuration |
 | S3 | Clear diagnostics | Installation failures include the judge Skill path and judge-phase context |
-| S4 | Documentation updates | English/Chinese writing-evals docs and skilled-improve references include examples |
+| S4 | Documentation updates | The writing-evals guide and skilled-improve references include examples |
 | S5 | Document Agent differences | Docs explain that judge Skill installation depends on each adapter's Skill support and does not guarantee identical behavior across Agents |
 
 ### Nice to Have
@@ -516,7 +514,6 @@ Security and privacy:
 Update:
 
 - `docs/guide/writing-evals.md`: add a `skills` example to the `judge: agent_judge` section and explain isolation.
-- `docs/zh/guide/writing-evals.md`: add the Chinese equivalent.
 - `skills/skilled-improve/references/eval-yaml.md`: document `judge.skills`.
 - `skills/skilled-improve/references/judge-types.md`: explain when to use judge Skills versus inline criteria.
 - Agent or custom-engine docs: explain that judge Skill installation depends on adapter `InstallSkill` capability and will not degrade to prompt concatenation.

@@ -3,11 +3,12 @@
 This file records releases of `skilled` maintained in
 [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd).
 
-## 0.1.0-dev.0 — development candidate
+## 0.1.0
 
-This version is prepared from the TypeScript implementation. Source availability
-and local verification do not imply that release archives, an npm package or a
-container image have been published.
+First versioned TypeScript CLI release, distributed through GitHub Releases.
+Includes authenticated private-repository installation, public HTTP installation,
+and English-only user documentation. npm registry and container publication are
+separate from these downloadable release assets.
 
 ### Application
 
@@ -24,7 +25,7 @@ container image have been published.
 - Six bundled-runtime archive targets and an optional local npm tarball.
 - SHA-256 validation, platform/version checks and installation wrappers.
 - Containerized Action with structured status outputs and report files.
-- English and Chinese setup guides, examples and configuration references.
+- English setup guides, examples and configuration references.
 - CI, release integrity checks and license notices in each standalone package.
 
 ### Verification

@@ -11,8 +11,6 @@ status: draft
 
 # SUP-0003: Per-Case Mocked MCP Response Overrides
 
-Language: English | [中文](zh/0003-per-case-mocked-mcp-responses.md)
-
 <!-- toc -->
 - [Summary](#summary)
 - [Motivation](#motivation)
@@ -110,7 +108,7 @@ The current code shape reflects this limitation:
 | ID | Requirement | Acceptance Criteria |
 | --- | --- | --- |
 | S1 | Clear errors | Missing server names, unsupported non-mocked overrides, and bad fixture paths include the case ID in the error |
-| S2 | Documentation examples | `docs/guide/writing-evals.md` and `docs/zh/guide/writing-evals.md` show per-case mocked MCP overrides |
+| S2 | Documentation examples | `docs/guide/writing-evals.md` shows per-case mocked MCP overrides |
 | S3 | Skill template/reference updates | `skills/skilled-improve` templates or references mention case-level mocked MCP usage |
 
 ### Nice to Have
@@ -479,7 +477,6 @@ case project-open: failed to provision MCP servers: failed to load mcp server "p
 Update:
 
 1. `docs/guide/writing-evals.md` with a per-case mocked MCP override example.
-2. `docs/zh/guide/writing-evals.md` with the matching Chinese example.
 3. `skills/skilled-improve/assets/eval.yaml.tmpl` or the relevant reference docs to mention that eval-level MCP is the default and case-level mocked fixtures may override it.
 4. Any schema/reference docs that enumerate `CaseConfig` fields.
 

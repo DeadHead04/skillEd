@@ -2,11 +2,11 @@
 
 `skilled` evaluates Agent Skills, agents and workspaces. The `skilled-improve` workflow helps an agent inspect reports, improve the Skill or cases, and rerun the evaluation.
 
-See [Branding and installation](./installation.md) for all install methods, names and paths.
+Start with the [CLI installer](./installation.md#install-from-github-releases). It installs a versioned `skilled` command with a bundled runtime. Run `skilled --version` and `skilled --help` to verify it.
 
-## Local checkout
+## Optional: develop from a local checkout
 
-Start with the TypeScript source in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The current development version is `0.1.0-dev.0`. Use Node **24.21.0**, npm and Git. A private checkout requires authorized Git credentials, or use `gh repo clone DeadHead04/skillEd`:
+Start with the TypeScript source in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The CLI version is `0.1.0`. Use Node **24.21.0**, npm and Git. A private checkout requires authorized Git credentials, or use `gh repo clone DeadHead04/skillEd`:
 
 ```sh
 git clone https://github.com/DeadHead04/skillEd.git
@@ -21,7 +21,7 @@ The development command is `node dist/src/bootstrap.js`. An extracted self-conta
 
 ```sh
 npm run package -- --target=darwin-arm64
-node scripts/verify-package.mjs artifacts/skilled_0.1.0-dev.0_darwin-arm64.tar.gz
+node scripts/verify-package.mjs artifacts/skilled_0.1.0_darwin-arm64.tar.gz
 ```
 
 Choose the archive for the target machine. Available native checks cover macOS arm64 and Linux arm64 Docker; untested targets and authenticated model combinations are not certified by building an archive.

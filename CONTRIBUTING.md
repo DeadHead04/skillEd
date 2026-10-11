@@ -33,7 +33,7 @@ The cumulative gate records logs, counts, revision and platform. A skipped test 
 
 ## Pull requests
 
-Keep changes focused and describe the user-visible behavior plus checks performed. Preserve license notices. Do not commit personal credentials, caches, generated archives or `dist/` output. Changes to user-facing behavior should update the English/Chinese documentation and changelog. [AGENTS.md](AGENTS.md) contains repository guidance for coding agents.
+Keep changes focused and describe the user-visible behavior plus checks performed. Preserve license notices. Do not commit personal credentials, caches, generated archives or `dist/` output. Changes to user-facing behavior should update the English documentation and changelog. [AGENTS.md](AGENTS.md) contains repository guidance for coding agents.
 
 ## Documentation and proposals
 

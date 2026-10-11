@@ -11,8 +11,6 @@ status: provisional
 
 # SUP-0001: Multi-Turn Conversation Evaluation Support
 
-Language: English | [中文](zh/0001-multi-turn-conversation-eval.md)
-
 <!-- toc -->
 - [Summary](#summary)
 - [Motivation](#motivation)

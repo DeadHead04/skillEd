@@ -2,6 +2,21 @@
 
 The source repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The executable is `skilled`; the workflow is `skilled-improve`. See the [installation guide](../../../docs/guide/installation.md) for platform selection, PATH setup, updates, and removal.
 
+## Install the CLI release
+
+The current version is `0.1.0`. For this private repository, use GitHub CLI authenticated with repository access:
+
+```sh
+gh auth login
+installer_dir="$(mktemp -d)"
+gh release download v0.1.0 --repo DeadHead04/skillEd --pattern install.sh --dir "$installer_dir"
+SKILLED_USE_GH=1 SKILLED_VERSION=0.1.0 bash "$installer_dir/install.sh"
+export PATH="$HOME/.local/bin:$PATH"
+skilled --version
+```
+
+This installs the complete runtime bundle. Windows uses the release's `install.ps1 -UseGh -Version 0.1.0`; see the installation guide. Public repositories can use `curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash` without authentication. Private repositories require the authenticated method above. Never put credentials in URLs.
+
 ## CLI from source
 
 Use Node 24.21.0. Clone the repository and build the CLI:
@@ -20,9 +35,9 @@ To make `skilled` available on PATH, run `npm link` after the build. When assist
 
 A release bundle contains the application and a pinned Node runtime. Pick the archive for your operating system and CPU from the [release page](https://github.com/DeadHead04/skillEd/releases), verify its SHA-256, and extract the whole directory. Run `./skilled --version` from the extracted bundle on macOS or Linux, or `.\skilled.cmd --version` on Windows. Keep the complete extracted directory together.
 
-If the repository is private, download assets using an authenticated GitHub session or `gh release download --repo DeadHead04/skillEd`; the HTTP installers do not supply GitHub credentials. Never put credentials into a download URL.
+For private downloads, use `gh release download v0.1.0 --repo DeadHead04/skillEd`, or enable `SKILLED_USE_GH=1` / `-UseGh` in the installer.
 
-Release assets must be published before this download method is available. Until then, use the source build above or build an archive locally:
+To build an archive locally instead of downloading the release:
 
 ```sh
 npm run package -- --target=darwin-arm64

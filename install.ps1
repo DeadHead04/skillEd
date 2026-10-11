@@ -4,9 +4,15 @@ param(
     [string]$Version = $(if ($env:SKILLED_VERSION) { $env:SKILLED_VERSION } else { 'latest' }),
     [string]$InstallDir = $(if ($env:INSTALL_DIR) { $env:INSTALL_DIR } else { Join-Path $HOME '.local\bin' }),
     [string]$Repository = $env:SKILLED_REPOSITORY,
-    [string]$ReleaseBaseUrl = $env:SKILLED_RELEASE_BASE_URL
+    [string]$ReleaseBaseUrl = $env:SKILLED_RELEASE_BASE_URL,
+    [switch]$UseGh = ($env:SKILLED_USE_GH -eq '1')
 )
 $ErrorActionPreference = 'Stop'
+if ($env:SKILLED_USE_GH -and $env:SKILLED_USE_GH -notin @('0', '1')) { throw 'SKILLED_USE_GH must be 0 or 1.' }
+if ($UseGh) {
+    if ($ReleaseBaseUrl -or $env:SKILLED_LATEST_VERSION_URL) { throw 'SKILLED_USE_GH cannot be combined with a custom release or latest-version URL.' }
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'GitHub CLI (gh) is required. Install it and run gh auth login first.' }
+}
 if (-not $ReleaseBaseUrl) {
     if (-not $Repository) { $Repository = 'DeadHead04/skillEd' }
     if ($Repository -notmatch '^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$') { throw 'Invalid SKILLED_REPOSITORY; use owner/repository.' }
@@ -14,7 +20,12 @@ if (-not $ReleaseBaseUrl) {
 }
 if ($ReleaseBaseUrl -notmatch '^https?://') { throw 'Release base URL must use HTTP or HTTPS.' }
 if ($Version -eq 'latest') {
-    if ($env:SKILLED_LATEST_VERSION_URL) { $Version = (Invoke-WebRequest -UseBasicParsing $env:SKILLED_LATEST_VERSION_URL).Content.Trim() }
+    if ($UseGh) {
+        $Version = & gh release view --repo $Repository --json tagName --jq .tagName
+        if ($LASTEXITCODE -ne 0) { throw 'GitHub release lookup failed. Check gh authentication and repository access.' }
+        $Version = ($Version -join "`n").Trim()
+    }
+    elseif ($env:SKILLED_LATEST_VERSION_URL) { $Version = (Invoke-WebRequest -UseBasicParsing $env:SKILLED_LATEST_VERSION_URL).Content.Trim() }
     elseif ($Repository) { $Version = (Invoke-RestMethod "https://api.github.com/repos/$Repository/releases/latest").tag_name }
     else { $Version = (Invoke-WebRequest -UseBasicParsing "$($ReleaseBaseUrl.TrimEnd('/'))/latest-version.txt").Content.Trim() }
 }
@@ -30,8 +41,15 @@ $stage = $null
 New-Item -ItemType Directory -Path $tempDir | Out-Null
 try {
     $download = Join-Path $tempDir $archive
-    Invoke-WebRequest -UseBasicParsing "$baseUrl/$archive" -OutFile $download
-    $lines = (Invoke-WebRequest -UseBasicParsing "$baseUrl/$archive.sha256").Content -split "`n"
+    if ($UseGh) {
+        Write-Output "Downloading $archive from $Repository release v$Version with GitHub CLI"
+        & gh release download "v$Version" --repo $Repository --pattern $archive --pattern "$archive.sha256" --dir $tempDir
+        if ($LASTEXITCODE -ne 0) { throw 'GitHub release download failed. Check gh authentication, repository access and release assets.' }
+        $lines = (Get-Content -Raw -LiteralPath (Join-Path $tempDir "$archive.sha256")) -split "`n"
+    } else {
+        Invoke-WebRequest -UseBasicParsing "$baseUrl/$archive" -OutFile $download
+        $lines = (Invoke-WebRequest -UseBasicParsing "$baseUrl/$archive.sha256").Content -split "`n"
+    }
     $matchesForFile = @($lines | Where-Object { $_ -match ('^[0-9a-fA-F]{64}\s+\*?' + [regex]::Escape($archive) + '\s*$') })
     if ($matchesForFile.Count -ne 1) { throw 'Missing or ambiguous archive checksum.' }
     $expected = ($matchesForFile[0] -split '\s+')[0]

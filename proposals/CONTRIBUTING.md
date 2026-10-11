@@ -31,11 +31,8 @@ undergo broader discussion.
    numbered `0001-proposal-title.md` draft.
 
 2. Fill in each section from the template (`Summary`, `Motivation`, …).
-3. Add the Chinese version under `proposals/zh/` with the same filename
-   (for example, `proposals/0001-example.md` and
-   `proposals/zh/0001-example.md`).
-4. Keep the language switch at the top of both files up to date.
-5. Once ready, submit both files in a PR for community review.
+3. Write the proposal in English.
+4. Once ready, submit the proposal in a PR for community review.
 
 **Available options:**
 
@@ -63,8 +60,6 @@ status: draft
 
 # SUP-0001: My First Proposal
 
-Language: English | [中文](zh/0001-my-first-proposal.md)
-
 <!-- toc -->
 - [Summary](#summary)
 ...
@@ -74,15 +69,9 @@ Language: English | [中文](zh/0001-my-first-proposal.md)
 This YAML front matter renders as a table on GitHub and keeps the proposal
 metadata (status, authors, dates) visible at the top of the document.
 
-## Language versions
+## Documentation language
 
-Every proposal must have both English and Chinese versions:
-
-- English proposal files live directly under `proposals/`.
-- Chinese proposal files live under `proposals/zh/`.
-- The two versions use the same filename.
-- The English file starts with `Language: English | [中文](zh/<filename>)`.
-- The Chinese file starts with `语言：[English](../<filename>) | 中文`.
+Write proposals in English and keep them directly under `proposals/`.
 
 ## Status lifecycle
 

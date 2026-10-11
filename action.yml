@@ -43,7 +43,7 @@ inputs:
   skilled-version:
     description: 'Fallback skilled version for custom images without skilled. The official image preinstalls a pinned version and ignores this input.'
     required: false
-    default: '0.1.0-dev.0'
+    default: '0.1.0'
   skilled-command:
     description: 'The skilled command itself; must start with `skilled`.'
     required: false
