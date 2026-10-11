@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:skilled:evalevent:v1:case_started-v1",
+  "title": "case_started event v1",
+  "allOf": [
+    { "$ref": "urn:skilled:evalevent:v1:envelope" },
+    {
+      "type": "object",
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "event_version": { "const": 1 },
+        "event": { "const": "case_started" },
+        "payload": {
+          "type": "object",
+          "required": [
+            "task_id", "iteration", "case_id", "configuration",
+            "task_index", "task_total", "title"
+          ],
+          "properties": {
+            "task_id": { "type": "string", "minLength": 1 },
+            "iteration": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/positiveInteger" },
+            "case_id": { "type": "string", "minLength": 1 },
+            "configuration": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/configuration" },
+            "task_index": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/positiveInteger" },
+            "task_total": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/positiveInteger" },
+            "title": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,3926 @@
+[
+  {
+    "pattern": "a",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "^a$",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a$",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?m)^a$",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a\nb"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?s)a.b",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "straße"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i)straße",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?U)a+",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "abc",
+        "abc"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a",
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a",
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "lan",
+        "lan"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "AB",
+        "AB"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "stra",
+        "stra"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<name>\\w+)",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "abc",
+        "abc"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a",
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a",
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "lan",
+        "lan"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "AB",
+        "AB"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "stra",
+        "stra"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?<name>\\w+)",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "name"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "ab",
+        "a",
+        "b"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?P<x>a)(?P<x>b)",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "x",
+        "x"
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "ab",
+        "a",
+        "b"
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a",
+        "a",
+        ""
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a",
+        "a",
+        ""
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a",
+        "a",
+        ""
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a",
+        "a",
+        ""
+      ],
+      "matches": true,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(a)(b)?",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        "",
+        "",
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "abc"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Aabc\\z",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\bélan\\b",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "αβγ",
+    "expected": {
+      "groups": [
+        "αβγ"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\p{Greek}+",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "abc"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "élan"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "αβγ",
+    "expected": {
+      "groups": [
+        "αβγ"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "AB"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "straße"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\pL+",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "abc"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "lan"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "AB"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "stra"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[[:alpha:]]+",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1000}",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a{1001}",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?=a)",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?<=a)b",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(a)\\1",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\C",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\c",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a++",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "l"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "s"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[a-z]",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "b"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "\n"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "\n"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "é"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "αβγ",
+    "expected": {
+      "groups": [
+        "α"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "😀",
+    "expected": {
+      "groups": [
+        "😀"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "A"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "s"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "[^a]",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "A"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?i-m:a)",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "(?n:a)",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "a|ab",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        "a"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "(?:a)",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\Q.a*\\E",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "abc",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "a\n",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "a\nb",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "élan",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "αβγ",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "😀",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "AB",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "straße",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\u0041",
+    "text": "",
+    "expected": {
+      "valid": false
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "😀",
+    "expected": {
+      "groups": [
+        "😀"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x{1F600}",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        "A"
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\x41",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "abc",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "a\n",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "a\nb",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "élan",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "αβγ",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "😀",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "AB",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "straße",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\077",
+    "text": "",
+    "expected": {
+      "groups": null,
+      "matches": false,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "αβγ",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "😀",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "\\z",
+    "text": "",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "abc",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "a\n",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "a\nb",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "élan",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "αβγ",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "😀",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "AB",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "straße",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  },
+  {
+    "pattern": "",
+    "text": "",
+    "expected": {
+      "groups": [
+        ""
+      ],
+      "matches": true,
+      "names": [
+        ""
+      ],
+      "valid": true
+    }
+  }
+]

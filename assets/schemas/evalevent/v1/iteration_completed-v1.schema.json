@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:skilled:evalevent:v1:iteration_completed-v1",
+  "title": "iteration_completed event v1",
+  "allOf": [
+    { "$ref": "urn:skilled:evalevent:v1:envelope" },
+    {
+      "type": "object",
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "event_version": { "const": 1 },
+        "event": { "const": "iteration_completed" },
+        "payload": {
+          "type": "object",
+          "required": [
+            "iteration", "invocation_completed_tasks", "passed", "failed",
+            "errored", "skipped", "duration_ms"
+          ],
+          "properties": {
+            "iteration": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/positiveInteger" },
+            "invocation_completed_tasks": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "passed": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "failed": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "errored": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "skipped": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "duration_ms": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" }
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  ]
+}

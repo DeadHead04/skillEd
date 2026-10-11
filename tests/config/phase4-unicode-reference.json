@@ -1,0 +1,285 @@
+[
+  {
+    "name": "short-d7ff",
+    "source": "input: \"\\ud7ff\"\n",
+    "value": {
+      "input": "퟿"
+    }
+  },
+  {
+    "name": "long-d7ff",
+    "source": "input: \"\\U0000d7ff\"\n",
+    "value": {
+      "input": "퟿"
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-d800",
+    "source": "input: \"\\ud800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-d800",
+    "source": "input: \"\\U0000d800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-d83d",
+    "source": "input: \"\\ud83d\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-d83d",
+    "source": "input: \"\\U0000d83d\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-dbff",
+    "source": "input: \"\\udbff\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-dbff",
+    "source": "input: \"\\U0000dbff\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-dc00",
+    "source": "input: \"\\udc00\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-dc00",
+    "source": "input: \"\\U0000dc00\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-de00",
+    "source": "input: \"\\ude00\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-de00",
+    "source": "input: \"\\U0000de00\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-dfff",
+    "source": "input: \"\\udfff\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-dfff",
+    "source": "input: \"\\U0000dfff\"\n"
+  },
+  {
+    "name": "short-e000",
+    "source": "input: \"\\ue000\"\n",
+    "value": {
+      "input": ""
+    }
+  },
+  {
+    "name": "long-e000",
+    "source": "input: \"\\U0000e000\"\n",
+    "value": {
+      "input": ""
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-D800",
+    "source": "input: \"\\uD800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-D800",
+    "source": "input: \"\\U0000D800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "short-DFFF",
+    "source": "input: \"\\uDFFF\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "long-DFFF",
+    "source": "input: \"\\U0000DFFF\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "pair",
+    "source": "input: \"\\ud83d\\ude00\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "reversed-pair",
+    "source": "input: \"\\ude00\\ud83d\"\n"
+  },
+  {
+    "name": "literal",
+    "source": "input: \"😀\"\n",
+    "value": {
+      "input": "😀"
+    }
+  },
+  {
+    "name": "nonbmp",
+    "source": "input: \"\\U0001F600\"\n",
+    "value": {
+      "input": "😀"
+    }
+  },
+  {
+    "name": "maximum",
+    "source": "input: \"\\U0010FFFF\"\n",
+    "value": {
+      "input": "􏿿"
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "too-large",
+    "source": "input: \"\\U00110000\"\n"
+  },
+  {
+    "name": "escaped-backslash",
+    "source": "input: \"\\\\ud83d\\\\ude00\"\n",
+    "value": {
+      "input": "\\ud83d\\ude00"
+    }
+  },
+  {
+    "name": "single-quoted",
+    "source": "input: '\\ud83d\\ude00'\n",
+    "value": {
+      "input": "\\ud83d\\ude00"
+    }
+  },
+  {
+    "name": "plain",
+    "source": "input: \\ud83d\\ude00\n",
+    "value": {
+      "input": "\\ud83d\\ude00"
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "odd-backslashes",
+    "source": "input: \"\\\\\\ud83d\"\n"
+  },
+  {
+    "name": "comment",
+    "source": "input: okay # \"\\ud83d\"\n",
+    "value": {
+      "input": "okay"
+    }
+  },
+  {
+    "name": "block-literal",
+    "source": "input: |\n  \"\\ud83d\\ude00\"\n",
+    "value": {
+      "input": "\"\\ud83d\\ude00\"\n"
+    }
+  },
+  {
+    "name": "block-folded",
+    "source": "input: >\n  \"\\ud83d\\ude00\"\n",
+    "value": {
+      "input": "\"\\ud83d\\ude00\"\n"
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "mapping-key",
+    "source": "\"\\ud800\": value\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "flow-sequence",
+    "source": "input: [okay,\"\\ud800\"]\n"
+  },
+  {
+    "error": "yaml: line 3: found invalid Unicode character escape code",
+    "name": "sequence",
+    "source": "input:\n  - okay\n  - \"\\ud800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "flow-map",
+    "source": "input: {nested: \"\\ud800\"}\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "explicit-string-tag",
+    "source": "input: !!str \"\\ud800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "alias",
+    "source": "input: &value \"\\ud800\"\nother: *value\n"
+  },
+  {
+    "name": "valid-alias",
+    "source": "input: &value \"\\U0001F600\"\nother: *value\n",
+    "value": {
+      "input": "😀",
+      "other": "😀"
+    }
+  },
+  {
+    "error": "yaml: line 2: found invalid Unicode character escape code",
+    "name": "multiline",
+    "source": "input: \"hello\n  \\ud800\"\n"
+  },
+  {
+    "error": "yaml: line 2: found invalid Unicode character escape code",
+    "name": "escaped-newline",
+    "source": "input: \"hello\\\n  \\ud800\"\n"
+  },
+  {
+    "error": "yaml: line 2: found invalid Unicode character escape code",
+    "name": "crlf",
+    "source": "input: \"hello\r\n  \\ud800\"\r\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "json-object",
+    "source": "{\"input\":{\"prompt\":\"phase-three-\\ud83d\\ude00\"}}"
+  },
+  {
+    "name": "json-literal",
+    "source": "{\"input\":{\"prompt\":\"phase-three-😀\"}}",
+    "value": {
+      "input": {
+        "prompt": "phase-three-😀"
+      }
+    }
+  },
+  {
+    "name": "later-document-ignored",
+    "source": "input: okay\n---\ninput: \"\\ud800\"\n",
+    "value": {
+      "input": "okay"
+    }
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "quoted-comment-marker",
+    "source": "input: \"# \\ud800\"\n"
+  },
+  {
+    "error": "yaml: found invalid Unicode character escape code",
+    "name": "escaped-quote",
+    "source": "input: \"a\\\" \\ud800\"\n"
+  },
+  {
+    "name": "slash-ending-before-plain",
+    "source": "input: \"\\\\\"\nother: \\ud800\n",
+    "value": {
+      "input": "\\",
+      "other": "\\ud800"
+    }
+  }
+]

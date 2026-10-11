@@ -1,0 +1,82 @@
+{
+  "reference_commit": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "production_file_mapping": {
+    "src/contracts/schema.ts": [
+      "internal/config/schema.go",
+      "internal/customengine/config.go",
+      "internal/userconfig/config.go"
+    ],
+    "src/contracts/decode.ts": [
+      "internal/config/schema.go",
+      "internal/config/loader.go",
+      "internal/credential/credential.go"
+    ],
+    "src/contracts/agentkind.ts": [
+      "internal/agentkind/agentkind.go"
+    ],
+    "src/contracts/customengine.ts": [
+      "internal/customengine/config.go",
+      "internal/customengine/path.go",
+      "internal/customengine/template_token.go"
+    ],
+    "src/contracts/transcript.ts": [
+      "pkg/transcript/transcript.go",
+      "pkg/transcript/doc.go"
+    ],
+    "src/config/loader.ts": [
+      "internal/config/loader.go",
+      "internal/config/defaults.go"
+    ],
+    "assets/config/defaults.yaml": [
+      "internal/config/defaults.yaml"
+    ],
+    "src/config/judge-plan.ts": [
+      "internal/config/judge_plan.go",
+      "internal/config/mcp_merge.go"
+    ],
+    "src/config/validator.ts": [
+      "internal/config/validator.go"
+    ],
+    "src/config/customengine.ts": [
+      "internal/config/customengine.go"
+    ],
+    "src/config/index.ts": [
+      "internal/config/customengine_compat.go"
+    ],
+    "src/credentials/index.ts": [
+      "internal/credential/credential.go",
+      "internal/credential/agent_init.go",
+      "internal/credential/model_connection.go",
+      "internal/credential/provider_query.go"
+    ],
+    "src/credentials/dotenv.ts": [
+      "external dotenv parser behavior used by credential loading"
+    ],
+    "src/userconfig/index.ts": [
+      "internal/userconfig/config.go",
+      "internal/userconfig/loader.go",
+      "internal/userconfig/apply.go",
+      "internal/userconfig/redact.go"
+    ],
+    "src/regex/index.ts": [
+      "Go standard regexp contract used by config and future judging"
+    ]
+  },
+  "evidence": {
+    "validator_reference": "130 distinct real original validator test calls, inputs and actual outcomes captured by temporary instrumentation; TypeScript invokes production validators directly",
+    "regex_reference": "342 requests against pinned Go regexp comparing acceptance, match decisions, ordered capture values and group names",
+    "filesystem_and_contract_tests": "22 real parser, filesystem, environment, credential and module cases without substitute services"
+  },
+  "unverified_boundaries": [
+    "Config integer magnitudes above JavaScript exact-integer range (2^53-1) are not established equivalent to Go int64 arithmetic",
+    "Native YAML and RE2 error explanations have binding-specific wording; validator prefixes and acceptance decisions are compared",
+    "Not every original Go test assertion has an individually migrated TypeScript test; source table coverage is supplemented by real module integration tests"
+  ],
+  "implementation_notes": [
+    "Serialized evaluation field names remain snake_case; process/runtime-facing APIs are camelCase",
+    "Missing eval skills remain null and explicit empty skills remain []; other non-pointer empty collections use TypeScript empty collections",
+    "Config default assets load from dist/assets/config/defaults.yaml",
+    "Private credential connection and provider API keys are readable but excluded from JSON enumeration",
+    "Async filesystem operations replace blocking Go file access; pure parse/validation functions remain synchronous"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:skilled:evalevent:v1:run_progress-v1",
+  "title": "run_progress event v1",
+  "allOf": [
+    { "$ref": "urn:skilled:evalevent:v1:envelope" },
+    {
+      "type": "object",
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "event_version": { "const": 1 },
+        "event": { "const": "run_progress" },
+        "payload": {
+          "type": "object",
+          "required": [
+            "phase", "task_total", "completed_tasks", "running_tasks",
+            "passed", "failed", "errored", "skipped", "elapsed_ms"
+          ],
+          "properties": {
+            "phase": {
+              "type": "string",
+              "minLength": 1,
+              "examples": ["preparing", "executing", "finalizing"]
+            },
+            "task_total": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/positiveInteger" },
+            "completed_tasks": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "running_tasks": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "passed": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "failed": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "errored": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "skipped": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" },
+            "elapsed_ms": { "$ref": "urn:skilled:evalevent:v1:envelope#/$defs/safeInteger" }
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  ]
+}
