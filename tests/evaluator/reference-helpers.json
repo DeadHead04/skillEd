@@ -1,0 +1,5311 @@
+{
+  "referenceCommit": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "oracle": "migration/reference-driver/evaluator-helpers",
+  "vectors": [
+    {
+      "request": {
+        "op": "substitute",
+        "text": "plain",
+        "vars": {}
+      },
+      "expected": {
+        "error": "",
+        "value": "plain"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{x}}/{{x}}",
+        "vars": {
+          "x": "done"
+        }
+      },
+      "expected": {
+        "error": "",
+        "value": "done/done"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{empty}}",
+        "vars": {
+          "empty": ""
+        }
+      },
+      "expected": {
+        "error": "",
+        "value": ""
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{a}} {{b}} {{a}}",
+        "vars": {}
+      },
+      "expected": {
+        "error": "unresolved template variable(s): a, b, a",
+        "value": ""
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{ spaced }} {{a-b}}",
+        "vars": {}
+      },
+      "expected": {
+        "error": "",
+        "value": "{{ spaced }} {{a-b}}"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{\u00e9}}",
+        "vars": {}
+      },
+      "expected": {
+        "error": "",
+        "value": "{{\u00e9}}"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{constructor}}",
+        "vars": {}
+      },
+      "expected": {
+        "error": "unresolved template variable(s): constructor",
+        "value": ""
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{__proto__}}",
+        "vars": {
+          "__proto__": "safe"
+        }
+      },
+      "expected": {
+        "error": "",
+        "value": "safe"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{x}}",
+        "vars": {
+          "x": "{{y}}"
+        }
+      },
+      "expected": {
+        "error": "",
+        "value": "{{y}}"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "substitute",
+        "text": "{{123}}",
+        "vars": {
+          "123": "digits"
+        }
+      },
+      "expected": {
+        "error": "",
+        "value": "digits"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(\\d+)"
+          }
+        ],
+        "text": "id=42"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "42"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?P<value>\\w+)"
+          }
+        ],
+        "text": "alpha"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "alpha"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?<value>\\d+)"
+          }
+        ],
+        "text": "42"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "42"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?P<other>abc)-(\\d+)"
+          }
+        ],
+        "text": "abc-123"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "abc"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(\\w+)-(\\d+)"
+          }
+        ],
+        "text": "abc-123"
+      },
+      "expected": {
+        "error": "capture variable \"x\": pattern has 2 unnamed capture groups; use (?P<value>...) to disambiguate",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "\\d+"
+          }
+        ],
+        "text": "42"
+      },
+      "expected": {
+        "error": "capture variable \"x\": pattern has no capture groups; use (?P<value>...) or a single (...)",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?P<other>abc)"
+          }
+        ],
+        "text": "abc"
+      },
+      "expected": {
+        "error": "capture variable \"x\": pattern has no capture groups; use (?P<value>...) or a single (...)",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(a*)"
+          }
+        ],
+        "text": "bbb"
+      },
+      "expected": {
+        "error": "capture variable \"x\": extractor matched but produced empty value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(missing)"
+          }
+        ],
+        "text": "none"
+      },
+      "expected": {
+        "error": "capture variable \"x\": pattern \"(missing)\" did not match response",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?P<value>a)(?P<value>b)"
+          }
+        ],
+        "text": "ab"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "a"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?P<value>a)?(b)"
+          }
+        ],
+        "text": "b"
+      },
+      "expected": {
+        "error": "capture variable \"x\": extractor matched but produced empty value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?i)(value)"
+          }
+        ],
+        "text": "VaLuE"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "VaLuE"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?s)(a.*b)"
+          }
+        ],
+        "text": "a\nb"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "a\nb"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "["
+          }
+        ],
+        "text": "x"
+      },
+      "expected": {
+        "error": "capture variable \"x\": invalid regex \"[\": error parsing regexp: missing closing ]: `[`",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(?=x)"
+          }
+        ],
+        "text": "x"
+      },
+      "expected": {
+        "error": "capture variable \"x\": invalid regex \"(?=x)\": error parsing regexp: invalid or unsupported Perl syntax: `(?=`",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [],
+        "text": ""
+      },
+      "expected": {
+        "error": "",
+        "value": {}
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x"
+          }
+        ],
+        "text": "any"
+      },
+      "expected": {
+        "error": "capture variable \"x\": empty extractor",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "__proto__",
+            "pattern": "(abc)"
+          }
+        ],
+        "text": "abc"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "__proto__": "abc"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "x",
+            "pattern": "(a)"
+          },
+          {
+            "variable": "x",
+            "pattern": "(b)"
+          }
+        ],
+        "text": "ab"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "x": "b"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "{\"\":false,\"a-b\":true,\"items\":[{\"id\":\"first\"},{\"id\":42}],\"large\":9007199254740993,\"n\":null,\"object\":{\"a\":\"\\u003c\\u0026\\u003e\",\"z\":1e3},\"result\":{\"name\":\"report.txt\"},\"z\":1.00}"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "report.txt"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "42"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "true"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "false"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath resolved to null",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "1.00"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "9007199254740993"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "{\"a\":\"\\u003c\\u0026\\u003e\",\"z\":1e3}"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" key \"missing\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" index [-1] out of range",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "{\"id\":42}"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" index [9007199254740992] out of range",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "{\"result\":{\"name\":\"report.txt\"},\"items\":[{\"id\":\"first\"},{\"id\":42}],\"a-b\":true,\"\":false,\"n\":null,\"z\":1.00,\"large\":9007199254740993,\"object\":{\"z\":1e3,\"a\":\"<&>\"}}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "{\"result\":null}"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" expected object before \"name\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" key \"a-b\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" key \"\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" key \"n\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" key \"z\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" key \"large\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" key \"object\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" key \"missing\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "{\"result\":null}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "[1,2,3]"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" expected object before \"result\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" expected object before \"a-b\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" expected object before \"\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" expected object before \"n\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" expected object before \"z\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" expected object before \"large\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" expected object before \"object\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" expected object before \"missing\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "1"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "[1,2,3]"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "scalar"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" expected object before \"result\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" expected object before \"a-b\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" expected object before \"\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" expected object before \"n\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" expected object before \"z\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" expected object before \"large\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" expected object before \"object\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" expected object before \"missing\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "\"scalar\""
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "true"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" expected object before \"result\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" expected object before \"a-b\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" expected object before \"\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" expected object before \"n\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" expected object before \"z\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" expected object before \"large\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" expected object before \"object\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" expected object before \"missing\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "true"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "1e3"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" expected object before \"result\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" expected object before \"a-b\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" expected object before \"\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" expected object before \"n\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" expected object before \"z\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" expected object before \"large\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" expected object before \"object\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" expected object before \"missing\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" expected object before \"items\"",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "1e3 trailing"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "",
+        "value": {
+          "value": "{\"x\":1}"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.result.name\" key \"result\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[1].id\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a-b']\" key \"a-b\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[\\\"\\\"]\" key \"\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.n\" key \"n\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.z\" key \"z\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.large\" key \"large\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.object\" key \"object\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.missing\" key \"missing\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[-1]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[+1]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9007199254740992]\" key \"items\" not found",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[9223372036854775808]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$[0]\" expected array before [0]",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"no-root\" must start with $",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.\" has empty object key",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[\" has unterminated bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[]\" has empty bracket",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$.items[*]\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "{\"x\":1} {\"y\":2}"
+      },
+      "expected": {
+        "error": "capture variable \"value\": jsonpath \"$['a[b']\" supports only numeric indexes or quoted keys in brackets",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.result.name"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.result.name\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[1].id"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[1].id\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a-b']"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$['a-b']\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[\"\"]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$[\\\"\\\"]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.n"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.n\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.z"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.z\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.large"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.large\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.object"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.object\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.missing"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.missing\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[-1]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[-1]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[+1]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[+1]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9007199254740992]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[9007199254740992]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[9223372036854775808]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[9223372036854775808]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$[0]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$[0]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "no-root"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"no-root\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$."
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items["
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$.items[*]"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$.items[*]\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "capture",
+        "rules": [
+          {
+            "variable": "value",
+            "jsonpath": "$['a[b']"
+          }
+        ],
+        "text": "invalid"
+      },
+      "expected": {
+        "error": "capture variable \"value\": invalid JSON response for jsonpath \"$['a[b']\": invalid character 'i' looking for beginning of value",
+        "value": null
+      },
+      "runtimeSpecificDiagnostic": true
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": null,
+        "text": "alpha beta"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": null,
+        "text": "bad"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": null,
+        "text": ""
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": null,
+        "text": "two"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {},
+        "text": "alpha beta"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {},
+        "text": "bad"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {},
+        "text": ""
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {},
+        "text": "two"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "text": "alpha beta"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "text": "bad"
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "text": ""
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha",
+            "beta"
+          ]
+        },
+        "text": "two"
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_any": [
+            "one",
+            "two"
+          ]
+        },
+        "text": "alpha beta"
+      },
+      "expected": "must_contain_any: none of [one two] found",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_any": [
+            "one",
+            "two"
+          ]
+        },
+        "text": "bad"
+      },
+      "expected": "must_contain_any: none of [one two] found",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_any": [
+            "one",
+            "two"
+          ]
+        },
+        "text": ""
+      },
+      "expected": "must_contain_any: none of [one two] found",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_any": [
+            "one",
+            "two"
+          ]
+        },
+        "text": "two"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_not_contain": [
+            "bad",
+            "alpha"
+          ]
+        },
+        "text": "alpha beta"
+      },
+      "expected": "must_not_contain: found \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_not_contain": [
+            "bad",
+            "alpha"
+          ]
+        },
+        "text": "bad"
+      },
+      "expected": "must_not_contain: found \"bad\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_not_contain": [
+            "bad",
+            "alpha"
+          ]
+        },
+        "text": ""
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_not_contain": [
+            "bad",
+            "alpha"
+          ]
+        },
+        "text": "two"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha"
+          ],
+          "must_contain_any": [
+            "beta"
+          ],
+          "must_not_contain": [
+            "gamma"
+          ]
+        },
+        "text": "alpha beta"
+      },
+      "expected": "",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha"
+          ],
+          "must_contain_any": [
+            "beta"
+          ],
+          "must_not_contain": [
+            "gamma"
+          ]
+        },
+        "text": "bad"
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha"
+          ],
+          "must_contain_any": [
+            "beta"
+          ],
+          "must_not_contain": [
+            "gamma"
+          ]
+        },
+        "text": ""
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "post",
+        "post": {
+          "must_contain_all": [
+            "alpha"
+          ],
+          "must_contain_any": [
+            "beta"
+          ],
+          "must_not_contain": [
+            "gamma"
+          ]
+        },
+        "text": "two"
+      },
+      "expected": "must_contain_all: missing \"alpha\"",
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [],
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "transcript": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [],
+          "input_tokens": 20
+        },
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "input_tokens": 20,
+          "final_message": "reported"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [],
+          "input_tokens": 20
+        },
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 5,
+        "input_tokens": 20,
+        "final_message": "reported"
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "transcript": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 1,
+          "input_tokens": 20,
+          "final_message": "answer",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 2
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 2
+            }
+          ]
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "answer",
+        "transcript": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "transcript": []
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "input_tokens": 20,
+          "final_message": "reported"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "answer",
+        "transcript": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          },
+          {
+            "role": "tool_call",
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            },
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "next"
+          }
+        ],
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "transcript": [
+          {
+            "role": "tool_call",
+            "turn": 2,
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "next",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            },
+            {
+              "role": "tool_call",
+              "tool_call": {
+                "name": "read",
+                "arguments": {
+                  "x": 1
+                }
+              },
+              "turn": 2
+            },
+            {
+              "role": "assistant",
+              "content": "next"
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 1,
+          "input_tokens": 20,
+          "final_message": "next",
+          "transcript": [
+            {
+              "role": "tool_call",
+              "turn": 2,
+              "tool_call": {
+                "name": "read",
+                "arguments": {
+                  "x": 1
+                }
+              }
+            },
+            {
+              "role": "assistant",
+              "content": "next",
+              "turn": 2
+            }
+          ]
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 1
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            },
+            {
+              "role": "tool_call",
+              "tool_call": {
+                "name": "read",
+                "arguments": {
+                  "x": 1
+                }
+              },
+              "turn": 2
+            },
+            {
+              "role": "assistant",
+              "content": "next"
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "next",
+        "transcript": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 2
+          },
+          {
+            "role": "tool_call",
+            "turn": 2,
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            }
+          },
+          {
+            "role": "assistant",
+            "content": "next",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "user",
+            "content": "other"
+          }
+        ],
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "transcript": [
+          {
+            "role": "user",
+            "content": "other",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "other"
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 1,
+          "input_tokens": 20,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "other",
+              "turn": 2
+            }
+          ]
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "other"
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "reported",
+        "transcript": [
+          {
+            "role": "user",
+            "content": "other",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 99
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "transcript": []
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 99
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "input_tokens": 20,
+          "final_message": "reported"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "user",
+              "content": "question",
+              "turn": 99
+            },
+            {
+              "role": "assistant",
+              "content": "answer",
+              "turn": 1
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 1
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 1
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "answer",
+        "transcript": [
+          {
+            "role": "user",
+            "content": "question",
+            "turn": 2
+          },
+          {
+            "role": "assistant",
+            "content": "answer",
+            "turn": 2
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "delta",
+        "current": [
+          {
+            "role": "tool_call",
+            "tool_call": {
+              "name": "different"
+            },
+            "turn": 2
+          }
+        ],
+        "previous": [
+          {
+            "role": "tool_call",
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            },
+            "turn": 2
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "transcript": []
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "tool_call",
+              "tool_call": {
+                "name": "different"
+              },
+              "turn": 2
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "tool_call",
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            },
+            "turn": 2
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": true,
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "input_tokens": 20,
+          "final_message": "reported"
+        }
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": {
+          "exit_code": 0,
+          "duration_ms": 10,
+          "turns": 5,
+          "final_message": "reported",
+          "transcript": [
+            {
+              "role": "tool_call",
+              "tool_call": {
+                "name": "different"
+              },
+              "turn": 2
+            }
+          ],
+          "input_tokens": 20
+        },
+        "previous": [
+          {
+            "role": "tool_call",
+            "tool_call": {
+              "name": "read",
+              "arguments": {
+                "x": 1
+              }
+            },
+            "turn": 2
+          }
+        ],
+        "turn": 2
+      },
+      "expected": {
+        "exit_code": 0,
+        "duration_ms": 10,
+        "turns": 1,
+        "input_tokens": 20,
+        "final_message": "reported",
+        "transcript": [
+          {
+            "role": "tool_call",
+            "turn": 2,
+            "tool_call": {
+              "name": "different"
+            }
+          }
+        ]
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "normalize",
+        "result": null,
+        "previous": [],
+        "turn": 2
+      },
+      "expected": {
+        "cumulative": false,
+        "result": null
+      },
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "incremental",
+        "result": null,
+        "previous": [],
+        "turn": 2
+      },
+      "expected": null,
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "metrics",
+        "steps": [
+          {
+            "mode": "per",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 1,
+              "turns": 1,
+              "input_tokens": 10,
+              "output_tokens": 5,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "0.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-0.json"
+            ]
+          },
+          {
+            "mode": "cumulative",
+            "result": null
+          },
+          {
+            "mode": "cumulative",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 2,
+              "turns": 1,
+              "input_tokens": 15,
+              "output_tokens": 7,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "1.txt"
+                ],
+                "workspace_diff": "",
+                "logs": "",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-1.json"
+            ]
+          },
+          {
+            "mode": "cumulative",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 3,
+              "turns": 1,
+              "input_tokens": 14,
+              "output_tokens": 4,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "2.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-2.json"
+            ]
+          }
+        ]
+      },
+      "expected": [
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 3,
+          "inputTokens": 15,
+          "outputTokens": 7,
+          "sources": [
+            "input-0.json",
+            "input-1.json"
+          ],
+          "tokenBaseIn": 15,
+          "tokenBaseOut": 7
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff\ndiff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt",
+              "same.txt",
+              "2.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log\nlog"
+          },
+          "durationMs": 6,
+          "inputTokens": 15,
+          "outputTokens": 7,
+          "sources": [
+            "input-0.json",
+            "input-1.json",
+            "input-2.json"
+          ],
+          "tokenBaseIn": 15,
+          "tokenBaseOut": 7
+        }
+      ],
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "metrics",
+        "steps": [
+          {
+            "mode": "per",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 1,
+              "turns": 1,
+              "input_tokens": 10,
+              "output_tokens": 5,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "0.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-0.json"
+            ]
+          },
+          {
+            "mode": "cumulative",
+            "result": null
+          },
+          {
+            "mode": "per",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 2,
+              "turns": 1,
+              "input_tokens": 4,
+              "output_tokens": 2,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "1.txt"
+                ],
+                "workspace_diff": "",
+                "logs": "",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-1.json"
+            ]
+          },
+          {
+            "mode": "cumulative",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 3,
+              "turns": 1,
+              "input_tokens": 20,
+              "output_tokens": 10,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "2.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-2.json"
+            ]
+          }
+        ]
+      },
+      "expected": [
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 3,
+          "inputTokens": 14,
+          "outputTokens": 7,
+          "sources": [
+            "input-0.json",
+            "input-1.json"
+          ],
+          "tokenBaseIn": 14,
+          "tokenBaseOut": 7
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff\ndiff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt",
+              "same.txt",
+              "2.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log\nlog"
+          },
+          "durationMs": 6,
+          "inputTokens": 20,
+          "outputTokens": 10,
+          "sources": [
+            "input-0.json",
+            "input-1.json",
+            "input-2.json"
+          ],
+          "tokenBaseIn": 20,
+          "tokenBaseOut": 10
+        }
+      ],
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "metrics",
+        "steps": [
+          {
+            "mode": "cumulative",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 1,
+              "turns": 1,
+              "input_tokens": 10,
+              "output_tokens": 5,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "0.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-0.json"
+            ]
+          },
+          {
+            "mode": "cumulative",
+            "result": null
+          },
+          {
+            "mode": "cumulative",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 2,
+              "turns": 1,
+              "input_tokens": 0,
+              "output_tokens": 0,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "1.txt"
+                ],
+                "workspace_diff": "",
+                "logs": "",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-1.json"
+            ]
+          },
+          {
+            "mode": "per",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 3,
+              "turns": 1,
+              "input_tokens": 2,
+              "output_tokens": 1,
+              "artifacts": {
+                "generated_files": [
+                  "same.txt",
+                  "2.txt"
+                ],
+                "workspace_diff": "diff",
+                "logs": "log",
+                "files": [
+                  {
+                    "name": "a",
+                    "path": "a"
+                  }
+                ]
+              }
+            },
+            "sources": [
+              "input-2.json"
+            ]
+          }
+        ]
+      },
+      "expected": [
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 1,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log"
+          },
+          "durationMs": 3,
+          "inputTokens": 10,
+          "outputTokens": 5,
+          "sources": [
+            "input-0.json",
+            "input-1.json"
+          ],
+          "tokenBaseIn": 10,
+          "tokenBaseOut": 5
+        },
+        {
+          "artifacts": {
+            "workspace_diff": "diff\ndiff",
+            "generated_files": [
+              "same.txt",
+              "0.txt",
+              "same.txt",
+              "1.txt",
+              "same.txt",
+              "2.txt"
+            ],
+            "files": [
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              },
+              {
+                "name": "a",
+                "path": "a"
+              }
+            ],
+            "logs": "log\nlog"
+          },
+          "durationMs": 6,
+          "inputTokens": 12,
+          "outputTokens": 6,
+          "sources": [
+            "input-0.json",
+            "input-1.json",
+            "input-2.json"
+          ],
+          "tokenBaseIn": 12,
+          "tokenBaseOut": 6
+        }
+      ],
+      "runtimeSpecificDiagnostic": false
+    },
+    {
+      "request": {
+        "op": "metrics",
+        "steps": [
+          {
+            "mode": "per",
+            "result": {
+              "exit_code": 0,
+              "duration_ms": 0,
+              "turns": 0,
+              "artifacts": {}
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "artifacts": {},
+          "durationMs": 0,
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "sources": null,
+          "tokenBaseIn": 0,
+          "tokenBaseOut": 0
+        }
+      ],
+      "runtimeSpecificDiagnostic": false
+    }
+  ]
+}

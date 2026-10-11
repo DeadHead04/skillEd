@@ -1,0 +1,139 @@
+{
+  "eval": {
+    "schema_version": "v1alpha1",
+    "environment": {
+      "type": "none"
+    },
+    "skills": [],
+    "engine": {
+      "name": "hash-worker",
+      "custom": {
+        "transport": "local",
+        "response_format": "session_result",
+        "conversation_mode": "stateful",
+        "local": {
+          "command": "node",
+          "args": [
+            "engine.cjs",
+            "${input_file}"
+          ]
+        }
+      }
+    },
+    "cases": {
+      "retry_policy": {
+        "max_retries": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "constraints": {
+        "timeout_seconds": 30,
+        "max_turns": 4
+      },
+      "context": {
+        "files": {
+          "engine.cjs": "// Actual deterministic custom engine: hash user input and write real workspace artifacts.\nconst fs = require('node:fs');\nconst crypto = require('node:crypto');\nconst input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));\nconst prompt = input.messages.filter(m => m.role === 'user').at(-1)?.content || '';\nconst digest = crypto.createHash('sha256').update(prompt).digest('hex');\nfs.mkdirSync('results', { recursive: true });\nfs.writeFileSync('results/digest.txt', digest);\nconst count = Number(input.session_id || 0) + 1;\nconsole.log(JSON.stringify({ exit_code: 0, session_id: String(count), final_message: digest, transcript: [{ role: 'assistant', content: digest }], artifacts: { generated_files: ['results/digest.txt'] } }));\n"
+        }
+      },
+      "collect_artifacts": [
+        "results/**"
+      ],
+      "id": "hash-pass",
+      "title": "Real hash pass",
+      "input": {
+        "prompt": "phase-three-😀"
+      },
+      "judge": {
+        "type": "rule_based",
+        "success": [
+          {
+            "output_matches": {
+              "all": [
+                "^[0-9a-f]{64}$"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "constraints": {
+        "timeout_seconds": 30,
+        "max_turns": 4
+      },
+      "context": {
+        "files": {
+          "engine.cjs": "// Actual deterministic custom engine: hash user input and write real workspace artifacts.\nconst fs = require('node:fs');\nconst crypto = require('node:crypto');\nconst input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));\nconst prompt = input.messages.filter(m => m.role === 'user').at(-1)?.content || '';\nconst digest = crypto.createHash('sha256').update(prompt).digest('hex');\nfs.mkdirSync('results', { recursive: true });\nfs.writeFileSync('results/digest.txt', digest);\nconst count = Number(input.session_id || 0) + 1;\nconsole.log(JSON.stringify({ exit_code: 0, session_id: String(count), final_message: digest, transcript: [{ role: 'assistant', content: digest }], artifacts: { generated_files: ['results/digest.txt'] } }));\n"
+        }
+      },
+      "collect_artifacts": [
+        "results/**"
+      ],
+      "id": "hash-fail",
+      "title": "Real hash fails required text",
+      "input": {
+        "prompt": "negative-case"
+      },
+      "judge": {
+        "type": "rule_based",
+        "success": [
+          {
+            "output_contains": {
+              "all": [
+                "not-a-sha256-digest"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "constraints": {
+        "timeout_seconds": 30,
+        "max_turns": 4
+      },
+      "context": {
+        "files": {
+          "engine.cjs": "// Actual deterministic custom engine: hash user input and write real workspace artifacts.\nconst fs = require('node:fs');\nconst crypto = require('node:crypto');\nconst input = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));\nconst prompt = input.messages.filter(m => m.role === 'user').at(-1)?.content || '';\nconst digest = crypto.createHash('sha256').update(prompt).digest('hex');\nfs.mkdirSync('results', { recursive: true });\nfs.writeFileSync('results/digest.txt', digest);\nconst count = Number(input.session_id || 0) + 1;\nconsole.log(JSON.stringify({ exit_code: 0, session_id: String(count), final_message: digest, transcript: [{ role: 'assistant', content: digest }], artifacts: { generated_files: ['results/digest.txt'] } }));\n"
+        }
+      },
+      "collect_artifacts": [
+        "results/**"
+      ],
+      "id": "hash-multiturn",
+      "title": "Real state continuation",
+      "input": {
+        "turns": [
+          {
+            "role": "user",
+            "content": "first",
+            "capture": [
+              {
+                "variable": "digest",
+                "pattern": "([0-9a-f]{64})"
+              }
+            ]
+          },
+          {
+            "role": "user",
+            "content": "continue {{digest}}"
+          }
+        ]
+      },
+      "judge": {
+        "type": "rule_based",
+        "success": [
+          {
+            "output_matches": {
+              "all": [
+                "^[0-9a-f]{64}$"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

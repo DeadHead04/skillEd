@@ -1,0 +1,176 @@
+[
+  {
+    "caseID": "hash-pass",
+    "configuration": "with_skill",
+    "exit_code": 0,
+    "final_message": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f",
+    "grading": {
+      "status": "PASS",
+      "turns_executed": 1,
+      "turns_total": 1,
+      "assertion_results": [
+        {
+          "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+          "passed": true,
+          "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+        }
+      ],
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "pass_rate": 1
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "PASS",
+    "turns": 1,
+    "turnsTotal": 1
+  },
+  {
+    "caseID": "hash-pass",
+    "configuration": "without_skill",
+    "exit_code": 0,
+    "final_message": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f",
+    "grading": {
+      "status": "PASS",
+      "turns_executed": 1,
+      "turns_total": 1,
+      "assertion_results": [
+        {
+          "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+          "passed": true,
+          "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+        }
+      ],
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "pass_rate": 1
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "PASS",
+    "turns": 1,
+    "turnsTotal": 1
+  },
+  {
+    "caseID": "hash-fail",
+    "configuration": "with_skill",
+    "exit_code": 0,
+    "final_message": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4",
+    "grading": {
+      "status": "FAIL",
+      "turns_executed": 1,
+      "turns_total": 1,
+      "assertion_results": [
+        {
+          "text": "output_contains.all: missing [not-a-sha256-digest]",
+          "passed": false,
+          "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+        }
+      ],
+      "summary": {
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "pass_rate": 0
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "FAIL",
+    "turns": 1,
+    "turnsTotal": 1
+  },
+  {
+    "caseID": "hash-fail",
+    "configuration": "without_skill",
+    "exit_code": 0,
+    "final_message": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4",
+    "grading": {
+      "status": "FAIL",
+      "turns_executed": 1,
+      "turns_total": 1,
+      "assertion_results": [
+        {
+          "text": "output_contains.all: missing [not-a-sha256-digest]",
+          "passed": false,
+          "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+        }
+      ],
+      "summary": {
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "pass_rate": 0
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "FAIL",
+    "turns": 1,
+    "turnsTotal": 1
+  },
+  {
+    "caseID": "hash-multiturn",
+    "configuration": "with_skill",
+    "exit_code": 0,
+    "final_message": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+    "grading": {
+      "status": "PASS",
+      "turns_executed": 2,
+      "turns_total": 2,
+      "assertion_results": [
+        {
+          "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+          "passed": true,
+          "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+        }
+      ],
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "pass_rate": 1
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "PASS",
+    "turns": 2,
+    "turnsTotal": 2
+  },
+  {
+    "caseID": "hash-multiturn",
+    "configuration": "without_skill",
+    "exit_code": 0,
+    "final_message": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+    "grading": {
+      "status": "PASS",
+      "turns_executed": 2,
+      "turns_total": 2,
+      "assertion_results": [
+        {
+          "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+          "passed": true,
+          "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+        }
+      ],
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "pass_rate": 1
+      }
+    },
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "status": "PASS",
+    "turns": 2,
+    "turnsTotal": 2
+  }
+]

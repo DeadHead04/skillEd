@@ -1,0 +1,482 @@
+[
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"staging\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "staging"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"staging\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "staging"
+    }
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"goal reached\"}",
+    "policy": "must_reply",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"goal reached\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "stop",
+      "reason": "goal reached"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\" \"}",
+    "policy": "must_reply",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\" \"}",
+    "policy": "may_stop",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"permission\":\"deploy\"}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: unknown field \"permission\""
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"permission\":\"deploy\"}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: unknown field \"permission\""
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"}{}",
+    "policy": "must_reply",
+    "error": "user simulator returned trailing data"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"}{}",
+    "policy": "may_stop",
+    "error": "user simulator returned trailing data"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"} extra",
+    "policy": "must_reply",
+    "error": "user simulator returned trailing data"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"} extra",
+    "policy": "may_stop",
+    "error": "user simulator returned trailing data"
+  },
+  {
+    "raw": "{\"Action\":\"reply\",\"MESSAGE\":\"はい 😀\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "はい 😀"
+    }
+  },
+  {
+    "raw": "{\"Action\":\"reply\",\"MESSAGE\":\"はい 😀\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "はい 😀"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"reason\":null}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "yes"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"reason\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "yes"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"reason\":\"because\"}",
+    "policy": "must_reply",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\",\"reason\":\"because\"}",
+    "policy": "may_stop",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"done\",\"message\":\"no\"}",
+    "policy": "must_reply",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"done\",\"message\":\"no\"}",
+    "policy": "may_stop",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "null",
+    "policy": "must_reply",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "null",
+    "policy": "may_stop",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "{}",
+    "policy": "must_reply",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "{}",
+    "policy": "may_stop",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "[]",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal array into Go value of type usersimulator.Decision"
+  },
+  {
+    "raw": "[]",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal array into Go value of type usersimulator.Decision"
+  },
+  {
+    "raw": "\"hello\"",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal string into Go value of type usersimulator.Decision"
+  },
+  {
+    "raw": "\"hello\"",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal string into Go value of type usersimulator.Decision"
+  },
+  {
+    "raw": "{\"action\":12}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal number into Go struct field Decision.action of type string"
+  },
+  {
+    "raw": "{\"action\":12}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal number into Go struct field Decision.action of type string"
+  },
+  {
+    "raw": "{\"action\":null}",
+    "policy": "must_reply",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "{\"action\":null}",
+    "policy": "may_stop",
+    "error": "unknown user simulator action \"\""
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":null}",
+    "policy": "must_reply",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":null}",
+    "policy": "may_stop",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"REPLY\",\"message\":\"hi\"}",
+    "policy": "must_reply",
+    "error": "unknown user simulator action \"REPLY\""
+  },
+  {
+    "raw": "{\"action\":\"REPLY\",\"message\":\"hi\"}",
+    "policy": "may_stop",
+    "error": "unknown user simulator action \"REPLY\""
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"hi\",\"message\":\"\"}",
+    "policy": "must_reply",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"hi\",\"message\":\"\"}",
+    "policy": "may_stop",
+    "error": "user simulator reply requires message and no reason"
+  },
+  {
+    "raw": "```json\n{\"action\":\"reply\",\"message\":\"yes\"}\n```",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "yes"
+    }
+  },
+  {
+    "raw": "```json\n{\"action\":\"reply\",\"message\":\"yes\"}\n```",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "yes"
+    }
+  },
+  {
+    "raw": "```\n{\"action\":\"stop\",\"reason\":\"done\"}\n```",
+    "policy": "must_reply",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "```\n{\"action\":\"stop\",\"reason\":\"done\"}\n```",
+    "policy": "may_stop",
+    "decision": {
+      "action": "stop",
+      "reason": "done"
+    }
+  },
+  {
+    "raw": "```json\n{\"action\":\"reply\",\"message\":\"yes\"}\n``` extra",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: invalid character '`' looking for beginning of value"
+  },
+  {
+    "raw": "```json\n{\"action\":\"reply\",\"message\":\"yes\"}\n``` extra",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: invalid character '`' looking for beginning of value"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: unexpected EOF"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"yes\"",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: unexpected EOF"
+  },
+  {
+    "raw": "",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: EOF"
+  },
+  {
+    "raw": "",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: EOF"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"a\\nb\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "a\nb"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"a\\nb\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "a\nb"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"action\":null,\"message\":\"kept\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"action\":null,\"message\":\"kept\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"kept\",\"message\":null}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"kept\",\"message\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"complete\",\"reason\":null}",
+    "policy": "must_reply",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":\"complete\",\"reason\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "stop",
+      "reason": "complete"
+    }
+  },
+  {
+    "raw": "{\"ACTION\":\"reply\",\"action\":null,\"Message\":\"kept\",\"MESSAGE\":null}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"ACTION\":\"reply\",\"action\":null,\"Message\":\"kept\",\"MESSAGE\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"REASON\":\"complete\",\"reason\":null}",
+    "policy": "must_reply",
+    "error": "user simulator stop is invalid for this turn"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"REASON\":\"complete\",\"reason\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "stop",
+      "reason": "complete"
+    }
+  },
+  {
+    "raw": "{\"action\":null,\"action\":\"reply\",\"message\":null,\"message\":\"last\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "last"
+    }
+  },
+  {
+    "raw": "{\"action\":null,\"action\":\"reply\",\"message\":null,\"message\":\"last\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "last"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"first\",\"message\":\"last\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "last"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"first\",\"message\":\"last\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "last"
+    }
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"Action\":\"reply\",\"message\":\"kept\"}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"Action\":\"reply\",\"message\":\"kept\"}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":4,\"action\":\"reply\",\"message\":\"kept\"}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal number into Go struct field Decision.action of type string"
+  },
+  {
+    "raw": "{\"action\":4,\"action\":\"reply\",\"message\":\"kept\"}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal number into Go struct field Decision.action of type string"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":{},\"message\":\"kept\"}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal object into Go struct field Decision.message of type string"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":{},\"message\":\"kept\"}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal object into Go struct field Decision.message of type string"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":false,\"reason\":\"complete\"}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal bool into Go struct field Decision.reason of type string"
+  },
+  {
+    "raw": "{\"action\":\"stop\",\"reason\":false,\"reason\":\"complete\"}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal bool into Go struct field Decision.reason of type string"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":[{\"message\":\"nested\"}],\"message\":\"kept\"}",
+    "policy": "must_reply",
+    "error": "invalid user simulator decision: json: cannot unmarshal array into Go struct field Decision.message of type string"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":[{\"message\":\"nested\"}],\"message\":\"kept\"}",
+    "policy": "may_stop",
+    "error": "invalid user simulator decision: json: cannot unmarshal array into Go struct field Decision.message of type string"
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"comma, bracket } quote \\\"\",\"message\":null}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "comma, bracket } quote \""
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"message\":\"comma, bracket } quote \\\"\",\"message\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "comma, bracket } quote \""
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"mes\\u0073age\":\"kept\",\"message\":null}",
+    "policy": "must_reply",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  },
+  {
+    "raw": "{\"action\":\"reply\",\"mes\\u0073age\":\"kept\",\"message\":null}",
+    "policy": "may_stop",
+    "decision": {
+      "action": "reply",
+      "message": "kept"
+    }
+  }
+]
