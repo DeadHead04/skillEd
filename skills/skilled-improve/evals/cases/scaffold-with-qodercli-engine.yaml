@@ -1,0 +1,33 @@
+id: scaffold-with-qodercli-engine
+title: 使用 qodercli 引擎为 Skill 搭建评测
+description: |
+  验证 skilled-improve 在用户指定非默认 engine（如 qodercli）时，
+  能否正确生成配置，engine.name 应为 qodercli 而非默认的 claude_code。
+  注意 qodercli 的 model 可省略以使用默认值，也可显式指定模型名或 ID。
+
+context:
+  repo_fixture: evals/fixtures/skills/sample-no-evals
+  git:
+    init: true
+
+input:
+  prompt: |
+    请为当前目录下的 code-review-helper Skill 搭建评测。
+    这个 Skill 还没有 evals，请帮我创建。
+    注意：我想用 qodercli 作为 engine，环境类型用 none。
+
+expect:
+  files_exist:
+    - "evals/eval.yaml"
+  must_contain:
+    - "eval.yaml"
+
+judge:
+  type: agent_judge
+  model: dashscope/qwen3.8-max
+  criteria:
+    - "生成了 evals/eval.yaml 文件，且 engine.name 为 qodercli（而非 claude_code 或 codex）"
+    - "用户未指定模型时，eval.yaml 可省略 engine.model 以使用 Qoder 默认值；不得声称 qodercli 无法切换模型或只能使用固定五档，若说明模型配置，应允许显式模型名或 ID"
+    - "在 evals/cases/ 下生成了至少一个 case yaml 文件，包含与代码审查相关的 prompt"
+    - "eval.yaml 中 cases.files 正确引用了生成的 case 文件"
+  pass_threshold: 0.75

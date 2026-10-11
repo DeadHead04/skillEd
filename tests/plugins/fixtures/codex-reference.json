@@ -1,0 +1,442 @@
+[
+  {
+    "op": "redact",
+    "args": [
+      null
+    ],
+    "expected": [
+      "",
+      []
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      ""
+    ],
+    "expected": [
+      "",
+      []
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "ordinary 中文"
+    ],
+    "expected": [
+      "ordinary 中文",
+      []
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "bearer abcdefghijklmnopqrstuvwxyz"
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "bearer_token"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "eyJabcdefghij.abcdefghij.abcdefghij"
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "jwt"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "sk-abcdefghijklmnop ghp_abcdefghijklmnop"
+    ],
+    "expected": [
+      "[REDACTED] [REDACTED]",
+      [
+        "provider_key"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "AKIAABCDEFGHIJKLMNOP"
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "aws_access_key"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "OPENAI_API_KEY=plain-secret GITHUB_TOKEN:another-secret MY_PASSWORD=hunter2"
+    ],
+    "expected": [
+      "[REDACTED] [REDACTED] [REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "PASSWORD=\"correct horse battery staple\" TOKEN='alpha beta gamma'"
+    ],
+    "expected": [
+      "[REDACTED] [REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "api-key = foo"
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "monkey=banana"
+    ],
+    "expected": [
+      "monkey=banana",
+      []
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "secret=\"multi\\\"quote\""
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "A_SECRET_TOKEN=abc"
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "password = \"hello world\""
+    ],
+    "expected": [
+      "[REDACTED]",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "password = abc, yes"
+    ],
+    "expected": [
+      "[REDACTED], yes",
+      [
+        "secret_assignment"
+      ]
+    ]
+  },
+  {
+    "op": "redact",
+    "args": [
+      "你好 sk-abcdefghijklmnop!"
+    ],
+    "expected": [
+      "你好 [REDACTED]!",
+      [
+        "provider_key"
+      ]
+    ]
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  files: []\n",
+      "evals/cases/new.yaml"
+    ],
+    "expected": "cases:\n  files:\n    - evals/cases/new.yaml\n"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\r\n  files: []\r\n",
+      "evals/cases/new.yaml"
+    ],
+    "expected": "cases:\r\n  files:\r\n    - evals/cases/new.yaml\r\n"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  # Comment\n  files:\n    - old.yaml\nreport:\n  formats: [json]\n",
+      "evals/cases/new.yaml"
+    ],
+    "expected": "cases:\n  # Comment\n  files:\n    - old.yaml\n    - evals/cases/new.yaml\nreport:\n  formats: [json]\n"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  files: [old.yaml]\n",
+      "evals/cases/new.yaml"
+    ],
+    "error": "flow-style non-empty cases.files is not supported; use a block sequence"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "foo: yes\n",
+      "evals/cases/new.yaml"
+    ],
+    "error": "eval.yaml must contain a top-level cases mapping"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  other: []\n",
+      "evals/cases/new.yaml"
+    ],
+    "error": "eval.yaml cases must contain files"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  files:\n    - evals/cases/new.yaml\n",
+      "evals/cases/new.yaml"
+    ],
+    "error": "eval.yaml already references evals/cases/new.yaml"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  files:\n  - old.yaml\n",
+      "evals/cases/new.yaml"
+    ],
+    "expected": "cases:\n  files:\n    - evals/cases/new.yaml\n  - old.yaml\n"
+  },
+  {
+    "op": "appendCaseReference",
+    "args": [
+      "cases:\n  files:\n    - old.yaml",
+      "evals/cases/new.yaml"
+    ],
+    "expected": "cases:\n  files:\n    - old.yaml    - evals/cases/new.yaml\n"
+  },
+  {
+    "op": "applyMarker",
+    "args": [
+      "mark_skill_invocation",
+      {
+        "skill_name": "Demo-Skill",
+        "skill_version": "1.2"
+      }
+    ],
+    "expected": {
+      "redactions": [],
+      "skill": {
+        "name": "demo-skill",
+        "version": "1.2"
+      },
+      "attribution": {
+        "method": "instrumented",
+        "confidence": 1,
+        "evidence": [
+          "Skill invocation marked through the observer MCP tool"
+        ]
+      }
+    }
+  },
+  {
+    "op": "applyMarker",
+    "args": [
+      "mark_skill_invocation",
+      {
+        "skill_name": "bad name"
+      }
+    ],
+    "error": "skill_name must use 1-64 lowercase letters, digits, underscores, or hyphens"
+  },
+  {
+    "op": "applyMarker",
+    "args": [
+      "attach_skill_evidence",
+      {
+        "kind": "file",
+        "reference": "x.txt",
+        "summary": "TOKEN=private"
+      }
+    ],
+    "expected": {
+      "redactions": [
+        "secret_assignment"
+      ],
+      "evidence": [
+        {
+          "kind": "file",
+          "ref": "x.txt",
+          "summary": "[REDACTED]"
+        }
+      ]
+    }
+  },
+  {
+    "op": "applyMarker",
+    "args": [
+      "record_skill_feedback",
+      {
+        "sentiment": "negative",
+        "comment": "wrong"
+      }
+    ],
+    "expected": {
+      "redactions": [],
+      "feedback": {
+        "sentiment": "negative",
+        "comment": "wrong"
+      }
+    }
+  },
+  {
+    "op": "applyMarker",
+    "args": [
+      "record_skill_feedback",
+      {
+        "sentiment": "bad"
+      }
+    ],
+    "error": "sentiment must be positive, negative, mixed, neutral, or empty"
+  },
+  {
+    "op": "hook",
+    "args": [
+      "Stop",
+      "Use $demo-skill with TOKEN=hidden"
+    ],
+    "expected": {
+      "schema_version": "v1alpha1",
+      "id": "obs_097ab672251ad13a3d7a4553",
+      "host": {
+        "name": "codex",
+        "adapter_version": "v1alpha1",
+        "version": "model"
+      },
+      "skill": {
+        "name": "demo-skill"
+      },
+      "attribution": {
+        "method": "explicit",
+        "confidence": 1,
+        "evidence": [
+          "user prompt explicitly referenced $demo-skill"
+        ]
+      },
+      "input": {
+        "text": "Use $demo-skill with [REDACTED]"
+      },
+      "outcome": {
+        "status": "completed",
+        "final_message": "done"
+      },
+      "correlation": {
+        "session_id": "same",
+        "turn_id": "t1"
+      },
+      "privacy": {
+        "storage": "local",
+        "consent": "codex_plugin_enabled_and_hooks_trusted",
+        "redactions": [
+          "secret_assignment"
+        ]
+      },
+      "review": {
+        "status": "candidate"
+      }
+    }
+  },
+  {
+    "op": "hook",
+    "args": [
+      "Interrupt",
+      "Use $demo-skill"
+    ],
+    "expected": {
+      "schema_version": "v1alpha1",
+      "id": "obs_9d62d9f850c4cc719a9ebeee",
+      "host": {
+        "name": "codex",
+        "adapter_version": "v1alpha1",
+        "version": "model"
+      },
+      "skill": {
+        "name": "demo-skill"
+      },
+      "attribution": {
+        "method": "explicit",
+        "confidence": 1,
+        "evidence": [
+          "user prompt explicitly referenced $demo-skill"
+        ]
+      },
+      "input": {
+        "text": "Use $demo-skill"
+      },
+      "outcome": {
+        "status": "interrupted",
+        "final_message": "done"
+      },
+      "correlation": {
+        "session_id": "same",
+        "turn_id": "t1"
+      },
+      "privacy": {
+        "storage": "local",
+        "consent": "codex_plugin_enabled_and_hooks_trusted",
+        "redactions": []
+      },
+      "review": {
+        "status": "candidate"
+      }
+    }
+  },
+  {
+    "op": "hook",
+    "args": [
+      "Stop",
+      "Help me"
+    ],
+    "expected": null
+  }
+]

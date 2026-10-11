@@ -1,0 +1,18 @@
+{
+  "name": "codex-skilled",
+  "version": "0.1.0-dev.0",
+  "description": "Capture privacy-aware Skill observations locally and turn approved observations into candidate skilled regression cases.",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Skilled for Codex",
+    "shortDescription": "Review Skill usage and create regression cases.",
+    "longDescription": "Observes explicitly attributed Skill interactions through Codex lifecycle hooks, redacts common credentials before local persistence, and requires human approval before writing a candidate evaluation case.",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Local Skill observation",
+      "Human-reviewed regression case generation"
+    ],
+    "defaultPrompt": "Use skilled-improve to review my local Skill observations and propose an approved regression case."
+  },
+  "mcpServers": "./.mcp.json"
+}

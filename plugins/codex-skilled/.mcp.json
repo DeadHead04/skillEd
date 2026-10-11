@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "skilled_observer": {
+      "command": "node",
+      "args": [
+        "scripts/observer.js",
+        "mcp"
+      ],
+      "cwd": "."
+    }
+  }
+}

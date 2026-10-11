@@ -1,0 +1,212 @@
+// Modified for the skilled TypeScript distribution.
+export interface RunInput {
+  engine?: string;
+  provider?: string;
+  model?: string;
+  runtime?: string;
+  include_case_name?: string[];
+  iteration?: number;
+  dry_run?: boolean;
+  [key: string]: unknown;
+}
+export interface ResultCase {
+  case_id?: string;
+  id?: string;
+  title?: string;
+  configuration?: string;
+  status?: string;
+}
+export interface ResultDocument {
+  case_results: ResultCase[];
+}
+import { mkdirSync, realpathSync, statSync } from "node:fs";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+
+const DEFAULT_EVAL_PATH = "evals/eval.yaml";
+export const OUTPUT_ROOT = ".skilled-workspace";
+const SAFE_ENV_NAME = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function relativeInside(root: string, candidate: string, label: string) {
+  const rel = relative(root, candidate);
+  if (
+    rel === ".." ||
+    rel.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`) ||
+    isAbsolute(rel)
+  ) {
+    throw new Error(`${label} must stay inside the DSH workspace`);
+  }
+  return rel || ".";
+}
+
+export function resolveWorkspaceFile(
+  workspace: string,
+  input: string | undefined,
+  label: string,
+) {
+  const root = realpathSync(workspace);
+  const requested = input || DEFAULT_EVAL_PATH;
+  if (isAbsolute(requested)) {
+    throw new Error(`${label} must be relative to the DSH workspace`);
+  }
+
+  const candidate = realpathSync(resolve(root, requested));
+  const rel = relativeInside(root, candidate, label);
+  if (!statSync(candidate).isFile()) {
+    throw new Error(`${label} must point to a file`);
+  }
+  return { absolute: candidate, relative: rel || "." };
+}
+
+function findSkillDirectory(workspace: string, evalPath: string) {
+  const root = realpathSync(workspace);
+  const start = dirname(realpathSync(evalPath));
+  let current = start;
+  for (let depth = 0; depth <= 10; depth += 1) {
+    try {
+      if (statSync(join(current, "SKILL.md")).isFile()) return current;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== "ENOENT") throw error;
+    }
+    if (current === root) break;
+    const parent = dirname(current);
+    if (parent === current) break;
+    relativeInside(root, parent, "skill root");
+    current = parent;
+  }
+  return dirname(start);
+}
+
+export function prepareOutputDirectory(
+  workspace: string,
+  evalPath: string,
+  runId: string,
+) {
+  const root = realpathSync(workspace);
+  const skillRoot = findSkillDirectory(root, evalPath);
+  relativeInside(root, skillRoot, "skill root");
+
+  // The evaluator never installs the conventional evals/ tree into the Skill.
+  // Keeping reports below it prevents prior-case artifacts from contaminating
+  // later cases when the DSH workspace is also the Skill root.
+  const evalsRoot = resolve(skillRoot, "evals");
+  mkdirSync(evalsRoot, { recursive: true });
+  const confinedEvalsRoot = realpathSync(evalsRoot);
+  relativeInside(root, confinedEvalsRoot, "evals root");
+
+  const outputRoot = resolve(confinedEvalsRoot, OUTPUT_ROOT);
+  mkdirSync(outputRoot, { recursive: true });
+  const confinedOutputRoot = realpathSync(outputRoot);
+  relativeInside(confinedEvalsRoot, confinedOutputRoot, "output root");
+
+  const runDirectory = resolve(confinedOutputRoot, runId);
+  mkdirSync(runDirectory);
+  return relativeInside(root, realpathSync(runDirectory), "output directory");
+}
+
+export function buildRunArgs(
+  evalPath: string,
+  outputDir: string,
+  input: RunInput = {},
+) {
+  if (typeof outputDir !== "string" || outputDir.length === 0) {
+    throw new Error(
+      "outputDir must identify an isolated workspace-relative run directory",
+    );
+  }
+  const args = ["run", evalPath, "--output-dir", outputDir];
+  for (const flag of ["engine", "provider", "model", "runtime"]) {
+    const value = input[flag];
+    if (typeof value === "string" && value.length > 0) {
+      args.push(`--${flag}`, value);
+    }
+  }
+  for (const pattern of input.include_case_name || []) {
+    args.push("--include-case-name", pattern);
+  }
+  if (input.iteration !== undefined) {
+    if (!Number.isInteger(input.iteration) || input.iteration < 0) {
+      throw new Error("iteration must be a non-negative integer repeat count");
+    }
+    args.push("--iteration", String(input.iteration));
+  }
+  if (input.dry_run === true) {
+    args.push("--dry-run");
+  }
+  args.push("--format", "json", "--format", "html");
+  return args;
+}
+
+export function forwardedEnvironment(
+  names: string[],
+  source: NodeJS.ProcessEnv = process.env,
+) {
+  const env: NodeJS.ProcessEnv = {};
+  for (const name of names || []) {
+    if (!SAFE_ENV_NAME.test(name)) {
+      throw new Error(
+        `credentialEnv contains an invalid environment variable name: ${JSON.stringify(name)}`,
+      );
+    }
+    if (typeof source[name] === "string") {
+      env[name] = source[name];
+    }
+  }
+  return env;
+}
+
+export function summarizeResult(document: ResultDocument, resultPath: string) {
+  if (!document || !Array.isArray(document.case_results)) {
+    throw new Error("result file does not contain case_results");
+  }
+  const order = [];
+  const primary = new Map();
+  for (const item of document.case_results) {
+    const id = String(item.case_id || item.id || "");
+    const current = primary.get(id);
+    if (!primary.has(id)) order.push(id);
+    if (
+      item.configuration === "with_skill" ||
+      !current ||
+      current.configuration === "without_skill"
+    ) {
+      primary.set(id, item);
+    }
+  }
+  const cases = order
+    .map((id) => primary.get(id)!)
+    .map((item) => ({
+      id: String(item.case_id || item.id || ""),
+      title: String(item.title || ""),
+      configuration: String(item.configuration || ""),
+      status: String(item.status || "UNKNOWN"),
+    }));
+  const counts: Record<string, number> = {
+    PASS: 0,
+    FAIL: 0,
+    ERROR: 0,
+    SKIP: 0,
+    OTHER: 0,
+  };
+  for (const item of cases) {
+    if (Object.hasOwn(counts, item.status)) counts[item.status] += 1;
+    else counts.OTHER += 1;
+  }
+  return {
+    result_path: resultPath,
+    total: cases.length,
+    passed: counts.PASS,
+    failed: counts.FAIL,
+    errors: counts.ERROR,
+    skipped: counts.SKIP,
+    other: counts.OTHER,
+    cases,
+  };
+}
+
+export function splitSkillDocument(markdown: string) {
+  if (!markdown.startsWith("---\n")) return markdown;
+  const boundary = markdown.indexOf("\n---\n", 4);
+  if (boundary < 0)
+    throw new Error("bundled skilled-improve has malformed frontmatter");
+  return markdown.slice(boundary + 5);
+}
