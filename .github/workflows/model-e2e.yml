@@ -1,0 +1,57 @@
+name: Authenticated Model Acceptance
+# Manual only: a real provider account and quota are required.
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Agent engine to execute
+        type: choice
+        required: true
+        options: [claude_code, codex, opencode, qodercli, qwen_code]
+      provider:
+        description: Provider name configured for this account
+        type: string
+        required: true
+      model:
+        description: Explicit model available on the selected account
+        type: string
+        required: true
+      base_url:
+        description: Optional provider API endpoint
+        type: string
+        required: false
+permissions: {}
+concurrency:
+  group: model-e2e-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  actual-model:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Require configured credential
+        env:
+          MODEL_API_KEY: ${{ secrets.SKILLED_MODEL_API_KEY }}
+        run: test -n "$MODEL_API_KEY"
+      - name: Execute actual Action from this commit
+        uses: ./
+        with:
+          engine: ${{ inputs.engine }}
+          provider: ${{ inputs.provider }}
+          model: ${{ inputs.model }}
+          base-url: ${{ inputs.base_url }}
+          api-key: ${{ secrets.SKILLED_MODEL_API_KEY }}
+          skill-target: examples/code-stats
+          skilled-command: skilled run --runtime none
+          parallelism: '1'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: authenticated-model-reports
+          path: skilled-workspace/
+          if-no-files-found: error

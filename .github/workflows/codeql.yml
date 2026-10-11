@@ -1,0 +1,23 @@
+name: CodeQL
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '30 3 * * 1'
+permissions: {}
+jobs:
+  analyze:
+    if: github.event.repository.private == false || vars.SKILLED_CODE_SCANNING_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2
+        with:
+          languages: javascript-typescript
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2

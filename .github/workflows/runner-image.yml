@@ -1,0 +1,46 @@
+name: Runner Image
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Explicit container tag to publish
+        type: string
+        required: true
+permissions: {}
+concurrency:
+  group: runner-image-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: release-image
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validate destination and tag
+        id: meta
+        env:
+          REQUESTED_TAG: ${{ inputs.tag }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const tag=process.env.REQUESTED_TAG; if(!/^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$/.test(tag)) throw Error("Invalid container tag"); fs.appendFileSync(process.env.GITHUB_OUTPUT,`image=ghcr.io/${process.env.GITHUB_REPOSITORY.toLowerCase()}-runner:${tag}\n`)'
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Build candidate image locally
+        run: docker build -f action/Dockerfile --build-arg VCS_REF="$GITHUB_SHA" -t skilled-action-candidate .
+      - name: Execute actual Action success and failure probes
+        run: docker run --rm --entrypoint node skilled-action-candidate /opt/skilled/scripts/action-image-smoke.mjs
+      - name: Push tested image without rebuilding
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
+        run: |
+          docker tag skilled-action-candidate "$IMAGE"
+          docker push "$IMAGE"

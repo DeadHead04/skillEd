@@ -1,0 +1,106 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions: {}
+concurrency:
+  group: release-publish
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Validate committed release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("package.json")); if (process.env.RELEASE_TAG !== `v${p.version}`) throw Error("Tag must match committed package version")'
+          git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
+      - run: npm ci
+      - run: npm run gate -- --phase=5
+      - run: npm run docs:build
+      - run: npm run release:build
+      - name: Verify local npm distribution
+        env:
+          SKILLED_DISTRIBUTION_INTEGRATION: '1'
+        run: node --test dist/tests/distribution/package.test.js
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: release-candidate
+          path: |
+            artifacts/*.tar.gz
+            artifacts/*.tgz
+            artifacts/*.zip
+            artifacts/*.sha256
+            artifacts/checksums.txt
+            artifacts/release-manifest.json
+            install.sh
+            install.ps1
+          if-no-files-found: error
+          retention-days: 7
+  native-acceptance:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: release-candidate
+          path: candidate
+      - name: Execute accepted archive without rebuilding
+        run: node scripts/verify-native-package.mjs candidate/artifacts
+  publish:
+    needs: [build, native-acceptance]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      contents: write
+      attestations: write
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: release-candidate
+          path: candidate
+      - name: Verify accepted bytes
+        working-directory: candidate/artifacts
+        run: sha256sum --check checksums.txt
+      - if: github.event.repository.private == false || vars.SKILLED_ATTESTATIONS_ENABLED == 'true'
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-path: |
+            candidate/artifacts/*.tar.gz
+            candidate/artifacts/*.tgz
+            candidate/artifacts/*.zip
+      - name: Publish exact accepted files to this repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" candidate/artifacts/*.tar.gz candidate/artifacts/*.tgz candidate/artifacts/*.zip candidate/artifacts/*.sha256 candidate/artifacts/checksums.txt candidate/artifacts/release-manifest.json candidate/install.sh candidate/install.ps1 --repo "$GITHUB_REPOSITORY" --verify-tag --title "$RELEASE_TAG" --generate-notes
+# No tag is created by this workflow. Maintainers choose the version and tag.

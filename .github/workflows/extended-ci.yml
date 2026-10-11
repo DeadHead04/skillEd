@@ -1,0 +1,46 @@
+name: Real Service Acceptance
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  real-services:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+      - run: npm ci
+      - run: npx playwright install --with-deps chrome
+      - name: Start actual local services
+        run: |
+          node scripts/collector.mjs "$RUNNER_TEMP/skilled-otel"
+          node scripts/services/opensandbox-local.mjs start "$RUNNER_TEMP/skilled-sandbox"
+      - name: Execute cumulative real acceptance
+        env:
+          SKILLED_ENGINE_INSTALL_INTEGRATION: '1'
+          SKILLED_BROWSER_INTEGRATION: '1'
+          SKILLED_PLUGIN_CLI_INTEGRATION: '1'
+          SKILLED_WORKFLOW_REGRESSION_INTEGRATION: '1'
+        run: |
+          export SKILLED_TEST_OTEL_FILE="$RUNNER_TEMP/skilled-otel/output/telemetry.jsonl"
+          export SKILLED_PHASE3_REPORT_DIR="$PWD/evidence/phase3-reports"
+          export SKILLED_REPORT_INTEGRATION_HTML="$PWD/evidence/phase3-reports/none/report.html"
+          npm run gate:services -- "$RUNNER_TEMP/skilled-sandbox/environment.json" --phase=5
+      - name: Stop owned services
+        if: always()
+        run: |
+          node scripts/services/opensandbox-local.mjs stop "$RUNNER_TEMP/skilled-sandbox"
+          node scripts/collector.mjs --stop
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: real-service-evidence
+          path: evidence/runs/

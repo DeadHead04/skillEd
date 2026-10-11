@@ -1,0 +1,53 @@
+name: Skilled Improve Self-Evaluation
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: Engine with a configured model account
+        type: choice
+        required: true
+        options: [claude_code, codex, opencode, qodercli, qwen_code]
+      provider:
+        description: Provider name
+        type: string
+        required: true
+      model:
+        description: Explicit model name
+        type: string
+        required: true
+      base_url:
+        description: Optional API endpoint
+        type: string
+        required: false
+permissions: {}
+jobs:
+  self-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Require model credential
+        env:
+          MODEL_API_KEY: ${{ secrets.SKILLED_MODEL_API_KEY }}
+        run: test -n "$MODEL_API_KEY"
+      - name: Evaluate canonical improvement workflow
+        uses: ./
+        with:
+          engine: ${{ inputs.engine }}
+          provider: ${{ inputs.provider }}
+          model: ${{ inputs.model }}
+          base-url: ${{ inputs.base_url }}
+          api-key: ${{ secrets.SKILLED_MODEL_API_KEY }}
+          skill-target: skills/skilled-improve
+          skilled-command: skilled run --runtime none
+          parallelism: '1'
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: workflow-self-evaluation
+          path: skilled-workspace/
+          if-no-files-found: error
