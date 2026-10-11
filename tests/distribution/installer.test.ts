@@ -98,16 +98,13 @@ test(
     const dir = await mkdtemp(path.join(tmpdir(), "skilled-install-github-"));
     t.after(() => rm(dir, { recursive: true, force: true }));
     const bin = path.join(dir, "installed cli", "bin");
-    // Reuse the user's actual gh login while keeping the installation HOME isolated.
-    // Credentials remain in gh's existing storage and never enter release artifacts.
+    // gh authentication can depend on the OS credential store and environment.
+    // Preserve it for the installer; keep writes isolated through INSTALL_DIR.
+    // Subsequent CLI checks still run with the helper's isolated HOME.
     const authEnv: NodeJS.ProcessEnv = {
-      GH_CONFIG_DIR: process.env.GH_CONFIG_DIR ?? path.join(
-        process.env.XDG_CONFIG_HOME ?? path.join(process.env.HOME!, ".config"),
-        "gh",
-      ),
-      GH_TOKEN: process.env.GH_TOKEN,
-      GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-      GH_HOST: process.env.GH_HOST,
+      ...process.env,
+      SKILLED_RELEASE_BASE_URL: "",
+      SKILLED_LATEST_VERSION_URL: "",
       GH_PROMPT_DISABLED: "1",
       SKILLED_USE_GH: "1",
       SKILLED_REPOSITORY: process.env.SKILLED_GITHUB_INSTALLER_REPOSITORY ?? "DeadHead04/skillEd",
