@@ -1,0 +1,10 @@
+.git
+node_modules
+dist
+artifacts
+evidence
+.tools
+docs/.vitepress/cache
+docs/.vitepress/dist
+.env
+*.tsbuildinfo

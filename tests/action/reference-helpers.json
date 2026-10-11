@@ -1,0 +1,1537 @@
+{
+  "source_commit": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "vectors": [
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "",
+        "dashscope",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "claude_code",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "claude_code",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "claude_code",
+        "dashscope",
+        ""
+      ],
+      "value": "https://dashscope.aliyuncs.com/apps/anthropic"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "claude_code",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "codex",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "codex",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "codex",
+        "dashscope",
+        ""
+      ],
+      "value": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "codex",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "opencode",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "opencode",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "opencode",
+        "dashscope",
+        ""
+      ],
+      "value": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "opencode",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qodercli",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qodercli",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qodercli",
+        "dashscope",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qodercli",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qwen_code",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qwen_code",
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qwen_code",
+        "dashscope",
+        ""
+      ],
+      "value": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    },
+    {
+      "name": "resolveBaseURL",
+      "args": [
+        "qwen_code",
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": "https://local.invalid/v1"
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "",
+        "organization/model"
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "claude_code",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "claude_code",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "ANTHROPIC_API_KEY": "key-for-parity",
+        "ANTHROPIC_AUTH_TOKEN": "key-for-parity",
+        "ANTHROPIC_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "claude_code",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "claude_code",
+        "organization/model"
+      ],
+      "value": {
+        "ANTHROPIC_MODEL": "organization/model"
+      }
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "codex",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "codex",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_API_KEY": "key-for-parity",
+        "OPENAI_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "codex",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "codex",
+        "organization/model"
+      ],
+      "value": {
+        "OPENAI_MODEL": "organization/model"
+      }
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "opencode",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "opencode",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_API_KEY": "key-for-parity",
+        "OPENAI_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "opencode",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "opencode",
+        "organization/model"
+      ],
+      "value": {
+        "OPENAI_MODEL": "organization/model"
+      }
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "qodercli",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "qodercli",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "QODER_PERSONAL_ACCESS_TOKEN": "key-for-parity"
+      }
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "qodercli",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "qodercli",
+        "organization/model"
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "qwen_code",
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineEnv",
+      "args": [
+        "qwen_code",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_API_KEY": "key-for-parity",
+        "OPENAI_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "qwen_code",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "engineModelEnv",
+      "args": [
+        "qwen_code",
+        "organization/model"
+      ],
+      "value": {
+        "OPENAI_MODEL": "organization/model"
+      }
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "",
+        "key-for-parity",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_BASE_URL": "https://local.invalid/v1",
+        "ANTHROPIC_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {}
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "dashscope",
+        ""
+      ],
+      "value": {
+        "OPENAI_BASE_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+        "ANTHROPIC_BASE_URL": "https://dashscope.aliyuncs.com/apps/anthropic"
+      }
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "dashscope",
+        "key-for-parity",
+        ""
+      ],
+      "value": {
+        "DASHSCOPE_API_KEY": "key-for-parity"
+      }
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "dashscope",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_BASE_URL": "https://local.invalid/v1",
+        "ANTHROPIC_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "dashscope",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "DASHSCOPE_API_KEY": "key-for-parity",
+        "DASHSCOPE_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "custom-provider",
+        ""
+      ],
+      "value": {}
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "custom-provider",
+        "key-for-parity",
+        ""
+      ],
+      "value": {
+        "CUSTOM_PROVIDER_API_KEY": "key-for-parity"
+      }
+    },
+    {
+      "name": "unifiedBaseURLEnv",
+      "args": [
+        "custom-provider",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "OPENAI_BASE_URL": "https://local.invalid/v1",
+        "ANTHROPIC_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "providerEnv",
+      "args": [
+        "custom-provider",
+        "key-for-parity",
+        "https://local.invalid/v1"
+      ],
+      "value": {
+        "CUSTOM_PROVIDER_API_KEY": "key-for-parity",
+        "CUSTOM_PROVIDER_BASE_URL": "https://local.invalid/v1"
+      }
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        ""
+      ],
+      "value": null
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        "skilled version 0.7.0"
+      ],
+      "value": [
+        0,
+        7,
+        0
+      ]
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        "skilled version v1.2"
+      ],
+      "value": [
+        1,
+        2,
+        0
+      ]
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        "skilled version 0.1.0-dev.0"
+      ],
+      "value": null
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        "\n  skilled version 0.2.3\nmore"
+      ],
+      "value": [
+        0,
+        2,
+        3
+      ]
+    },
+    {
+      "name": "parseSkilledVersion",
+      "args": [
+        "unparseable"
+      ],
+      "value": null
+    },
+    {
+      "name": "versionSupportsBypassSandbox",
+      "args": [
+        null
+      ],
+      "value": false
+    },
+    {
+      "name": "versionSupportsBypassSandbox",
+      "args": [
+        [
+          0,
+          2,
+          2
+        ]
+      ],
+      "value": false
+    },
+    {
+      "name": "versionSupportsBypassSandbox",
+      "args": [
+        [
+          0,
+          2,
+          3
+        ]
+      ],
+      "value": true
+    },
+    {
+      "name": "versionSupportsBypassSandbox",
+      "args": [
+        [
+          0,
+          7,
+          0
+        ]
+      ],
+      "value": true
+    },
+    {
+      "name": "versionSupportsBypassSandbox",
+      "args": [
+        [
+          1,
+          0,
+          0
+        ]
+      ],
+      "value": true
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        null
+      ],
+      "value": ""
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "1"
+      ],
+      "value": "1"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "256"
+      ],
+      "value": "256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "257"
+      ],
+      "error": "parallelism must be a positive integer between 1 and 256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "0"
+      ],
+      "error": "parallelism must be a positive integer between 1 and 256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "-1"
+      ],
+      "error": "parallelism must be a positive integer between 1 and 256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "1.5"
+      ],
+      "error": "parallelism must be a positive integer between 1 and 256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        " 2"
+      ],
+      "error": "parallelism must be a positive integer between 1 and 256"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "001"
+      ],
+      "value": "1"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "٢"
+      ],
+      "value": "2"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "１２"
+      ],
+      "value": "12"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "𝟮"
+      ],
+      "value": "2"
+    },
+    {
+      "name": "validateParallelism",
+      "args": [
+        "²"
+      ],
+      "error": "invalid literal for int() with base 10: '²'"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        ""
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        ""
+      ],
+      "value": "gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        ""
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        "claude_code"
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        "claude_code"
+      ],
+      "value": "gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        "claude_code"
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        "codex"
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        "codex"
+      ],
+      "value": "dashscope/gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        "codex"
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        "opencode"
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        "opencode"
+      ],
+      "value": "gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        "opencode"
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        "qodercli"
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        "qodercli"
+      ],
+      "value": "gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        "qodercli"
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "",
+        "qwen_code"
+      ],
+      "value": ""
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "gpt",
+        "qwen_code"
+      ],
+      "value": "gpt"
+    },
+    {
+      "name": "composeModelRef",
+      "args": [
+        "dashscope",
+        "organization/model",
+        "qwen_code"
+      ],
+      "value": "organization/model"
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--api-key",
+        "key-for-parity",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--api-key",
+        "key-for-parity",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "claude_code",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "claude_code",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "claude_code",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "claude_code",
+        "--provider",
+        "dashscope",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "codex",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "codex",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "codex",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "codex",
+        "--provider",
+        "dashscope",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "opencode",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "opencode",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "opencode",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "opencode",
+        "--provider",
+        "dashscope",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "qodercli",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "qodercli",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "qodercli",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "qodercli",
+        "--provider",
+        "dashscope",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "qwen_code",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        false
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "qwen_code",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "buildSkilledArgv",
+      "args": [
+        "skilled run --include-case-name \"a b\"",
+        "qwen_code",
+        "organization/model",
+        "dashscope",
+        "2",
+        "/tmp/reports",
+        "evals/eval.yaml",
+        "key-for-parity",
+        true,
+        true
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--include-case-name",
+        "a b",
+        "--engine",
+        "qwen_code",
+        "--provider",
+        "dashscope",
+        "--model",
+        "organization/model",
+        "--parallelism",
+        "2",
+        "--engine-kwarg",
+        "bypass_sandbox=true",
+        "--output-dir",
+        "/tmp/reports",
+        "--format",
+        "json",
+        "--format",
+        "junit",
+        "--format",
+        "html",
+        "evals/eval.yaml"
+      ]
+    },
+    {
+      "name": "maskArgvForLog",
+      "args": [
+        [
+          "skilled",
+          "run",
+          "--api-key",
+          "secret",
+          "--model",
+          "x"
+        ]
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--api-key",
+        "***",
+        "--model",
+        "x"
+      ]
+    },
+    {
+      "name": "maskArgvForLog",
+      "args": [
+        [
+          "skilled",
+          "--api-key"
+        ]
+      ],
+      "value": [
+        "skilled",
+        "--api-key"
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run"
+      ],
+      "value": [
+        "skilled",
+        "run"
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run --model \"a b\""
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--model",
+        "a b"
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run --model 'a\\b'"
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--model",
+        "a\\b"
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run --model \"a\\$b\""
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--model",
+        "a\\$b"
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run --model \"\""
+      ],
+      "value": [
+        "skilled",
+        "run",
+        "--model",
+        ""
+      ]
+    },
+    {
+      "name": "shellSplit",
+      "args": [
+        "skilled run --model \"unclosed"
+      ],
+      "error": "No closing quotation"
+    },
+    {
+      "name": "shellQuote",
+      "args": [
+        ""
+      ],
+      "value": "''"
+    },
+    {
+      "name": "shellQuote",
+      "args": [
+        "abc"
+      ],
+      "value": "abc"
+    },
+    {
+      "name": "shellQuote",
+      "args": [
+        "a b"
+      ],
+      "value": "'a b'"
+    },
+    {
+      "name": "shellQuote",
+      "args": [
+        "it's"
+      ],
+      "value": "'it'\"'\"'s'"
+    },
+    {
+      "name": "shellQuote",
+      "args": [
+        "a\nline"
+      ],
+      "value": "'a\nline'"
+    }
+  ]
+}
