@@ -1,0 +1,4621 @@
+[
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "claude-code",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "claude-code",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "claude-code",
+          "protocol": "anthropic",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "claude-code",
+          "protocol": "anthropic",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "claude-code:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "claude-code",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "claude-code",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "claude-code",
+          "protocol": "anthropic",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "claude-code",
+          "protocol": "anthropic",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "claude-code:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "codex",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "codex",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "codex",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "codex",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "codex:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "codex",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "codex",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "codex",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "codex",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "codex:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "opencode",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "opencode",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "opencode",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "opencode",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "opencode:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "opencode",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "opencode",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "opencode",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "opencode",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "opencode:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "qwen-code",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "qwen-code",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "qwen-code",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "qwen-code",
+          "protocol": "openai",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "qwen-code:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "qwen-code",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "qwen-code",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "qwen-code",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "qwen-code",
+          "protocol": "openai",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "qwen-code:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "qoder-cli",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "qoder-cli",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "qoder-cli",
+          "protocol": "qoder",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "qoder-cli",
+          "protocol": "qoder"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "qoder-cli:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "qoder-cli",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "qoder-cli",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "qoder-cli",
+          "protocol": "qoder",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "qoder-cli",
+          "protocol": "qoder",
+          "model": "provider/model"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "qoder-cli:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "custom-hash:",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "http://127.0.0.1:9999/v1",
+          "name": "provider/model",
+          "provider": "local"
+        },
+        "name": "custom-hash",
+        "version": "1.2.3"
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 1,
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ]
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "without_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 0,
+            "turns_total": 0,
+            "assertion_results": [
+              {
+                "text": "contains input",
+                "passed": true,
+                "evidence": "okay"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 20,
+          "judge_input_tokens": 31,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "configuration": "without_skill",
+          "prompt": "input",
+          "response": "stderr",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "local/provider/model",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom",
+          "provider": "local",
+          "model": "provider/model",
+          "version": "1.2.3"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom",
+          "provider": "local",
+          "model": "provider/model"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": {
+              "status": "PASS",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": [
+                {
+                  "text": "contains input",
+                  "passed": true,
+                  "evidence": "okay"
+                }
+              ],
+              "summary": {
+                "passed": 1,
+                "failed": 0,
+                "total": 1,
+                "pass_rate": 1
+              }
+            },
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 20,
+            "judge_input_tokens": 31,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "configuration": "without_skill",
+            "prompt": "input",
+            "response": "stderr",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 42,
+        "overall_tokens": 94
+      },
+      "stability": ["first: 1 trials, 1 PASS"]
+    },
+    "name": "custom-hash:provider/model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": {
+          "status": "PASS",
+          "turns_executed": 0,
+          "turns_total": 0,
+          "assertion_results": [
+            {
+              "text": "contains input",
+              "passed": true,
+              "evidence": "okay"
+            }
+          ],
+          "summary": {
+            "passed": 1,
+            "failed": 0,
+            "total": 1,
+            "pass_rate": 1
+          }
+        },
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "without_skill",
+        "duration_ms": 1234,
+        "exit_code": 1,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": {
+          "exit_code": 0,
+          "duration_ms": 20,
+          "turns": 0,
+          "input_tokens": 31,
+          "output_tokens": 11
+        },
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "stderr": "stderr",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [],
+      "caseIDs": [],
+      "caseResults": [],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": null,
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      },
+      "stability": []
+    },
+    "name": "empty",
+    "results": []
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "error": "failure",
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "diagnostic",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "error": "failure",
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "diagnostic",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "error-stderr",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "error": "failure",
+        "exit_code": 0,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "stderr": "diagnostic",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "success-empty",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "stderr": "diagnostic",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "different",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "different",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "different-model",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "different",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3",
+          "turn_results": [
+            {
+              "turn_number": 1,
+              "content": "a",
+              "source": "static",
+              "response": "b",
+              "status": "completed"
+            },
+            {
+              "turn_number": 2,
+              "content": "c",
+              "response": "",
+              "status": "skipped",
+              "reason": "skip",
+              "stop_reason": "done"
+            }
+          ]
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3",
+            "turn_results": [
+              {
+                "turn_number": 1,
+                "content": "a",
+                "source": "static",
+                "response": "b",
+                "status": "completed"
+              },
+              {
+                "turn_number": 2,
+                "content": "c",
+                "response": "",
+                "status": "skipped",
+                "reason": "skip",
+                "stop_reason": "done"
+              }
+            ]
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "turn-results",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [
+          {
+            "content": "a",
+            "reason": "",
+            "response": "b",
+            "source": "static",
+            "status": "completed",
+            "stopReason": "",
+            "turnNumber": 1
+          },
+          {
+            "content": "c",
+            "reason": "skip",
+            "response": "",
+            "source": "",
+            "status": "skipped",
+            "stopReason": "done",
+            "turnNumber": 2
+          }
+        ],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "WAIT",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "WAIT",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 WAIT"]
+    },
+    "name": "unknown-config",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "WAIT",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "FAIL",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "FAIL",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 26,
+        "judge_tokens": 0,
+        "overall_tokens": 26
+      },
+      "stability": ["first: 2 trials, 1 PASS, 1 FAIL -> flaky"]
+    },
+    "name": "duplicate",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "FAIL",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["first", "second"],
+      "caseResults": [
+        {
+          "case_id": "first",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "judge_duration_ms": 22,
+          "judge_input_tokens": 99,
+          "judge_output_tokens": 11,
+          "grading": null,
+          "judge_results": [
+            {
+              "id": "judge",
+              "type": "script",
+              "status": "PASS",
+              "duration_ms": 22
+            }
+          ],
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "first",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "judge_duration_ms": 22,
+            "judge_input_tokens": 99,
+            "judge_output_tokens": 11,
+            "grading": null,
+            "judge_results": [
+              {
+                "id": "judge",
+                "type": "script",
+                "status": "PASS",
+                "duration_ms": 22
+              }
+            ],
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 110,
+        "overall_tokens": 162
+      },
+      "stability": ["first: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "judge-outcomes",
+    "results": [
+      {
+        "caseID": "first",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [
+          {
+            "duration_ms": 22,
+            "id": "judge",
+            "session": {
+              "exit_code": 0,
+              "duration_ms": 0,
+              "turns": 0,
+              "input_tokens": 99,
+              "output_tokens": 11
+            },
+            "status": "PASS",
+            "type": "script"
+          }
+        ],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  },
+  {
+    "eval": {
+      "engine": {
+        "model": {
+          "base_url": "",
+          "name": "",
+          "provider": ""
+        },
+        "name": "custom-hash",
+        "version": ""
+      },
+      "schema_version": "v1alpha1"
+    },
+    "expected": {
+      "benchmark": [
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        },
+        {
+          "eval_id": 0,
+          "eval_name": "First title",
+          "configuration": "with_skill",
+          "run_number": 3,
+          "result": {
+            "pass_rate": 0,
+            "passed": 0,
+            "failed": 0,
+            "total": 0,
+            "time_seconds": 1.234,
+            "tokens": 26,
+            "errors": 0
+          },
+          "expectations": null
+        }
+      ],
+      "caseIDs": ["__proto__", "second"],
+      "caseResults": [
+        {
+          "case_id": "__proto__",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        },
+        {
+          "case_id": "second",
+          "title": "First title",
+          "status": "PASS",
+          "duration_ms": 1234,
+          "turns": 2,
+          "input_tokens": 19,
+          "output_tokens": 7,
+          "grading": null,
+          "configuration": "with_skill",
+          "prompt": "input",
+          "response": "answer <&> \ud83d\ude00",
+          "observed_model": "observed-model",
+          "observed_version": "1.2.3"
+        }
+      ],
+      "report": {
+        "skill_name": "skilled-improve",
+        "schema_version": "v1alpha1",
+        "engine_name": "custom-hash",
+        "model_name": "",
+        "requested_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "applied_configuration": {
+          "role": "runner",
+          "engine": "custom-hash",
+          "protocol": "custom"
+        },
+        "observed_configuration": {
+          "model": "observed-model",
+          "version": "1.2.3"
+        },
+        "start_time": "2026-10-11T00:00:00Z",
+        "end_time": "2026-10-11T00:00:01Z",
+        "case_results": [
+          {
+            "case_id": "__proto__",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          },
+          {
+            "case_id": "second",
+            "title": "First title",
+            "status": "PASS",
+            "duration_ms": 1234,
+            "turns": 2,
+            "input_tokens": 19,
+            "output_tokens": 7,
+            "grading": null,
+            "configuration": "with_skill",
+            "prompt": "input",
+            "response": "answer <&> \ud83d\ude00",
+            "observed_model": "observed-model",
+            "observed_version": "1.2.3"
+          }
+        ],
+        "total_tokens": 52,
+        "judge_tokens": 0,
+        "overall_tokens": 52
+      },
+      "stability": ["__proto__: 1 trials, 1 PASS", "second: 1 trials, 1 PASS"]
+    },
+    "name": "__proto__",
+    "results": [
+      {
+        "caseID": "__proto__",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      },
+      {
+        "caseID": "second",
+        "caseName": "First title",
+        "configuration": "with_skill",
+        "duration_ms": 1234,
+        "exit_code": 0,
+        "final_message": "answer <&> \ud83d\ude00",
+        "grading": null,
+        "input_tokens": 19,
+        "judgeResults": [],
+        "judgeSession": null,
+        "model": "observed-model",
+        "output_tokens": 7,
+        "prompt": "input",
+        "status": "PASS",
+        "turnResults": [],
+        "turns": 2,
+        "turnsTotal": 2,
+        "version": "1.2.3"
+      }
+    ]
+  }
+]

@@ -1,0 +1,1363 @@
+{
+  "reference_commit": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "exit_code": 1,
+  "reports": [
+    {
+      "skill_name": "skilled-improve",
+      "schema_version": "v1alpha1",
+      "engine_name": "hash-worker",
+      "model_name": "",
+      "requested_configuration": {
+        "role": "runner",
+        "engine": "hash-worker",
+        "protocol": "custom"
+      },
+      "applied_configuration": {
+        "role": "runner",
+        "engine": "hash-worker",
+        "protocol": "custom"
+      },
+      "case_results": [
+        {
+          "case_id": "hash-fail",
+          "title": "Real hash fails required text",
+          "status": "FAIL",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "FAIL",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_contains.all: missing [not-a-sha256-digest]",
+                "passed": false,
+                "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+              }
+            ],
+            "summary": {
+              "passed": 0,
+              "failed": 1,
+              "total": 1,
+              "pass_rate": 0
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "negative-case",
+          "response": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4"
+        },
+        {
+          "case_id": "hash-fail",
+          "title": "Real hash fails required text",
+          "status": "FAIL",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "FAIL",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_contains.all: missing [not-a-sha256-digest]",
+                "passed": false,
+                "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+              }
+            ],
+            "summary": {
+              "passed": 0,
+              "failed": 1,
+              "total": 1,
+              "pass_rate": 0
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "negative-case",
+          "response": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4"
+        },
+        {
+          "case_id": "hash-multiturn",
+          "title": "Real state continuation",
+          "status": "PASS",
+          "turns": 2,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 2,
+            "turns_total": 2,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "first",
+          "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+          "turn_results": [
+            {
+              "turn_number": 1,
+              "content": "first",
+              "source": "fixed",
+              "response": "a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "status": "completed"
+            },
+            {
+              "turn_number": 2,
+              "content": "continue a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "source": "fixed",
+              "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "case_id": "hash-multiturn",
+          "title": "Real state continuation",
+          "status": "PASS",
+          "turns": 2,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 2,
+            "turns_total": 2,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "first",
+          "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+          "turn_results": [
+            {
+              "turn_number": 1,
+              "content": "first",
+              "source": "fixed",
+              "response": "a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "status": "completed"
+            },
+            {
+              "turn_number": 2,
+              "content": "continue a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "source": "fixed",
+              "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "case_id": "hash-pass",
+          "title": "Real hash pass",
+          "status": "PASS",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "phase-three-😀",
+          "response": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f"
+        },
+        {
+          "case_id": "hash-pass",
+          "title": "Real hash pass",
+          "status": "PASS",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "phase-three-😀",
+          "response": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f"
+        }
+      ],
+      "total_tokens": 0,
+      "judge_tokens": 0,
+      "overall_tokens": 0
+    },
+    {
+      "skill_name": "skilled-improve",
+      "schema_version": "v1alpha1",
+      "engine_name": "hash-worker",
+      "model_name": "",
+      "requested_configuration": {
+        "role": "runner",
+        "engine": "hash-worker",
+        "protocol": "custom"
+      },
+      "applied_configuration": {
+        "role": "runner",
+        "engine": "hash-worker",
+        "protocol": "custom"
+      },
+      "case_results": [
+        {
+          "case_id": "hash-fail",
+          "title": "Real hash fails required text",
+          "status": "FAIL",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "FAIL",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_contains.all: missing [not-a-sha256-digest]",
+                "passed": false,
+                "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+              }
+            ],
+            "summary": {
+              "passed": 0,
+              "failed": 1,
+              "total": 1,
+              "pass_rate": 0
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "negative-case",
+          "response": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4"
+        },
+        {
+          "case_id": "hash-fail",
+          "title": "Real hash fails required text",
+          "status": "FAIL",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "FAIL",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_contains.all: missing [not-a-sha256-digest]",
+                "passed": false,
+                "evidence": "output does not contain required keywords: [not-a-sha256-digest]"
+              }
+            ],
+            "summary": {
+              "passed": 0,
+              "failed": 1,
+              "total": 1,
+              "pass_rate": 0
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "negative-case",
+          "response": "d609169ed24391a7f40ea678ee1192359f4ed56e61d767e90a5cf0a2dfd844b4"
+        },
+        {
+          "case_id": "hash-multiturn",
+          "title": "Real state continuation",
+          "status": "PASS",
+          "turns": 2,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 2,
+            "turns_total": 2,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "first",
+          "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+          "turn_results": [
+            {
+              "turn_number": 1,
+              "content": "first",
+              "source": "fixed",
+              "response": "a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "status": "completed"
+            },
+            {
+              "turn_number": 2,
+              "content": "continue a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "source": "fixed",
+              "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "case_id": "hash-multiturn",
+          "title": "Real state continuation",
+          "status": "PASS",
+          "turns": 2,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 2,
+            "turns_total": 2,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "first",
+          "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+          "turn_results": [
+            {
+              "turn_number": 1,
+              "content": "first",
+              "source": "fixed",
+              "response": "a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "status": "completed"
+            },
+            {
+              "turn_number": 2,
+              "content": "continue a7937b64b8caa58f03721bb6bacf5c78cb235febe0e70b1b84cd99541461a08e",
+              "source": "fixed",
+              "response": "cd6a2861722c058d41f08b9e8553f282acfa5f64c3b2823e4424508bd86852dd",
+              "status": "completed"
+            }
+          ]
+        },
+        {
+          "case_id": "hash-pass",
+          "title": "Real hash pass",
+          "status": "PASS",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "with_skill",
+          "prompt": "phase-three-😀",
+          "response": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f"
+        },
+        {
+          "case_id": "hash-pass",
+          "title": "Real hash pass",
+          "status": "PASS",
+          "turns": 1,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "grading": {
+            "status": "PASS",
+            "turns_executed": 1,
+            "turns_total": 1,
+            "assertion_results": [
+              {
+                "text": "output_matches{all:[^[0-9a-f]{64}$]}",
+                "passed": true,
+                "evidence": "output satisfies all regex checks (all:[^[0-9a-f]{64}$])"
+              }
+            ],
+            "summary": {
+              "passed": 1,
+              "failed": 0,
+              "total": 1,
+              "pass_rate": 1
+            }
+          },
+          "configuration": "without_skill",
+          "prompt": "phase-three-😀",
+          "response": "e1f712bf00ad5a1786c6d114404c48791b3bc018e3c8f36c494f761a9e853a2f"
+        }
+      ],
+      "total_tokens": 0,
+      "judge_tokens": 0,
+      "overall_tokens": 0
+    }
+  ],
+  "events": [
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 1,
+      "event": "run_started",
+      "payload": {
+        "engine": "hash-worker",
+        "skill_name": "skilled-improve",
+        "task_total": 12,
+        "iterations_total": 2
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 2,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 0,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "preparing",
+        "task_total": 12,
+        "completed_tasks": 0,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 3,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 0,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 0,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 4,
+      "event": "iteration_started",
+      "payload": {
+        "iteration": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 5,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-1",
+        "iteration": 1,
+        "case_id": "hash-fail",
+        "configuration": "with_skill",
+        "task_index": 1,
+        "task_total": 12,
+        "title": "Real hash fails required text"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 6,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 0,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 0,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 7,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-1",
+        "iteration": 1,
+        "case_id": "hash-fail",
+        "configuration": "with_skill",
+        "task_index": 1,
+        "task_total": 12,
+        "title": "Real hash fails required text",
+        "completed_tasks": 1,
+        "status": "FAIL",
+        "pass_rate": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 8,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 1,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 1,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 9,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-2",
+        "iteration": 1,
+        "case_id": "hash-fail",
+        "configuration": "without_skill",
+        "task_index": 2,
+        "task_total": 12,
+        "title": "Real hash fails required text"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 10,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 1,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 1,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 11,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-2",
+        "iteration": 1,
+        "case_id": "hash-fail",
+        "configuration": "without_skill",
+        "task_index": 2,
+        "task_total": 12,
+        "title": "Real hash fails required text",
+        "completed_tasks": 2,
+        "status": "FAIL",
+        "pass_rate": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 12,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 2,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 13,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-3",
+        "iteration": 1,
+        "case_id": "hash-multiturn",
+        "configuration": "with_skill",
+        "task_index": 3,
+        "task_total": 12,
+        "title": "Real state continuation"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 14,
+      "event": "run_progress",
+      "payload": {
+        "passed": 0,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 2,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 15,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-3",
+        "iteration": 1,
+        "case_id": "hash-multiturn",
+        "configuration": "with_skill",
+        "task_index": 3,
+        "task_total": 12,
+        "title": "Real state continuation",
+        "completed_tasks": 3,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 16,
+      "event": "run_progress",
+      "payload": {
+        "passed": 1,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 3,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 17,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-4",
+        "iteration": 1,
+        "case_id": "hash-multiturn",
+        "configuration": "without_skill",
+        "task_index": 4,
+        "task_total": 12,
+        "title": "Real state continuation"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 18,
+      "event": "run_progress",
+      "payload": {
+        "passed": 1,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 3,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 19,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-4",
+        "iteration": 1,
+        "case_id": "hash-multiturn",
+        "configuration": "without_skill",
+        "task_index": 4,
+        "task_total": 12,
+        "title": "Real state continuation",
+        "completed_tasks": 4,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 20,
+      "event": "run_progress",
+      "payload": {
+        "passed": 2,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 4,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 21,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-5",
+        "iteration": 1,
+        "case_id": "hash-pass",
+        "configuration": "with_skill",
+        "task_index": 5,
+        "task_total": 12,
+        "title": "Real hash pass"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 22,
+      "event": "run_progress",
+      "payload": {
+        "passed": 2,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 4,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 23,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-5",
+        "iteration": 1,
+        "case_id": "hash-pass",
+        "configuration": "with_skill",
+        "task_index": 5,
+        "task_total": 12,
+        "title": "Real hash pass",
+        "completed_tasks": 5,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 24,
+      "event": "run_progress",
+      "payload": {
+        "passed": 3,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 5,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 25,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-6",
+        "iteration": 1,
+        "case_id": "hash-pass",
+        "configuration": "without_skill",
+        "task_index": 6,
+        "task_total": 12,
+        "title": "Real hash pass"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 26,
+      "event": "run_progress",
+      "payload": {
+        "passed": 3,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 5,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 27,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-6",
+        "iteration": 1,
+        "case_id": "hash-pass",
+        "configuration": "without_skill",
+        "task_index": 6,
+        "task_total": 12,
+        "title": "Real hash pass",
+        "completed_tasks": 6,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 28,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 6,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 29,
+      "event": "iteration_completed",
+      "payload": {
+        "passed": 4,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "iteration": 1,
+        "invocation_completed_tasks": 6
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 30,
+      "event": "iteration_started",
+      "payload": {
+        "iteration": 2
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 31,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-7",
+        "iteration": 2,
+        "case_id": "hash-fail",
+        "configuration": "with_skill",
+        "task_index": 7,
+        "task_total": 12,
+        "title": "Real hash fails required text"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 32,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 6,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 33,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-7",
+        "iteration": 2,
+        "case_id": "hash-fail",
+        "configuration": "with_skill",
+        "task_index": 7,
+        "task_total": 12,
+        "title": "Real hash fails required text",
+        "completed_tasks": 7,
+        "status": "FAIL",
+        "pass_rate": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 34,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 3,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 7,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 35,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-8",
+        "iteration": 2,
+        "case_id": "hash-fail",
+        "configuration": "without_skill",
+        "task_index": 8,
+        "task_total": 12,
+        "title": "Real hash fails required text"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 36,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 3,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 7,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 37,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-8",
+        "iteration": 2,
+        "case_id": "hash-fail",
+        "configuration": "without_skill",
+        "task_index": 8,
+        "task_total": 12,
+        "title": "Real hash fails required text",
+        "completed_tasks": 8,
+        "status": "FAIL",
+        "pass_rate": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 38,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 8,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 39,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-9",
+        "iteration": 2,
+        "case_id": "hash-multiturn",
+        "configuration": "with_skill",
+        "task_index": 9,
+        "task_total": 12,
+        "title": "Real state continuation"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 40,
+      "event": "run_progress",
+      "payload": {
+        "passed": 4,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 8,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 41,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-9",
+        "iteration": 2,
+        "case_id": "hash-multiturn",
+        "configuration": "with_skill",
+        "task_index": 9,
+        "task_total": 12,
+        "title": "Real state continuation",
+        "completed_tasks": 9,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 42,
+      "event": "run_progress",
+      "payload": {
+        "passed": 5,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 9,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 43,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-10",
+        "iteration": 2,
+        "case_id": "hash-multiturn",
+        "configuration": "without_skill",
+        "task_index": 10,
+        "task_total": 12,
+        "title": "Real state continuation"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 44,
+      "event": "run_progress",
+      "payload": {
+        "passed": 5,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 9,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 45,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-10",
+        "iteration": 2,
+        "case_id": "hash-multiturn",
+        "configuration": "without_skill",
+        "task_index": 10,
+        "task_total": 12,
+        "title": "Real state continuation",
+        "completed_tasks": 10,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 46,
+      "event": "run_progress",
+      "payload": {
+        "passed": 6,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 10,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 47,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-11",
+        "iteration": 2,
+        "case_id": "hash-pass",
+        "configuration": "with_skill",
+        "task_index": 11,
+        "task_total": 12,
+        "title": "Real hash pass"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 48,
+      "event": "run_progress",
+      "payload": {
+        "passed": 6,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 10,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 49,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-11",
+        "iteration": 2,
+        "case_id": "hash-pass",
+        "configuration": "with_skill",
+        "task_index": 11,
+        "task_total": 12,
+        "title": "Real hash pass",
+        "completed_tasks": 11,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 50,
+      "event": "run_progress",
+      "payload": {
+        "passed": 7,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 11,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 51,
+      "event": "case_started",
+      "payload": {
+        "task_id": "task-12",
+        "iteration": 2,
+        "case_id": "hash-pass",
+        "configuration": "without_skill",
+        "task_index": 12,
+        "task_total": 12,
+        "title": "Real hash pass"
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 52,
+      "event": "run_progress",
+      "payload": {
+        "passed": 7,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 11,
+        "running_tasks": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 53,
+      "event": "case_completed",
+      "payload": {
+        "task_id": "task-12",
+        "iteration": 2,
+        "case_id": "hash-pass",
+        "configuration": "without_skill",
+        "task_index": 12,
+        "task_total": 12,
+        "title": "Real hash pass",
+        "completed_tasks": 12,
+        "status": "PASS",
+        "pass_rate": 1
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 54,
+      "event": "run_progress",
+      "payload": {
+        "passed": 8,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "executing",
+        "task_total": 12,
+        "completed_tasks": 12,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 55,
+      "event": "iteration_completed",
+      "payload": {
+        "passed": 4,
+        "failed": 2,
+        "errored": 0,
+        "skipped": 0,
+        "iteration": 2,
+        "invocation_completed_tasks": 12
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 56,
+      "event": "run_progress",
+      "payload": {
+        "passed": 8,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "phase": "finalizing",
+        "task_total": 12,
+        "completed_tasks": 12,
+        "running_tasks": 0
+      }
+    },
+    {
+      "protocol_version": 1,
+      "event_version": 1,
+      "sequence_number": 57,
+      "event": "run_finished",
+      "last_event": true,
+      "payload": {
+        "passed": 8,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 0,
+        "status": "COMPLETED",
+        "completed_tasks": 12
+      }
+    }
+  ]
+}

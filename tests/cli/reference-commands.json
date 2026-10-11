@@ -1,0 +1,781 @@
+{
+  "decoding": [
+    {
+      "input": "{\"case_results\":[{\"grading\":{},\"gates\":{},\"judge_results\":[{}]}]}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 0.0% (0/1 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": [
+          {
+            "case_id": "",
+            "title": "",
+            "status": "",
+            "duration_ms": 0,
+            "turns": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "grading": {
+              "status": "",
+              "turns_executed": 0,
+              "turns_total": 0,
+              "assertion_results": null,
+              "summary": {
+                "passed": 0,
+                "failed": 0,
+                "total": 0,
+                "pass_rate": 0
+              }
+            },
+            "gates": {
+              "passed": false,
+              "failures": null,
+              "configured_rules": null
+            },
+            "judge_results": [
+              {
+                "id": "",
+                "type": "",
+                "status": "",
+                "duration_ms": 0
+              }
+            ]
+          }
+        ],
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      }
+    },
+    {
+      "input": "{\"skill_name\":\"first\",\"skill_name\":null,\"case_results\":[{\"case_id\":\"x\",\"case_id\":null}]}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 0.0% (0/1 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "first",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": [
+          {
+            "case_id": "x",
+            "title": "",
+            "status": "",
+            "duration_ms": 0,
+            "turns": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "grading": null
+          }
+        ],
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      }
+    },
+    {
+      "input": "{\"SKILL_NAME\":\"case-fold\",\"CASE_RESULTS\":[{\"CASE_ID\":\"upper\",\"STATUS\":\"PASS\"}],\"unknown\":\"ignored\"}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 100.0% (1/1 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "case-fold",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": [
+          {
+            "case_id": "upper",
+            "title": "",
+            "status": "PASS",
+            "duration_ms": 0,
+            "turns": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "grading": null
+          }
+        ],
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      }
+    },
+    {
+      "input": "{\"case_results\":[null],\"requested_configuration\":{},\"benchmark\":{}}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 0.0% (0/1 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "requested_configuration": {},
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": [
+          {
+            "case_id": "",
+            "title": "",
+            "status": "",
+            "duration_ms": 0,
+            "turns": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "grading": null
+          }
+        ],
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0,
+        "benchmark": {
+          "run_summary": {
+            "with_skill": {
+              "pass_rate": {
+                "mean": 0,
+                "stddev": 0
+              },
+              "time_seconds": {
+                "mean": 0,
+                "stddev": 0
+              },
+              "input_tokens": {
+                "mean": 0,
+                "stddev": 0
+              },
+              "output_tokens": {
+                "mean": 0,
+                "stddev": 0
+              }
+            },
+            "without_skill": null,
+            "delta": null
+          }
+        }
+      }
+    },
+    {
+      "input": "null",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 0.0% (0/0 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": null,
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      }
+    },
+    {
+      "input": "{\"total_tokens\":1.0}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: parse result file: json: cannot unmarshal number 1.0 into Go struct field Input.total_tokens of type int\n"
+      },
+      "output": null
+    },
+    {
+      "input": "{\"case_results\":[{\"status\":1}]}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: parse result file: json: cannot unmarshal number into Go struct field CaseResult.case_results.status of type judge.Status\n"
+      },
+      "output": null
+    },
+    {
+      "input": "{\"case_results\":[{\"grading\":{\"summary\":{\"passed\":\"bad\"}}}]}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 1,
+        "stdout": "",
+        "stderr": "Error: parse result file: json: cannot unmarshal string into Go struct field ResultSummary.case_results.grading.summary.passed of type int\n"
+      },
+      "output": null
+    },
+    {
+      "input": "{\"case_results\":[{\"turn_results\":[{}]}]}",
+      "command": {
+        "args": [
+          "report",
+          "decode.json",
+          "--output-dir",
+          "decoded"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: decoded/report.json\n\nPass rate: 0.0% (0/1 cases)\n",
+        "stderr": ""
+      },
+      "output": {
+        "skill_name": "",
+        "schema_version": "",
+        "engine_name": "",
+        "model_name": "",
+        "start_time": "0001-01-01T00:00:00Z",
+        "end_time": "0001-01-01T00:00:00Z",
+        "case_results": [
+          {
+            "case_id": "",
+            "title": "",
+            "status": "",
+            "duration_ms": 0,
+            "turns": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "grading": null,
+            "turn_results": [
+              {
+                "turn_number": 0,
+                "content": "",
+                "response": "",
+                "status": ""
+              }
+            ]
+          }
+        ],
+        "total_tokens": 0,
+        "judge_tokens": 0,
+        "overall_tokens": 0
+      }
+    }
+  ],
+  "source": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "captured": "2026-10-11T09:18:51.373Z",
+  "imported": {
+    "skill_name": "oracle",
+    "evals": [
+      {
+        "id": -1,
+        "prompt": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀",
+        "expected_output": "期待",
+        "files": [
+          "a.txt",
+          "b.json"
+        ],
+        "expectations": [
+          "works",
+          "safe"
+        ]
+      },
+      {
+        "id": 23,
+        "prompt": "normal",
+        "expected_output": "",
+        "files": [],
+        "expectations": [
+          "normal"
+        ]
+      },
+      {
+        "id": 24,
+        "prompt": "one\ttwo\nsecond line\nthird",
+        "expected_output": "",
+        "files": [],
+        "expectations": [
+          "control"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    {
+      "args": [
+        "import",
+        "evals.json",
+        "--output",
+        "evals"
+      ],
+      "code": 0,
+      "stdout": "Imported case -1 -> evals/cases/case--1.yaml\nImported case 23 -> evals/cases/case-23.yaml\nImported case 24 -> evals/cases/case-24.yaml\n\nGenerated eval.yaml -> evals/eval.yaml\nTotal: 3 cases imported\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "validate",
+        "evals/eval.yaml"
+      ],
+      "code": 0,
+      "stdout": "✓ eval.yaml is valid (loaded 3 case(s))\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list-cases",
+        "evals/eval.yaml"
+      ],
+      "code": 0,
+      "stdout": "ID       Title        Tag              Prompt\ncase--1  oracle - -1  functional_test  😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀...\ncase-23  oracle - 23  functional_test  normal\ncase-24  oracle - 24  functional_test  one  two\nsecond line\nthird\n",
+      "stderr": ""
+    }
+  ],
+  "files": {
+    "evals/eval.yaml": {
+      "schema_version": "v1alpha1",
+      "environment": {
+        "type": "none",
+        "workspace_mount": "/workspace"
+      },
+      "mcp": {
+        "servers": []
+      },
+      "skills": [
+        {
+          "source": "local_path",
+          "path": "."
+        }
+      ],
+      "engine": {
+        "name": "claude_code",
+        "model": {
+          "provider": "",
+          "name": ""
+        }
+      },
+      "cases": {
+        "files": [
+          "evals/cases/case--1.yaml",
+          "evals/cases/case-23.yaml",
+          "evals/cases/case-24.yaml"
+        ],
+        "defaults": {
+          "timeout_seconds": 300,
+          "max_turns": 10
+        },
+        "parallelism": 1
+      },
+      "judge": {
+        "type": "agent_judge",
+        "criteria": [
+          "Imported Anthropic eval cases define their own case-level criteria."
+        ]
+      },
+      "benchmark": {
+        "enabled": false
+      },
+      "report": {
+        "formats": [
+          "json",
+          "html"
+        ],
+        "artifacts": [
+          "transcript"
+        ]
+      }
+    },
+    "evals/cases/case--1.yaml": {
+      "id": "case--1",
+      "title": "oracle - -1",
+      "description": "期待",
+      "tag": "functional_test",
+      "input": {
+        "prompt": "😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀"
+      },
+      "context": {
+        "files": {
+          "a.txt": "a.txt",
+          "b.json": "b.json"
+        }
+      },
+      "constraints": {},
+      "expect": {},
+      "judge": {
+        "type": "agent_judge",
+        "model": "anthropic/claude-sonnet-4-6",
+        "criteria": [
+          "works",
+          "safe"
+        ]
+      }
+    },
+    "evals/cases/case-23.yaml": {
+      "id": "case-23",
+      "title": "oracle - 23",
+      "description": "",
+      "tag": "functional_test",
+      "input": {
+        "prompt": "normal"
+      },
+      "context": {},
+      "constraints": {},
+      "expect": {},
+      "judge": {
+        "type": "agent_judge",
+        "model": "anthropic/claude-sonnet-4-6",
+        "criteria": [
+          "normal"
+        ]
+      }
+    },
+    "evals/cases/case-24.yaml": {
+      "id": "case-24",
+      "title": "oracle - 24",
+      "description": "",
+      "tag": "functional_test",
+      "input": {
+        "prompt": "one\ttwo\nsecond line\nthird"
+      },
+      "context": {},
+      "constraints": {},
+      "expect": {},
+      "judge": {
+        "type": "agent_judge",
+        "model": "anthropic/claude-sonnet-4-6",
+        "criteria": [
+          "control"
+        ]
+      }
+    }
+  },
+  "judges": [
+    {
+      "input": {
+        "case_id": "pass",
+        "final_message": "hello real world",
+        "exit_code": 0,
+        "turns_executed": 2,
+        "turns_total": 3,
+        "expect": {
+          "must_contain": [
+            "hello"
+          ]
+        },
+        "judge": {
+          "type": "rule_based",
+          "success": [
+            {
+              "output_contains": {
+                "all": [
+                  "real",
+                  "world"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "command": {
+        "args": [
+          "debug",
+          "judge",
+          "judge.json",
+          "--output",
+          "grading.json"
+        ],
+        "code": 0,
+        "stdout": "",
+        "stderr": "[expect] PASS — all pre-checks passed\n[judge]  PASS — 1/1 assertions passed (pass_rate: 100.0%)\n[output] grading.json\n"
+      },
+      "grading": {
+        "status": "PASS",
+        "turns_executed": 2,
+        "turns_total": 3,
+        "assertion_results": [
+          {
+            "text": "output_contains{all:[real world]}",
+            "passed": true,
+            "evidence": "output satisfies all contains checks (all:[real world])"
+          }
+        ],
+        "summary": {
+          "passed": 1,
+          "failed": 0,
+          "total": 1,
+          "pass_rate": 1
+        }
+      }
+    },
+    {
+      "input": {
+        "case_id": "fail",
+        "final_message": "nope",
+        "exit_code": 1,
+        "expect": {
+          "must_contain": [
+            "hello"
+          ],
+          "exit_code": 0
+        },
+        "judge": {
+          "type": "rule_based",
+          "success": [
+            {
+              "output_contains": {
+                "all": [
+                  "never evaluated"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "command": {
+        "args": [
+          "debug",
+          "judge",
+          "judge.json",
+          "--output",
+          "grading.json"
+        ],
+        "code": 0,
+        "stdout": "",
+        "stderr": "[expect] FAIL — 2 checks failed, judge skipped\n[judge]  FAIL — 0/2 assertions passed (pass_rate: 0.0%)\n[output] grading.json\n"
+      },
+      "grading": {
+        "status": "FAIL",
+        "turns_executed": 0,
+        "turns_total": 0,
+        "assertion_results": [
+          {
+            "text": "expect.must_contain",
+            "passed": false,
+            "evidence": "output does not contain \"hello\""
+          },
+          {
+            "text": "expect.exit_code",
+            "passed": false,
+            "evidence": "expected exit_code 0, got 1"
+          }
+        ],
+        "summary": {
+          "passed": 0,
+          "failed": 2,
+          "total": 2,
+          "pass_rate": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "case_id": "rule-fail",
+        "final_message": "nope",
+        "judge": {
+          "type": "rule_based",
+          "success": [
+            {
+              "output_contains": {
+                "all": [
+                  "hello"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "command": {
+        "args": [
+          "debug",
+          "judge",
+          "judge.json",
+          "--output",
+          "grading.json"
+        ],
+        "code": 0,
+        "stdout": "",
+        "stderr": "[judge]  FAIL — 0/1 assertions passed (pass_rate: 0.0%)\n[output] grading.json\n"
+      },
+      "grading": {
+        "status": "FAIL",
+        "turns_executed": 0,
+        "turns_total": 0,
+        "assertion_results": [
+          {
+            "text": "output_contains.all: missing [hello]",
+            "passed": false,
+            "evidence": "output does not contain required keywords: [hello]"
+          }
+        ],
+        "summary": {
+          "passed": 0,
+          "failed": 1,
+          "total": 1,
+          "pass_rate": 0
+        }
+      }
+    },
+    {
+      "input": {
+        "case_id": "empty",
+        "final_message": "empty",
+        "judge": {}
+      },
+      "command": {
+        "args": [
+          "debug",
+          "judge",
+          "judge.json",
+          "--output",
+          "grading.json"
+        ],
+        "code": 0,
+        "stdout": "",
+        "stderr": "[judge]  PASS — 0/0 assertions passed (pass_rate: 100.0%)\n[output] grading.json\n"
+      },
+      "grading": {
+        "status": "PASS",
+        "turns_executed": 0,
+        "turns_total": 0,
+        "assertion_results": [],
+        "summary": {
+          "passed": 0,
+          "failed": 0,
+          "total": 0,
+          "pass_rate": 1
+        }
+      }
+    }
+  ],
+  "reportInput": {
+    "skill_name": "oracle",
+    "schema_version": "v1alpha1",
+    "engine_name": "custom",
+    "model_name": "local",
+    "start_time": "2026-10-11T00:00:00Z",
+    "end_time": "2026-10-11T00:00:01Z",
+    "case_results": [
+      {
+        "case_id": "a",
+        "title": "Pass",
+        "status": "PASS",
+        "duration_ms": 10,
+        "turns": 1,
+        "grading": null
+      },
+      {
+        "case_id": "b",
+        "title": "Fail",
+        "status": "FAIL",
+        "duration_ms": 20,
+        "turns": 1,
+        "grading": null
+      }
+    ]
+  },
+  "reports": [
+    {
+      "format": "json",
+      "command": {
+        "args": [
+          "report",
+          "result.json",
+          "--output-dir",
+          "reports",
+          "--format",
+          "json"
+        ],
+        "code": 0,
+        "stdout": "Generated json report: reports/report.json\n\nPass rate: 50.0% (1/2 cases)\n",
+        "stderr": ""
+      },
+      "content": "{\n  \"skill_name\": \"oracle\",\n  \"schema_version\": \"v1alpha1\",\n  \"engine_name\": \"custom\",\n  \"model_name\": \"local\",\n  \"start_time\": \"2026-10-11T00:00:00Z\",\n  \"end_time\": \"2026-10-11T00:00:01Z\",\n  \"case_results\": [\n    {\n      \"case_id\": \"a\",\n      \"title\": \"Pass\",\n      \"status\": \"PASS\",\n      \"duration_ms\": 10,\n      \"turns\": 1,\n      \"input_tokens\": 0,\n      \"output_tokens\": 0,\n      \"grading\": null\n    },\n    {\n      \"case_id\": \"b\",\n      \"title\": \"Fail\",\n      \"status\": \"FAIL\",\n      \"duration_ms\": 20,\n      \"turns\": 1,\n      \"input_tokens\": 0,\n      \"output_tokens\": 0,\n      \"grading\": null\n    }\n  ],\n  \"total_tokens\": 0,\n  \"judge_tokens\": 0,\n  \"overall_tokens\": 0\n}\n"
+    },
+    {
+      "format": "junit",
+      "command": {
+        "args": [
+          "report",
+          "result.json",
+          "--output-dir",
+          "reports",
+          "--format",
+          "junit"
+        ],
+        "code": 0,
+        "stdout": "Generated junit report: reports/report.xml\n\nPass rate: 50.0% (1/2 cases)\n",
+        "stderr": ""
+      },
+      "content": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuites>\n  <testsuite name=\"oracle\" tests=\"2\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"1.000\" timestamp=\"2026-10-11T00:00:00Z\">\n    <testcase name=\"a\" classname=\"oracle\" time=\"0.010\">\n      <properties>\n        <property name=\"judge.skills.count\" value=\"0\"></property>\n      </properties>\n    </testcase>\n    <testcase name=\"b\" classname=\"oracle\" time=\"0.020\">\n      <properties>\n        <property name=\"judge.skills.count\" value=\"0\"></property>\n      </properties>\n      <failure message=\"case b failed\" type=\"AssertionFailure\"></failure>\n    </testcase>\n  </testsuite>\n</testsuites>"
+    },
+    {
+      "format": "markdown",
+      "command": {
+        "args": [
+          "report",
+          "result.json",
+          "--output-dir",
+          "reports",
+          "--format",
+          "markdown"
+        ],
+        "code": 0,
+        "stdout": "Generated markdown report: reports/report.md\n\nPass rate: 50.0% (1/2 cases)\n",
+        "stderr": ""
+      },
+      "content": "# Skill Report: oracle\n\n- **Engine**: custom\n- **Model**: local\n- **Observed Model**: unknown\n\n## Summary\n\n| Metric | Value |\n|---|---:|\n| Total Cases | 2 |\n| Passed | 1 |\n| Failed | 1 |\n| Errors | 0 |\n| Skipped | 0 |\n| Pass Rate | 50.0% |\n| Evaluation Wall Time | 1.0s |\n| Tested Agent Tokens | 0 |\n| Judge Tokens | 0 |\n| Overall Tokens | 0 |\n\n## Cases\n\n| Case | Title | Configuration | Status | Agent Time | Input Tokens | Output Tokens | Agent Tokens | Turns |\n|---|---|---|---|---:|---:|---:|---:|---:|\n| a | Pass | - | PASS | 0.0s | 0 | 0 | 0 | 1 |\n| b | Fail | - | FAIL | 0.0s | 0 | 0 | 0 | 1 |\n\n## Failure and Error Details\n\n### b\n\n\n"
+    }
+  ]
+}
