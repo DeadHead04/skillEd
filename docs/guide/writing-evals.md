@@ -1,0 +1,1357 @@
+# Writing Evals
+
+This page describes how to author a complete evaluation config for your Skill: how to declare the runtime environment, write cases, and configure grading strategies.
+
+---
+
+## Directory layout
+
+Evaluation files live under the `evals/` folder of your Skill:
+
+```text
+my-skill/
+  SKILL.md                        # Skill definition
+  evals/
+    eval.yaml                     # Entrypoint config (required)
+    cases/                        # One file per case
+      basic-success.yaml
+      edge-case-null.yaml
+      regression-001.yaml
+    fixtures/                     # Optional test resources
+      repos/                      # Repository templates
+        sample-project/
+      diffs/                      # Patch files
+        null-check.patch
+      scripts/                    # Grading scripts
+        check-output.sh
+      mcp/                        # MCP server configs
+        github.json
+```
+
+> **Naming convention:** the case file basename (without `.yaml`) is the case ID. For example, `basic-success.yaml` defines a case with ID `basic-success`.
+
+---
+
+## eval.yaml — entrypoint config
+
+`eval.yaml` is the global config: *which environment*, *which engine*, *how to grade*.
+
+### Minimal config
+
+```yaml
+schema_version: v1alpha1
+
+environment:
+  type: none
+
+engine:
+  name: opencode
+  model:
+    provider: dashscope
+    name: qwen3.8-max
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+
+cases:
+  files:
+    - evals/cases/my-test.yaml
+```
+
+### Full reference
+
+```yaml
+# ========== 1. Schema version ==========
+schema_version: v1alpha1          # Fixed value, required
+
+# ========== 2. Runtime environment ==========
+environment:
+  type: none                      # none / opensandbox / docker
+
+# ========== 3. MCP servers ==========
+mcp:
+  servers:
+    - name: github                # MCP server name
+      mode: real                  # real / mocked
+      transport: http             # http / stdio; inferred from endpoint/command if omitted
+      config_ref: evals/fixtures/mcp/github.yaml  # Path to config file
+
+# ========== 4. Skill installation ==========
+skills:
+  - source: local_path            # local_path (a directory on disk)
+    path: .                       # Path to the Skill
+    include:                      # Optional doublestar globs relative to path; empty means all files
+      - SKILL.md
+      - references/**
+      - scripts/**
+    exclude:                      # Optional; applied after include, so exclude wins
+      - references/drafts/**
+      - .qoder/repowiki/**
+
+# ========== 5. Agent Engine ==========
+engine:
+  name: opencode                  # claude_code / codex / opencode / qodercli / qwen_code
+  version: 1.14.24                # Optional concrete CLI version; see version lifecycle below
+  model:
+    provider: dashscope
+    name: qwen3.8-max
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  # kwargs: { ... }               # Agent-specific switches — see "Engine kwargs" below
+
+# ========== 6. Cases ==========
+cases:
+  files:                          # Case file paths (relative to the Skill root)
+    - evals/cases/basic-success.yaml
+    - evals/cases/edge-case.yaml
+  defaults:
+    timeout_seconds: 300          # Per-case timeout, default 300s
+    max_turns: 12                 # Max conversation turns, default 12
+    collect_artifacts:            # Glob patterns selecting workspace files to download (see below)
+      - "**/*.json"
+      - "report/**"
+    expect:                       # Default expect checks applied to all cases (see Expect section)
+      exit_code: 0
+      must_not_contain:
+        - "TODO"
+        - "I cannot"
+  parallelism: 2                  # Case parallelism, default 1
+  retry_policy:
+    max_retries: 1
+    retry_on: [timeout, error]
+
+# ========== 7. Benchmark (optional) ==========
+benchmark:
+  enabled: false                  # When true, runs both with_skill and without_skill
+
+# ========== 8. Reports ==========
+report:
+  formats: [json, html]           # json / junit / html
+  artifacts: [transcript]
+```
+
+`skills[].include` and `skills[].exclude` use
+[doublestar](https://github.com/bmatcuk/doublestar) syntax (`*` matches one
+path segment and `**` crosses directories). Patterns are relative to
+`skills[].path`, use `/` separators, and `exclude` takes precedence over
+`include`. When `include` is omitted, every file is selected by default.
+The evaluation harness directory `evals/` is always excluded. If an include
+list is provided, include `SKILL.md` explicitly so the installed directory
+remains a valid Skill. The same fields are supported by `judge.skills`.
+
+`cases.parallelism` is the file-level default. To override it for a single run, use `skilled run --parallelism N` without modifying `eval.yaml`. Allowed range: **1 to 256**.
+
+### Engine version lifecycle
+
+Before each case, skilled checks that the selected CLI is installed and reads
+its version with a static `--version` command. This does not validate login or
+make a model request. With `environment.type: none`, skilled never changes the
+host installation; a configured concrete `engine.version` must already match.
+In an isolated runtime, Claude Code, Codex, and Qwen Code install the requested
+version before validation. QoderCLI versions are observed in reports, but its
+installer does not support selecting `engine.version`, so an explicit value is
+ignored with a warning.
+
+For supported adapters, only one exact semantic version (for example, `2.1.0`
+or `2.1.0-beta.1`) is applied. For backward compatibility, tags and ranges such
+as `latest` or `^2.1.0` are accepted but ignored with a warning. Reports retain
+the original value as requested configuration and leave the applied version
+empty.
+
+The legacy fields `engine.entry` and `engine.model.params` are still accepted
+so existing v1alpha1 files continue to load, but they have never been applied
+to an adapter and are now explicitly ignored with migration warnings. Use
+`engine.custom.local.command` and `args` for a custom executable, and use
+`engine.kwargs` or `engine.custom.kwargs` for adapter-specific options.
+
+### Engine kwargs (agent-specific switches)
+
+`engine.kwargs` is a free-form string map. Each agent reads only the keys it recognises; unknown keys are ignored. Unrecognised keys (typos like `bypas_sandbox`) emit a DEBUG log line — run with `-v` to surface them. CLI override: `--engine-kwarg key=value` (alias `--ek`), repeatable. Precedence: `--engine-kwarg` > `engine.kwargs` > default.
+
+| key | agent | `true` behaviour | unset / `false` |
+| :---: | :---: | :--- | :--- |
+| `bypass_sandbox` | `codex` | Forces `--dangerously-bypass-approvals-and-sandbox`; overrides the runtime-derived choice. Use when the host kernel lacks Landlock support (e.g. some CI containers) | Default: `none` runtime → `--sandbox workspace-write`; other runtimes already bypass |
+| `bypass_sandbox` | `claude_code` | No-op — claude already runs with `--permission-mode=bypassPermissions` | No-op |
+| `bypass_sandbox` | `qodercli` | No-op — no equivalent flag | No-op |
+| `bypass_sandbox` | `qwen_code` | No-op — `qwen_code` never imposes its own sandbox (`--yolo` only auto-approves tool calls; it does **not** isolate). Like `claude_code`/`qodercli`, isolation is the runtime's job | No-op |
+| `edition` | `qodercli` | Set to `cn` to use Qoder CLI CN (`qodercn`); switches the installer, credential env, user config/session root, MCP command, and run/resume command together | `global` (Qoder CLI from qoder.com) |
+
+Codex also accepts byte limits for its JSONL artifacts:
+
+| key | default | behaviour |
+| :--- | ---: | :--- |
+| `max_jsonl_record_bytes` | `16777216` (16 MiB) | Maximum size of one physical stdout or session JSONL record. An oversized record returns an explicit parsing error. |
+| `max_jsonl_output_bytes` | `268435456` (256 MiB) | Maximum size of a complete stdout or session JSONL artifact before it is downloaded from the runtime. |
+
+Both values must be positive decimal integers. Invalid values fall back to the
+defaults with a warning.
+
+```bash
+# One-off override at the call site
+skilled run evals/eval.yaml --engine-kwarg bypass_sandbox=true
+```
+
+### Collecting workspace artifacts (`collect_artifacts`)
+
+`collect_artifacts` declares glob patterns that select files from the case workspace to download as run artifacts. After every agent run — **whether it succeeded, failed, or timed out** — matching files are copied to:
+
+```
+<output-dir>/<case-id>/<configuration>/outputs/workspace/<relative-path>
+```
+
+The matched file's path **relative to the workspace root is preserved**, so `report/run-1/summary.json` lands at `outputs/workspace/report/run-1/summary.json`.
+
+- **Glob syntax** uses [doublestar](https://github.com/bmatcuk/doublestar): `*` matches within a single path segment, `**` matches across directories. Examples: `*.md`, `src/**/*.go`, `report/**`, `**/*.json`.
+- **Two layers, merged as a union.** `cases.defaults.collect_artifacts` applies to every case; a case may add its own:
+
+  ```yaml
+  # in a case.yaml
+  collect_artifacts:
+    - "out/**"
+  ```
+
+  The per-case list is appended to the defaults and de-duplicated (defaults first).
+- **Always collected**, independent of the judge type and of whether the workspace is a git repo. Collection is read-only — it never modifies the workspace.
+- The workspace `.git/` directory is **excluded** (an `agent_judge` run commits a baseline there), so a broad pattern like `**` won't sweep VCS internals into the artifacts.
+
+When the case deadline kills a custom engine before it writes its session result, skilled synthesizes a minimal `session-result.json` (`exit_code` 124) and archives it directly at `<output-dir>/<case-id>/<configuration>/outputs/agent/run/session-result.json`. It is never written into the workspace, so `collect_artifacts` globs cannot — and should not — match it.
+
+> **Not to be confused with `report.artifacts`** (which selects artifact *types* like `transcript`/`logs`), or with the git workspace diff used by `agent_judge` (a diff *string* fed to the judge, not downloaded files). `collect_artifacts` downloads actual file contents and is orthogonal to both.
+
+### Custom Engine
+
+When `engine.name` is not one of the built-ins (`claude_code`, `codex`, `qodercli`, `qwen_code`), declare an `engine.custom` block so skilled knows how to invoke your agent. Both `transport: local` (run a command inside the runtime) and `transport: http` (call an HTTP agent service) are supported.
+
+```yaml
+engine:
+  name: my-agent
+  model:
+    provider: dashscope
+    name: qwen3.8-max
+  custom:
+    transport: local             # local | http
+    conversation_mode: batch     # batch (default) | stateful
+    response_format: session_result   # session_result (default) | text
+    timeout_seconds: 300
+    env:                         # credentials and secrets — NEVER reference these in command/args
+      MY_AGENT_TOKEN: ${MY_AGENT_TOKEN}
+    kwargs:                      # non-secret knobs exposed as ${kwargs.<key>}
+      profile: production
+    local:
+      command: /opt/my-agent/bin/run
+      args:
+        - --input
+        - ${input_file}          # path to the SessionInput JSON skilled writes
+        - --output
+        - ${output_file}         # path your agent should write its SessionResult JSON to
+      cwd: ${workspace}          # optional; confined to the runtime workspace
+      input_file: inputs/messages.json   # optional override (relative to workspace)
+      output_file: outputs/session-result.json   # optional override
+```
+
+Key fields (full contract in [docs/design/custom-engine.md](../design/custom-engine.md)):
+
+- **`transport`** (required) — how skilled invokes your agent.
+  - `local`: run `local.command` inside the current runtime via `runtime.Exec`. The agent process can read the runtime workspace, installed skills, fixtures, MCP config, and process environment variables.
+  - `http`: POST the `SessionInput` to a remote (or local) HTTP agent service and read its `SessionResult` from the response body. Configure it under `custom.http` (see below).
+- **`response_format`** (optional, default `session_result`) — how skilled parses the agent's output.
+  - `session_result`: read a full `SessionResult` JSON from `local.output_file` (when configured) or stdout. Carries `exit_code` / `final_message` / `transcript` / `turns` / `input_tokens` / `output_tokens` / `artifacts`. **Recommended**: keeps the full context for judges and reports.
+  - `text`: take stdout verbatim as `final_message`. skilled synthesises a minimal transcript (input messages + the assistant reply) so judges still receive a conversation. Use only for simple scripts that do not produce structured output.
+- **`conversation_mode`** (optional, default `batch`) — how `input.turns` is delivered.
+  - `batch`: preserve the existing behavior and invoke the Custom Engine once with every configured message.
+  - `stateful`: invoke the same local command or HTTP endpoint once per user turn. The first `SessionInput` omits `session_id`; each later invocation receives the ID returned by the preceding `SessionResult`. This mode requires `response_format: session_result`.
+    A custom HTTP `request_body` can place that value with `${session_id}`; it is an empty string on the first invocation.
+- **`timeout_seconds`** (optional) — per-call deadline. Falls back to the case-level timeout when unset; when both are set, skilled takes the smaller of the two so the value handed to the agent matches the real wall-clock budget.
+- **`env`** (optional) — credentials and secret parameters. Values are injected into the agent process as environment variables. **This is the only channel allowed to carry credentials**: `command` / `args` / `cwd` / `input_file` / `output_file` reject secret-shaped values at config load.
+- **`kwargs`** (optional) — non-secret knobs exposed to templates as `${kwargs.<key>}`. Unlike `env`, kwargs are subject to the same strict secret-rejection as command-line fields, so they must not carry credentials or credential-shaped keys. kwargs are never embedded in the `SessionInput` payload — the local transport writes that payload into the workspace, where the agent under test can read it — so wire each one into the engine through `${kwargs.<key>}` in `args` / `cwd` / `env` (or `http.headers` / `http.request_body`).
+
+Template variables available in `command` / `args` / `cwd` / `env` / `input_file` / `output_file`:
+`${workspace}`, `${input_file}`, `${output_file}`, `${model}`, `${model_provider}`, `${model_name}`, `${case_id}`, `${variant}`, `${max_turns}`, `${timeout_seconds}`, `${kwargs.<key>}`, plus environment variables via `${VAR}` / `${VAR:-default}` / `${VAR?error message}`.
+
+Secret-handling rules (enforced at config load):
+
+- `${api_key}` and any kwarg whose key looks like a credential (`token`, `secret`, `api_key`, `apiKey`, `bearerToken`, …) cannot be referenced from `command` / `args` / `cwd` / `input_file` / `output_file`. Pass them through `engine.custom.env`, where they reach your agent as process environment variables instead of leaking into process listings.
+- `${SOMEVAR:-...}` defaults that contain recognizable credential shapes (`sk-...`, `sk-ant-...`, `ghp_...`, `AIza...`, `AKIA...`, JWTs) are likewise rejected in command-line contexts.
+
+For `transport: http`, configure the call under `custom.http` instead of `custom.local`:
+
+```yaml
+engine:
+  name: remote-review-agent
+  custom:
+    transport: http
+    response_format: session_result
+    timeout_seconds: 300
+    kwargs:
+      profile: production
+    http:
+      url: ${CUSTOM_AGENT_ENDPOINT}/v1/run   # required
+      method: POST                            # only POST is supported
+      headers:
+        Authorization: Bearer ${api_key}      # reference secrets here, not in the URL
+      files:                                  # optional: upload workspace files as multipart
+        - path: diff.patch
+          required: true
+        - path: "src/**/*.go"
+          required: false
+      request_body: ${session_input}          # optional; defaults to ${session_input}
+```
+
+HTTP specifics:
+
+- The request body defaults to the `SessionInput` JSON, which never carries the `custom.kwargs` map. A `request_body` field whose value is exactly `${session_input}`, `${messages}`, or `${kwargs}` is injected as a JSON structure (not a string) — use `${kwargs}` to opt the whole map into the request explicitly.
+- With `http.files`, the request becomes `multipart/form-data`: the JSON body moves to the `payload` field and each matched file is uploaded as a separate part under the fixed form field name `files`, with its workspace-relative path carried in that part's `filename` (so the server reads each `files` part's `filename`, not a per-path form key). `path` is a workspace-relative file or glob; `required: false` skips a missing/empty match.
+- Credentials must be referenced from `headers` (or `request_body`), never from `http.url` — a URL that renders `${api_key}` is rejected to keep the key out of request logs.
+- A non-2xx response is treated as an invocation error. Artifacts the agent returns under `artifacts.files[].url` are GET-downloaded (http/https only, no redirects, size/time bounded) into the report directory.
+
+See `docs/design/custom-engine.md` for the full SessionInput / SessionResult schema your agent must conform to.
+
+### MCP configuration
+
+MCP supports `mode: real` and `mode: mocked`. `real` installs a real MCP server into Agents such as `claude_code`, `qodercli`, `codex`, or `qwen_code`; `mocked` makes `src/mcp` generate a local stdio mock server that is then installed into the Agent like any other MCP server.
+
+HTTP MCP servers can be declared inline or pulled in via `config_ref`:
+
+```yaml
+mcp:
+  servers:
+    - name: agent-sandbox
+      mode: real
+      transport: http
+      config_ref: evals/fixtures/mcp/agent-sandbox.yaml
+```
+
+A `config_ref` file supports:
+
+```yaml
+transport: http
+endpoint: https://mcp.example.com/mcp?token=${MCP_TOKEN}
+required_env:
+  - MCP_TOKEN
+headers:
+  PRIVATE-TOKEN: ${PRIVATE_TOKEN}
+```
+
+stdio MCP servers use `command` and `args`:
+
+```yaml
+mcp:
+  servers:
+    - name: marker
+      mode: real
+      transport: stdio
+      command: /usr/bin/python3
+      args: [evals/fixtures/mcp/marker_server.py]
+```
+
+A mocked MCP server can use the built-in `filesystem` mock server directly:
+
+```yaml
+mcp:
+  servers:
+    - name: filesystem
+      mode: mocked
+```
+
+Or define tool responses through `config_ref`:
+
+```yaml
+mcp:
+  servers:
+    - name: project-mgmt
+      mode: mocked
+      config_ref: evals/fixtures/mcp/project-mgmt.yaml
+```
+
+```yaml
+tool_responses:
+  create_publish_plan_simple:
+    default:
+      id: 999
+      name: "{{params.name}}"
+      status: ONGOING
+```
+
+Environment-variable references support both `${VAR}` and full-value `$VAR` forms; the variable name must match `[A-Za-z_][A-Za-z0-9_]*`. Variables listed in `required_env` are injected into the Agent process; full env-var references inside `headers` are also recorded by name so the Agent can pick the right transport mechanism when installing the MCP server.
+
+#### Per-case mocked MCP overrides
+
+Eval-level `mcp.servers` is the default for every case. A case may declare its own `mcp.servers` to vary the mocked fixture while keeping the same server and tool names (introduced by SUP-0003). Servers are merged by `name`: a case-level entry with a matching name replaces that whole eval-level server, and a new name is appended. A case without `mcp` inherits the eval-level config unchanged.
+
+```yaml
+# eval.yaml — default fixture shared by all cases
+mcp:
+  servers:
+    - name: project-mgmt
+      mode: mocked
+      config_ref: evals/fixtures/mcp/project-default.yaml
+```
+
+```yaml
+# cases/project-open.yaml — same server/tool, different fixture
+id: project-open
+input:
+  prompt: Check the project status and continue the publish plan.
+
+mcp:
+  servers:
+    - name: project-mgmt
+      mode: mocked
+      config_ref: evals/fixtures/mcp/project-open.yaml
+```
+
+Rules and constraints:
+
+- Case-level servers must use `mode: mocked` in the current MVP; real MCP per-case overrides are not yet supported.
+- Replacement is whole-entry, not a field-level merge: provide the full server entry (`name`, `mode`, `config_ref`).
+- `config_ref` is resolved relative to the Skill directory (where `SKILL.md` lives), **not** the case file directory — the same rule as eval-level MCP.
+- Each case provisions and installs its own mocked server, so fixtures stay isolated even when `cases.parallelism > 1`.
+
+### Choosing a runtime environment
+
+| Environment   | When to use                                       | Example Skills                              |
+| :-----------: | :-----------------------------------------------: | :-----------------------------------------: |
+| `none`        | Plain-text I/O, no filesystem dependencies        | Command routing, Q&A, text generation       |
+| `opensandbox` | Requires a remote sandbox service                  | Code review, project scaffolding, scripting |
+| `docker`      | Local container isolation, no remote dependency    | Custom toolchains, reproducible CI, offline |
+
+> **Tip:** if your Skill does not touch the filesystem, `none` avoids sandbox provisioning and is significantly faster.
+
+#### OpenSandbox configuration
+
+When `environment.type: opensandbox` is used, sandbox auth is read from the `OPENSANDBOX_API_KEY` environment variable. Non-secret options such as service URL or extension flags belong in `environment.kwargs`. The Agent runtime handles its own binary path; you usually do **not** need to set `PATH` inside the eval config.
+
+```yaml
+environment:
+  type: opensandbox
+  image: registry.example.com/your-org/sandbox-base:latest
+  workspace_mount: /workspace
+  ready_timeout_seconds: 300
+  kwargs:
+    base_url: https://agent-sandbox.example.com
+    extensions: '{"profile":"ci"}'
+    request_timeout_seconds: "900"
+    file_transfer_parallelism: "8"
+```
+
+Common fields:
+
+| Field | Description |
+| --- | --- |
+| `image` | Sandbox image; falls back to the OpenSandbox runtime default when omitted. |
+| `workspace_mount` | Workspace path inside the sandbox; defaults to `/workspace`. |
+| `env` | Environment variables injected into sandbox commands. To extend `PATH`, use `PATH: $CUSTOM_BIN:$PATH` — the runtime expands it inside the sandbox. |
+| `setup_steps` | Init commands executed inside the workspace after the sandbox starts. |
+| `kwargs.base_url` | OpenSandbox service URL; can also be set via `OPENSANDBOX_BASE_URL`. |
+| `kwargs.extensions` | OpenSandbox extension config as a JSON string. |
+| `kwargs.request_timeout_seconds` | Request timeout for the OpenSandbox SDK. |
+| `kwargs.file_transfer_parallelism` | Concurrency for directory download. |
+
+#### Docker configuration
+
+When `environment.type: docker` is used, the agent runs inside a local Docker container. This provides container-level isolation (filesystem, process, network) without any remote service dependency.
+
+**Prerequisites:** a working `docker` CLI on PATH and a running Docker daemon. The runtime does not pull images automatically — run `docker pull <image>` beforehand.
+
+```yaml
+environment:
+  type: docker
+  image: node:22                    # Required — must be pre-pulled locally
+  workspace_mount: /workspace       # Default: /workspace
+  env:
+    NPM_CONFIG_REGISTRY: https://registry.npmmirror.com
+  setup_steps:
+    - run: npm install -g typescript
+  entrypoint: ["sleep", "infinity"] # Override container entrypoint (default: sleep infinity)
+```
+
+Common fields:
+
+| Field | Description |
+| --- | --- |
+| `image` | **Required.** Docker image name. Must be available locally (pre-pull with `docker pull`). |
+| `workspace_mount` | Workspace path inside the container; defaults to `/workspace`. Must be absolute. |
+| `env` | Environment variables injected into container commands. |
+| `setup_steps` | Init commands executed inside the container after it starts. |
+| `entrypoint` | Override the container's ENTRYPOINT. Defaults to `["sleep", "infinity"]`. |
+| `network_policy` | `deny_all` creates the container with `--network=none` (no network access). `allow_declared` is not yet supported — use `opensandbox` if you need FQDN-level egress filtering. |
+
+> **Tip:** Docker runtime is a good fit for evaluations that need custom system packages, specific language runtimes, or offline/air-gapped environments. For remote sandboxing with managed infrastructure, use `opensandbox` instead.
+
+---
+
+## case.yaml — evaluation case
+
+Each `.yaml` file under `cases/` defines one case: *what prompt to send* and *how to verify the result*.
+
+### Single-turn case
+
+Most scenarios only need a single-turn prompt:
+
+```yaml
+id: find-null-bug
+title: Should detect a null pointer bug
+description: Verify that the Skill catches null dereferences during code review
+
+input:
+  prompt: |
+    Review the current diff and report findings.
+
+context:
+  repo_fixture: evals/fixtures/repos/null-check-bug    # Load a repo template
+  git:
+    init: true
+    checkout: main
+    apply_diff: evals/fixtures/diffs/null-check.patch
+
+constraints:
+  timeout_seconds: 180
+  max_turns: 8
+
+expect:                           # Cheap gating checks
+  must_contain:
+    - "null"
+    - "bug"
+  must_not_contain:
+    - "LGTM"
+  exit_code: 0
+
+judge:                            # Quality grading
+  type: rule_based
+  success:
+    - output_contains:
+        all: ["null", "bug"]
+    - exit_code: 0
+```
+
+---
+
+## Case context
+
+`context` prepares the initial workspace for a case.
+
+### Load a repository template
+
+```yaml
+context:
+  repo_fixture: evals/fixtures/repos/my-project    # Copy contents into the workspace
+```
+
+### Git operations
+
+```yaml
+context:
+  repo_fixture: evals/fixtures/repos/my-project
+  git:
+    init: true
+    checkout: feature-branch
+    apply_diff: evals/fixtures/diffs/my.patch
+    remotes:
+      - name: origin
+        url: https://github.com/user/repo
+```
+
+### Inline files
+
+```yaml
+context:
+  files:
+    "src/main.py": |
+      def hello():
+          print("Hello World")
+    "config.json": |
+      {"debug": true}
+```
+
+---
+
+## Multi-turn conversations
+
+Use `input.turns` instead of `input.prompt` when your evaluation requires
+multiple sequential interactions with the agent — for example, iterative
+refinement, phase-gated workflows, or clarification loops.
+
+### When to use `input.prompt` vs `input.turns`
+
+| Scenario | Use |
+|----------|-----|
+| Single instruction, judge the final output | `input.prompt` |
+| Multi-step workflow with inter-turn gates | `input.turns` |
+| Iterative refinement (e.g. "now improve naming") | `input.turns` |
+| Agent must reject invalid requests mid-conversation | `input.turns` |
+
+### Basic multi-turn case
+
+```yaml
+input:
+  turns:
+    - role: user
+      content: "Implement a binary search function in Go."
+      post_condition:
+        must_contain_all: ["func", "binary"]
+        on_fail: fail
+    - role: user
+      content: "Add unit tests for the function you wrote."
+      post_condition:
+        must_contain_any: ["Test", "t.Run", "testing"]
+        on_fail: fail
+```
+
+### Simulated user replies
+
+Configure a separate model for the simulated user in `eval.yaml`:
+
+The model ID below is a placeholder, not a runnable configuration. For a
+live-tested local OpenCode/DashScope configuration, see
+the user simulator example (`examples/user-simulator/README.md` in the checkout).
+
+```yaml
+user_simulator:
+  provider: simulation
+  protocol: openai
+  model: your-model-id
+  timeout_seconds: 30
+```
+
+Set `protocol: openai` for OpenAI Chat Completions, or `protocol: anthropic`
+for Anthropic Messages. Set `SIMULATION_API_KEY` and
+`SIMULATION_BASE_URL`, or configure the same provider in
+`~/.skilled/credentials.yaml`. For `provider: openai`, the standard OpenAI
+endpoint is used when no base URL is configured. The simulator runs outside the
+agent workspace and uses its own model connection. For `provider: anthropic`
+with `protocol: anthropic`, `ANTHROPIC_API_KEY` and optional
+`ANTHROPIC_BASE_URL` configure the connection; the official endpoint is the fallback.
+Custom providers require an explicit base URL for their selected protocol.
+Anthropic replies are bounded to 1024 output tokens with thinking disabled;
+truncated responses and tool calls are rejected.
+
+In a case, `user_simulator.scenario` describes the user's goal and known
+information. A `respond` turn generates one user message from the scenario,
+the turn instruction, and the preceding conversation. Fixed `content` turns
+can appear before or after it:
+
+```yaml
+user_simulator:
+  scenario: |
+    Generate a staging configuration with two replicas.
+    Do not approve deployment. Do not invent missing information.
+input:
+  turns:
+    - role: user
+      content: "Create a deployment configuration."
+    - role: user
+      respond: "Answer the agent's current configuration question."
+    - role: user
+      content: "Change the replica count to three."
+```
+
+For a conversation whose later turns are fully determined by the simulator,
+provide a fixed opening prompt and omit `turns`:
+
+```yaml
+user_simulator:
+  scenario: |
+    Generate a staging configuration with two replicas.
+    Answer follow-up questions, reject deployment, and end when the
+    configuration and verification steps have been explained.
+input:
+  prompt: "Create a deployment configuration."
+constraints:
+  max_turns: 8
+```
+
+The initial prompt counts as turn one. The evaluator enforces `max_turns` and
+records a limit error when the simulator asks to continue beyond it. A
+simulator stop ends the dialogue and is recorded in the turn results; the
+configured judge still determines PASS or FAIL. Simulated cases require an
+engine that supports session resumption.
+
+### `post_condition` — inter-turn gate
+
+`post_condition` checks the agent's response after each turn. It is a **gate**,
+not a replacement for the judge. Use it to ensure the conversation stays on
+track before sending the next turn.
+
+Fields:
+
+- `must_contain_all`: all strings must appear in the response.
+- `must_contain_any`: at least one string must appear.
+- `must_not_contain`: none of the strings may appear.
+- `on_fail`: what happens when the condition fails:
+  - `fail` (default): mark the case as FAIL immediately.
+  - `skip_remaining`: skip all subsequent turns; the case result depends on
+    what the judge sees.
+
+### `capture` — template variables
+
+Capture values from a turn response for use in later turns:
+
+```yaml
+input:
+  turns:
+    - role: user
+      content: "Generate a session token."
+      capture:
+        - variable: token
+          pattern: "token[=: ]+(?P<value>[A-Za-z0-9]+)"
+    - role: user
+      content: "Verify the token {{token}} is valid."
+```
+
+Capture semantics:
+
+- Named group `(?P<value>...)` is preferred; if absent, exactly one unnamed
+  capture group is allowed.
+- Extractor type: `pattern` (regex) or `jsonpath` — specify exactly one.
+- No match or empty value → the case enters ERROR state.
+- Variables are scoped to the current case execution only (never shared across
+  cases, retries, or baseline variants).
+- Referencing an unknown variable fails the turn before the agent is invoked.
+
+### Agent support matrix
+
+| Engine | Multi-turn support | Mechanism |
+|--------|-------------------|------------|
+| `claude_code` | Yes | `--resume` flag with session ID |
+| `qodercli` | Yes | `-r <session-id>` flag |
+| `codex` | Yes | `codex resume <thread-id>` command |
+| `opencode` | Yes | `opencode run --session <session-id>` |
+| `qwen_code` | Not yet | Falls back to batch mode |
+| `custom` | Opt-in | `conversation_mode: stateful` with `SessionInput.session_id`; otherwise batch mode |
+
+When an agent does not implement session resumption, all turns are concatenated
+and sent as a single prompt. A warning is logged.
+
+### Per-turn judge assertions
+
+The rule-based judge supports per-turn assertions:
+
+```yaml
+judge:
+  type: rule_based
+  success:
+    - turn_response_contains:
+        turn: 1
+        contains_all: ["binary_search"]
+    - turn_response_not_contains:
+        turn: 2
+        not_contains: ["TODO", "FIXME"]
+    - tool_called_in_turn:
+        turn: 1
+        name: write_file
+        args:
+          path: "search.go"
+    - tool_not_called_in_turn:
+        turn: 2
+        name: delete_file
+```
+
+Failure behavior:
+
+- Missing turn (not executed) → assertion fails.
+- Skipped/failed/errored turn → assertion fails (only "completed" turns are
+  assertable).
+
+---
+
+## Grading strategies
+
+Grading happens in two layers: **expect** (gating checks) and **judge** (quality assessment).
+
+### expect — fast gating
+
+`expect` is a zero-cost local check. If `expect` fails, `judge` is skipped.
+
+```yaml
+expect:
+  must_contain:                 # Output must contain ALL of these
+    - "review"
+    - "bug"
+  must_not_contain:             # Output must NOT contain any of these
+    - "LGTM"
+    - "error"
+  exit_code: 0                  # Expected exit code
+  files_exist:                  # Files that must exist
+    - "review.md"
+    - "output.json"
+  files_not_exist:              # Files that must not exist
+    - "temp.log"
+  file_contains:                # Files must contain specific text
+    - path: "review.md"
+      content: "security"
+  golden_file: "expected.txt"   # Compare output to golden file
+```
+
+#### Default expect checks
+
+Define common expect checks once in `cases.defaults.expect` instead of repeating them in every case:
+
+```yaml
+# In eval.yaml
+cases:
+  defaults:
+    expect:
+      exit_code: 0
+      must_not_contain:
+        - "TODO"
+        - "I cannot"
+      files_exist:
+        - "result.json"
+```
+
+Each case can add to or override these defaults:
+
+```yaml
+# In case.yaml
+expect:
+  must_contain:
+    - "SPECIAL_OK"              # Added to defaults
+  exit_code: 1                  # Overrides default exit_code
+```
+
+**Merge semantics:**
+
+- **Slice fields** (`must_contain`, `must_not_contain`, `files_exist`, `files_not_exist`, `file_contains`) are **appended** and de-duplicated (defaults first).
+- **Scalar fields** (`exit_code`, `golden_file`) are **overridden** by the case when set.
+- If no case-level `expect` is defined, defaults are used as-is.
+- The merged expect runs before judge; a failing merged expect skips judge execution.
+
+### judge: rule_based — deterministic rules
+
+Decide pass/fail by declarative rules — fully deterministic and reproducible:
+
+```yaml
+judge:
+  type: rule_based
+  success:                                    # All conditions must be met
+    - output_contains:
+        all: ["bug", "null"]                  # Must contain ALL
+        any: ["suggest fix", "recommend"]     # Must contain at least one
+        not: ["LGTM"]                         # Must NOT contain
+    - output_matches:                         # Go regexp patterns against final output
+        all: ["(?m)^## Status$", "(?m)^## Evidence$"]
+        any: ["(?i)pass", "(?i)success"]
+        not: ["(?i)api[_-]?key\\s*="]
+    - exit_code: 0
+    - tool_called:                            # Agent must invoke this tool
+        name: "github::create_pull_request"
+        args:                                 # Partial-match against tool args
+          title: "Fix null check"
+  failure:                                    # If ANY rule matches → immediate fail
+    - output_contains:
+        any: ["no changes needed", "code is correct"]
+    - output_matches:
+        any: ["BEGIN PRIVATE KEY"]
+```
+
+> **Evaluation order:** `failure` outranks `success`. If any `failure` rule matches, the case fails immediately. Otherwise every `success` rule must pass.
+
+`output_contains` performs literal substring checks. Use `output_matches` when you need regular expressions; patterns use Go `regexp` syntax and invalid patterns fail config validation.
+
+### judge: script — custom script
+
+Run your own script (in any language) to grade results:
+
+```yaml
+judge:
+  type: script
+  script_path: evals/fixtures/scripts/check-quality.sh
+  timeout_seconds: 30
+```
+
+Script contract:
+
+- Exit code **0** = pass, anything non-zero = fail
+- Working directory is the case workspace root
+- Available env vars: `$EVAL_FINAL_MESSAGE`, `$EVAL_EXIT_CODE`
+- `$EVAL_TRANSCRIPT_PATH` is set only when a transcript was produced; otherwise it is empty
+- Stdout from the script is captured as the grading rationale in the report
+
+### Multiple independent judges
+
+For execution contracts, isolation limits, and planned extensions, see the
+[Multi-judge design](../design/multi-judge.md).
+
+Use `judges` when one agent run needs both a deterministic check and semantic review:
+
+```yaml
+judges:
+  - id: functional
+    type: script
+    script_path: evals/fixtures/scripts/check-quality.sh
+    timeout_seconds: 30
+  - id: semantic
+    type: agent_judge
+    model: dashscope/qwen3.8-max
+    criteria:
+      - "The result meets the user's intent"
+    pass_threshold: 0.7
+```
+
+The model example uses the OpenCode/DashScope engine configuration above. An Agent judge inherits the configured engine and endpoint; changing only its model does not select another engine. See the code-stats example (`examples/code-stats/README.md` in the checkout) for configuration and historical source verification; authenticated candidate execution remains unverified.
+
+Each member has its own status, assertions, diagnostics, and artifacts. All members inspect the same agent execution; the evaluated agent does not run again. `expect` remains a gate: if it fails, all judges are skipped. Otherwise every member runs, even if an earlier member fails or errors. The case passes only when every member passes. List order controls execution order but does not pass data between judges.
+
+`judges` can be defined at eval or case level. A case-level list replaces the full eval-level list. A case-level singular `judge` also replaces an eval-level list. A document cannot contain both `judge` and `judges`, and member IDs must be unique lowercase identifiers containing letters, digits, `_`, or `-`.
+
+This first release supports multi-judge execution with the `none` runtime. Each member receives a separate copy of the workspace. Other runtimes report an unsupported-isolation error before the agent starts. A `none` runtime runs on the host, so external services, network state, and writes outside its workspace are not isolated. Relative symlinks within the workspace are preserved; external or absolute symlinks cause snapshot creation to fail.
+
+Reports show gates, member results, and the overall decision separately. `evaluation.json` stores the complete grouped result; `grading.json` contains one top-level expectation per judge for compatibility. Adding Agent criteria does not change a script judge's weight. Multiple cases can reference the same `script_path` today; packaging helper files with a script is a separate feature.
+
+### judge: agent_judge — LLM rubric
+
+Let an LLM grade against rubric criteria — useful when semantic understanding is required:
+
+```yaml
+judge:
+  type: agent_judge
+  model: dashscope/qwen3.8-max        # Model used by the judge
+  skills:                                   # Optional: judge-only Skills
+    - source: local_path
+      path: evals/fixtures/judge-rubric
+  criteria:                                  # Natural-language rubric
+    - "Identifies a real bug with an accurate location"
+    - "Does not flag correct code as a bug"
+    - "Recommendations are actionable, not generic"
+  pass_threshold: 0.7                        # Default 0.7
+  timeout_seconds: 60                        # Optional: bound a single judge call (0 = no judge-level deadline, parent case timeout still applies)
+```
+
+`judge.skills` is supported only for `agent_judge`. These Skills are installed
+into the judge agent, not the run agent, and top-level `skills` are not
+automatically installed into the judge. In benchmark mode, judge Skills are
+installed for both `with_skill` and `without_skill` runs because they are
+grading tooling, not the Skill under test. Installation uses each Agent
+adapter's native Skill mechanism; skilled does not concatenate Skill files
+into the judge prompt.
+
+`agent_judge` materializes review context into files and injects a small
+materials table into the judge prompt. When `judge.context` is omitted, the
+default profile is `standard`: `final_message` is included inline, while
+`transcript` and `workspace_diff` are provided as file references to avoid
+large prompt/argv failures.
+
+Use `minimal` for long repository-change benchmarks where the judge should rely
+on explicit attachments or script outputs instead of the full conversation:
+
+```yaml
+judge:
+  type: agent_judge
+  model: dashscope/qwen3.8-max
+  context:
+    profile: minimal                         # transcript/diff omitted, final_message truncated
+    attachments:
+      - path: evals/fixtures/diff-result.json
+        label: diff_result
+  criteria:
+    - "Determine whether the reported changes satisfy the expected rules."
+```
+
+Per-field modes are available when you need to tune the profile:
+
+```yaml
+judge:
+  type: agent_judge
+  context:
+    profile: standard
+    final_message: include                   # include | truncate | file_ref | omit
+    transcript: file_ref                     # include auto-downgrades to file_ref above limits.max_bytes
+    workspace_diff: file_ref
+    generated_files: index                   # index | include | omit
+    limits:
+      max_bytes: 65536
+```
+
+> **Cost note:** `agent_judge` consumes additional tokens. Prefer `expect` or `rule_based` for deterministic checks and reserve `agent_judge` for assertions that genuinely require semantic understanding.
+
+---
+
+## Benchmark mode
+
+Setting `benchmark.enabled: true` runs every case **twice**:
+
+1. **with_skill** — Skill installed (treatment)
+2. **without_skill** — Skill removed (baseline)
+
+The diff highlights the value the Skill adds (pass-rate uplift, time/token deltas).
+For one-off comparisons, `skilled run ./evals/eval.yaml --baseline` enables the
+same mode without changing `eval.yaml`.
+
+```yaml
+benchmark:
+  enabled: true
+```
+
+> **Note:** benchmark mode doubles wall time and token spend. It is disabled by default.
+
+---
+
+## Credentials
+
+Evaluations call Agent Engines and may call model APIs. You can inject
+credentials through skilled, or omit them when the selected engine can use an
+existing local login. Credential resolution order, highest priority first:
+
+### 1. CLI flag (transient override)
+
+```bash
+skilled run ./evals/eval.yaml --api-key sk-xxx
+```
+
+### 2. Environment variables (recommended)
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-xxx
+export OPENAI_API_KEY=sk-xxx
+skilled run ./evals/eval.yaml
+```
+
+Variables follow the `<PROVIDER>_<FIELD>` pattern. Supported fields: `API_KEY`, `BASE_URL`, `MODEL`.
+
+| Provider  | API Key             | Base URL             | Model              |
+| :-------: | :-----------------: | :------------------: | :----------------: |
+| anthropic | `ANTHROPIC_API_KEY` | `ANTHROPIC_BASE_URL` | `ANTHROPIC_MODEL`  |
+| openai    | `OPENAI_API_KEY`    | `OPENAI_BASE_URL`    | `OPENAI_MODEL`     |
+| other     | `<PROVIDER>_API_KEY`| `<PROVIDER>_BASE_URL`| `<PROVIDER>_MODEL` |
+
+A `.env` file at the project root is also auto-loaded on startup.
+
+### 3. Config file (persistent)
+
+Create `~/.skilled/credentials.yaml`:
+
+```yaml
+providers:
+  anthropic:
+    api_key: sk-ant-xxx
+  openai:
+    api_key: sk-xxx
+    base_url: https://api.openai.com/v1    # Optional, useful for proxies
+```
+
+### Common connection recipes
+
+#### Use an existing local login
+
+Keep the provider, model, and API key empty and use the host runtime. skilled
+checks that the CLI is installed, but does not make a token-consuming request
+to validate its login. The first real case run performs that validation.
+
+```yaml
+environment:
+  type: none
+engine:
+  name: codex                 # also applies to claude_code, qodercli, and qwen_code
+  model: {}
+```
+
+Agent-native configuration and login databases remain owned by the CLI. A host
+login is not automatically copied into Docker or OpenSandbox runtimes.
+
+#### Inject a named provider connection
+
+Use an explicit provider when the model identifier should not select the
+credential namespace. Provider-scoped environment variables supply the
+connection without putting secrets in the eval file:
+
+```bash
+export DASHSCOPE_API_KEY=your-key
+export DASHSCOPE_BASE_URL=https://dashscope.example.com/compatible-mode/v1
+
+skilled run ./evals/eval.yaml \
+  --engine codex \
+  --provider dashscope \
+  --model qwen3-coder-plus
+```
+
+The engine selects the protocol; the provider selects the credential and
+endpoint namespace. In this example Codex uses DashScope's OpenAI-compatible
+endpoint.
+
+#### Configure one gateway for multiple protocols
+
+A provider entry may define protocol-specific endpoints. The selected engine
+chooses one endpoint; skilled does not infer an engine from the provider:
+
+```yaml
+# ~/.skilled/credentials.yaml
+providers:
+  company_gateway:
+    api_key: <gateway-api-key>
+    openai:
+      base_url: https://gateway.example.com/openai/v1
+    anthropic:
+      base_url: https://gateway.example.com/anthropic
+```
+
+```yaml
+# eval.yaml
+engine:
+  name: codex
+  model:
+    provider: company_gateway
+    name: team/model-v2
+```
+
+Changing the engine to `claude_code` selects the Anthropic-compatible endpoint
+under the same provider namespace.
+
+#### Opaque and legacy slashed model IDs
+
+With `--provider`, the entire `--model` value is opaque, including `/`:
+
+```bash
+skilled run ./evals/eval.yaml \
+  --engine codex \
+  --provider company_gateway \
+  --model team/model-v2
+```
+
+Without `--provider`, the historical `provider/model` form remains supported
+for existing engines when the prefix is a known or configured provider:
+
+```bash
+skilled run ./evals/eval.yaml --engine codex --model openai/gpt-5.4
+```
+
+An unknown prefix is preserved as part of the model ID rather than being
+guessed as a provider.
+
+### qodercli credentials
+
+qodercli authentication is **completely separate** from model-layer credentials such as `ANTHROPIC_API_KEY`. The two layers cannot be mixed.
+
+| Layer              | Environment variable             | Purpose                                                  |
+| :----------------: | :------------------------------: | :------------------------------------------------------: |
+| qodercli service   | `QODER_PERSONAL_ACCESS_TOKEN`    | Authenticates against the qodercli service               |
+| qodercli CN service | `QODERCN_PERSONAL_ACCESS_TOKEN` | Authenticates against Qoder CLI CN                        |
+| Model layer        | `ANTHROPIC_API_KEY`, etc.        | Managed internally by qodercli; users do not configure it |
+
+Setup:
+
+```bash
+# Option 1: export the env var directly
+export QODER_PERSONAL_ACCESS_TOKEN=your_token_here
+
+# Option 2: write it into the project root .env file
+echo 'QODER_PERSONAL_ACCESS_TOKEN=your_token_here' >> .env
+```
+
+Select Qoder CLI CN with `engine.kwargs.edition: cn`. Its official credential
+is `QODERCN_PERSONAL_ACCESS_TOKEN`; `skilled` also accepts the local input alias
+`QODER_CN_ACCESS_TOKEN` and forwards its value under the official name. This is
+useful when a secret manager or macOS Keychain injects the shorter alias without
+exposing the value in an eval file:
+
+```yaml
+engine:
+  name: qodercli
+  kwargs:
+    edition: cn
+```
+
+> **Tip:** The selected edition's PAT is optional. When unset, Global falls back to `~/.qoder/` and CN to `~/.qoder-cn/`. Project-level settings and Skills remain under the shared project `.qoder/` directory.
+>
+> **Note:** the `--api-key` flag and any provider API key declared in `eval.yaml` are **not** used as the qodercli auth token. Authentication comes from the selected edition's PAT or local login state.
+
+qodercli model selection:
+
+- A non-empty `engine.model.name` is passed to Qoder's `--model` after trimming
+  surrounding whitespace, preserving case and the complete identifier. This
+  applies to initial runs, stdin prompts, and resumed sessions.
+- Historical tiers (`lite`, `efficient`, `auto`, `performance`, `ultimate`),
+  concrete model names, and custom model IDs are forwarded without a local
+  allowlist. Availability depends on the installed Qoder CLI and account.
+  Use Qoder's model selector or `--list-models` where supported to check it.
+- Omit the model to use Qoder's default. An invalid or unavailable explicit
+  model produces an execution error with model context and Qoder's diagnostic;
+  skilled does not silently retry with the default model.
+- `base_url` has no effect for qodercli. Provider API keys are not Qoder PATs.
+- Requested/applied model report fields describe the requested value and the
+  forwarded argument, not independently verified server-side model selection.
+
+For example, select an available concrete model by its exact name:
+
+```yaml
+engine:
+  name: qodercli
+  model:
+    name: Qwen3.7-Plus
+```
+
+For an opaque ID containing `/`, use `engine.model.name` in YAML or an explicit
+CLI provider to avoid the legacy `provider/model` interpretation:
+
+```bash
+skilled run ./evals/eval.yaml --engine qodercli --provider qoder --model 'team/custom-model-id'
+```
+
+The provider above only disambiguates CLI parsing; Qoder still owns routing and
+authentication. Configure any custom model in Qoder first.
+
+### OpenCode engine
+
+Set `engine.name: opencode`. With `environment.type: none`, skilled uses the
+installed local `opencode` command and its existing login. With `docker` or
+`opensandbox`, skilled installs the `opencode-ai` CLI in the isolated runtime.
+The tested DashScope configuration below works in both modes.
+
+OpenCode receives the model as `provider/model`. An explicit API key is passed
+through the runtime environment; without one, OpenCode uses its own login.
+For OpenCode, `--model org/model` with no provider or base URL is passed through unchanged;
+skilled does not infer `org` as the provider. To select a provider explicitly,
+use `--provider gateway --model org/model`, which sends `gateway/org/model` to
+OpenCode. `engine.model.provider` works the same way. When only `base_url` is
+configured, the adapter uses `openai/org/model` so the full model ID reaches
+that endpoint.
+`engine.model.base_url` adds a provider endpoint through OpenCode's inline
+configuration. For a custom OpenAI-compatible provider, set its provider ID,
+model name, and base URL. Real and mocked MCP servers are also passed through
+inline configuration without editing the project's `opencode.json`.
+OpenCode returns JSON events, including the session ID, tool calls, response,
+and token usage; multi-turn cases resume with that exact session ID.
+
+OpenCode automatically approves tool permissions for non-interactive runs.
+On `none`, its tools execute with local user permissions. Use `docker` or
+`opensandbox` when the evaluation needs isolation. Sandboxed runs require the
+model endpoint and MCP servers to be reachable from inside the runtime.
+
+#### DashScope OpenAI-compatible endpoint
+
+Configure a provider ID, the upstream model ID, and the endpoint in
+`evals/eval.yaml`:
+
+```yaml
+environment:
+  type: none # Use opensandbox or docker for an isolated run
+engine:
+  name: opencode
+  model:
+    provider: dashscope
+    name: qwen3.8-max
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+```
+
+Supply the API key through `DASHSCOPE_API_KEY` or `--api-key`; keep it out of
+the eval file. With `DASHSCOPE_API_KEY` set in the process environment, run:
+
+```bash
+skilled run ./evals/eval.yaml
+```
+
+skilled passes `dashscope/qwen3.8-max` as OpenCode's `--model` value. It injects
+an inline `dashscope` provider with `@ai-sdk/openai-compatible`, the configured
+`baseURL`, and the model ID. The key is referenced through a runtime environment
+variable. Replace the endpoint with the URL for your DashScope region or
+workspace, and use a model that the key can access. The example uses the
+[documented `qwen3.8-max` model ID](https://help.aliyun.com/zh/model-studio/qwen3-8-max).
+For a model ID containing
+slashes, keep the entire ID in `name` (or `--model`); skilled does not split it.
+
+### qwen_code credentials
+
+[Qwen Code](https://github.com/QwenLM/qwen-code) is an open-source terminal coding agent optimized for Qwen models. The engine name is `qwen_code` (aliases: `qwen-code`, `qwen`), backed by the `@qwen-code/qwen-code` CLI. skilled installs it on demand via `npm install -g @qwen-code/qwen-code` (Node.js 20+ is bootstrapped automatically), so a manual install is optional.
+
+Qwen Code talks to any **OpenAI-compatible** endpoint, so it reuses the standard OpenAI environment variables — the same plumbing as `codex`:
+
+| Variable          | Purpose                                                    |
+| :---------------: | :-------------------------------------------------------: |
+| `OPENAI_API_KEY`  | API key for the OpenAI-compatible endpoint                 |
+| `OPENAI_BASE_URL` | Endpoint base URL (e.g. DashScope OpenAI-compatible mode)  |
+| `OPENAI_MODEL`    | Model id; set automatically from `engine.model.name`       |
+
+`provider: openai` (or an empty provider) plus a `base_url` points Qwen Code at a custom gateway; `engine.model.name` / `--model` is forwarded both as the `-m` flag and as `OPENAI_MODEL`. A missing `OPENAI_API_KEY` is informational only — Qwen Code can fall back to local login state under `~/.qwen/` (e.g. Qwen OAuth). Each case runs non-interactively by piping the instruction to `qwen --yolo`, which auto-approves tool actions.
+
+> **Sandboxing:** `--yolo` auto-approves tool calls but does **not** isolate them — so on the `none` runtime `qwen_code` executes shell/write tools with your host privileges, the same as `claude_code` and `qodercli`. `qwen_code` deliberately does not force qwen's own `-s` sandbox (it requires docker/podman on Linux and is unreliable elsewhere); instead, run untrusted skills under a sandboxed runtime (`environment.type: docker` or `opensandbox`), which isolates every engine uniformly. On the `none` runtime qwen's "running without a sandbox" notice is left visible as a reminder; under a sandboxed runtime it is silenced (the container is the sandbox).
+
+> **Protocol:** Qwen Code only speaks the **OpenAI-compatible** API (plus Qwen OAuth); it has **no** native Anthropic Messages API mode. To evaluate against an Anthropic-protocol endpoint, use the `claude_code` engine instead (it reads `ANTHROPIC_API_KEY` / `ANTHROPIC_BASE_URL`), or front the endpoint with an Anthropic→OpenAI-compatible proxy and pass that proxy's URL as `base_url`.
+
+Minimal local run:
+
+```bash
+export OPENAI_API_KEY=sk-xxx
+export OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+
+skilled run ./evals/eval.yaml --engine qwen_code --model qwen3-coder-plus
+```
+
+---
+
+## Worked examples
+
+### Example A — plain-text routing Skill
+
+Lightweight scenario without filesystem state, verifying that the Skill routes the right command:
+
+```yaml
+# eval.yaml
+schema_version: v1alpha1
+environment:
+  type: none
+engine:
+  name: opencode
+  model:
+    provider: dashscope
+    name: qwen3.8-max
+    base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+cases:
+  files:
+    - evals/cases/route-to-summary.yaml
+  parallelism: 4                  # Stateless, fully parallelizable
+judge:
+  type: rule_based
+```
+
+```yaml
+# cases/route-to-summary.yaml
+id: route-to-summary
+title: Resource overview should route to `app summary`
+
+input:
+  prompt: |
+    Show the resource overview of my-app, including machine count.
+
+expect:
+  must_contain:
+    - "app summary"
+  must_not_contain:
+    - "app get"
+
+judge:
+  type: rule_based
+  success:
+    - output_contains:
+        all: ["app summary", "--name"]
+```
+
+### Example B — MCP tool-call Skill
+
+Validate that the Skill invokes a specific MCP tool:
+
+```yaml
+# cases/create-plan.yaml
+id: create-plan
+title: Should call the create-publish-plan tool correctly
+
+input:
+  prompt: |
+    Create a release plan called "Q1 release" scheduled for 2026-04-03.
+
+judge:
+  type: rule_based
+  success:
+    - tool_called:
+        name: "project-mgmt::create_publish_plan_simple"
+        args:
+          name: "Q1 release"
+          planReleaseDate: "2026-04-03"
+```
+
+---
+
+## FAQ
+
+### How are paths in `eval.yaml` resolved?
+
+All paths (including `cases.files` and fixture paths) are resolved relative to the **Skill root** — the directory that contains `SKILL.md`. For example, `evals/fixtures/repos/my-project` means `<skill-root>/evals/fixtures/repos/my-project`.
+
+### When should I use `expect` vs `judge`?
+
+Use `expect` for fast, zero-cost gating (file existence, keyword presence). Use `judge` for richer quality grading. They compose well — when `expect` fails, `judge` is skipped, saving time and tokens.
