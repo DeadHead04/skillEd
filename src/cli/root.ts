@@ -18,6 +18,8 @@ import {
   complete,
 } from "./completion.js";
 import { registerDebugCommand } from "./debug.js";
+import { registerCompareCommand } from "./compare.js";
+import { registerMcpCommand } from "./mcp.js";
 export function parseLongFlag(arg: string): {
   name: string;
   hasValue: boolean;
@@ -42,7 +44,7 @@ export function extractConfigFlag(args: string[]): string {
   }
   return "";
 }
-export function isInitInvocation(args: string[]): boolean {
+function isInvocation(args: string[], command: string): boolean {
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--") return false;
@@ -52,9 +54,12 @@ export function isInitInvocation(args: string[]): boolean {
       continue;
     }
     if (a.startsWith("-")) continue;
-    return a === "init";
+    return a === command;
   }
   return false;
+}
+export function isInitInvocation(args: string[]): boolean {
+  return isInvocation(args, "init");
 }
 export function loadUserConfig(
   args: string[],
@@ -93,6 +98,8 @@ export function createRoot(version: string, ctx: CliContext): Command {
   registerListCasesCommand(root, ctx);
   registerReportCommand(root, ctx);
   registerDebugCommand(root, ctx);
+  registerCompareCommand(root, ctx);
+  registerMcpCommand(root, ctx);
   registerImportCommand(root, ctx);
   registerInitCommand(root, ctx);
   registerCompletionCommand(root, ctx);
@@ -257,7 +264,12 @@ export async function executeArgs(
     shutdown: () => Promise<void>;
   };
   try {
-    observability = await initObservability(version);
+    // MCP stdout belongs exclusively to the protocol. Evaluation children
+    // initialize their normal telemetry; the long-lived server must not start
+    // console exporters that can write non-protocol output here.
+    observability = isInvocation(args, "mcp")
+      ? { context: ROOT_CONTEXT, shutdown: async () => {} }
+      : await initObservability(version);
   } catch (e) {
     stderr(`warning: failed to initialize observability: ${errorMessage(e)}\n`);
     observability = { context: ROOT_CONTEXT, shutdown: async () => {} };

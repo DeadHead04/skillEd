@@ -11,3 +11,4 @@ export * from "./junit.js";
 export * from "./markdown.js";
 export * from "./html.js";
 export * from "./template-helpers.js";
+export * from "./compare.js";

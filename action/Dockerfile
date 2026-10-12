@@ -18,7 +18,7 @@ ARG TARGETARCH
 ARG VCS_REF=unknown
 LABEL org.opencontainers.image.title="skilled action runner" \
       org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.version="0.1.0"
+      org.opencontainers.image.version="0.2.0"
 RUN apt-get update && apt-get install -y --no-install-recommends python3 python3-yaml curl bash git ca-certificates unzip && rm -rf /var/lib/apt/lists/*
 RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_VERSION}" "@openai/codex@${CODEX_VERSION}" "opencode-ai@${OPENCODE_VERSION}" "@qwen-code/qwen-code@${QWEN_CODE_VERSION}" \
     && claude --version && codex --version && opencode --version && qwen --version

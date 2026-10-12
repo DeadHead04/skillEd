@@ -49,5 +49,7 @@ jobs:
           package-manager-cache: false
       - run: npm ci
       - run: npm run package
+      - name: Verify real MCP cancellation on this native OS
+        run: node --test --test-name-pattern="cancellation|time limit" dist/tests/mcp/server.test.js
       - name: Execute archive on its actual native target
         run: node scripts/verify-native-package.mjs

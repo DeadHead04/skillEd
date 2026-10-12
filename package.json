@@ -1,6 +1,6 @@
 {
   "name": "skilled",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Skill evaluation CLI",
@@ -54,6 +54,7 @@
   "dependencies": {
     "@alibaba-group/opensandbox": "1.1.1",
     "@anthropic-ai/sdk": "0.133.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.12.0",
     "@opentelemetry/exporter-metrics-otlp-grpc": "0.223.0",
@@ -75,7 +76,6 @@
     "yaml": "2.9.1"
   },
   "devDependencies": {
-    "@modelcontextprotocol/sdk": "1.32.1",
     "@types/node": "24.19.2",
     "@types/picomatch": "4.0.3",
     "playwright": "1.64.0",

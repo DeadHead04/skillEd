@@ -134,6 +134,8 @@ async function installationProbe() {
       );
     const validated = run(["validate", evalPath]);
     assert.equal(validated.status, 0, validated.stderr);
+    const sourceValidated = run(["validate", "--skill", root]);
+    assert.equal(sourceValidated.status, 0, sourceValidated.stderr);
     const output = join(root, "cli-output"),
       events = join(root, "cli-events.jsonl");
     const invocation = run([
@@ -214,6 +216,39 @@ async function installationProbe() {
     assert.equal(records.at(-1).payload.status, "COMPLETED");
     assert.equal(records.at(-1).last_event, true);
     assert.equal(records.filter((r) => r.event === "case_completed").length, 4);
+
+    const comparison = run(["compare", join(output, "iteration-1/report.json"),
+      join(output, "iteration-1/report.json"), "--format", "json", "--fail-on-regression"]);
+    assert.equal(comparison.status, 0, comparison.stderr);
+    assert.equal(JSON.parse(comparison.stdout).summary.matched, 4);
+
+    // Resolve the SDK from this installation, never the checkout or system Node.
+    const { Client } = await import(new URL("./app/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js", import.meta.url));
+    const { StdioClientTransport } = await import(new URL("./app/node_modules/@modelcontextprotocol/sdk/dist/esm/client/stdio.js", import.meta.url));
+    const client = new Client({ name: "skilled-archive-acceptance", version: "1.0.0" });
+    const transport = new StdioClientTransport({ command: process.execPath,
+      args: [bootstrap, "mcp", "--workspace", root], cwd: root, env, stderr: "pipe" });
+    try {
+      await client.connect(transport);
+      const names = (await client.listTools()).tools.map(tool => tool.name);
+      for (const name of ["skilled_validate_skill", "skilled_validate", "skilled_compare", "skilled_run"])
+        assert(names.includes(name), `Missing packaged MCP tool ${name}`);
+      const workflow = await client.readResource({ uri: "skilled://workflow/skilled-improve" });
+      assert.match(workflow.contents[0].text, /name: skilled-improve/);
+      const resources = (await client.listResources()).resources;
+      assert(resources.some(resource => resource.uri.endsWith("/references/eval-yaml.md")));
+      const template = await client.readResource({ uri: "skilled://workflow/skilled-improve/assets/case.yaml.tmpl" });
+      assert.match(template.contents[0].text, /input:/);
+      assert((await client.getPrompt({ name: "skilled-improve" })).messages.length > 0);
+      for (const name of ["skilled_validate_skill", "skilled_validate", "skilled_run"]) {
+        const result = await client.callTool({ name, arguments: { path: "." } });
+        assert.equal(result.isError, false, JSON.stringify(result));
+      }
+      const same = await client.callTool({ name: "skilled_compare", arguments: {
+        before: "cli-output/iteration-1/report.json", after: "cli-output/iteration-1/report.json" } });
+      assert.equal(same.isError, false, JSON.stringify(same));
+      assert.equal(JSON.parse(same.content[0].text).summary.regressions, 0);
+    } finally { await client.close(); }
 
     // Call the package's public API from a separate workspace and preserve the
     // same environment isolation as the executable probe.
@@ -332,6 +367,7 @@ async function installationProbe() {
         formats: ["json", "junit", "html"],
         events: records.length,
         plugins: ["codex-skilled", "dsh-skilled"],
+        mcp: ["stdio", "tools", "workflow", "references", "templates", "prompt"],
         cwdOutsideCheckout: true,
         systemNodeRequired: false,
       }),
