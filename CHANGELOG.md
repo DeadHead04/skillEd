@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Refresh the README and documentation with clearer installation, evaluation, and agent-workflow paths, plus a responsive light/dark theme.
+- Update installation examples for 0.2.0 and document the protected-branch contribution process.
+
 ## 0.2.0
 
 - Separate prerequisite gates from judge rubric scores; unexecuted judges receive zero benchmark credit. Refresh older mixed gate/judge baselines.

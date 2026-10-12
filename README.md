@@ -1,37 +1,31 @@
-<p align="center"><img src="assets/logo.svg" width="96" alt="skilled logo" /></p>
+<p align="center"><img src="docs/public/readme-banner.svg" width="1120" alt="skilled — Test agent skills. Improve with evidence. Define cases, evaluate behavior, compare results." /></p>
 
 <h1 align="center">skilled</h1>
-<p align="center"><strong>Test agent skills. Improve with evidence.</strong></p>
-<p align="center">Repeatable evaluations for Agent Skills, agents, and workspaces.</p>
+<p align="center">Repeatable tests for agent skills, with a clear path from a failed case to a verified improvement.</p>
 
 <p align="center">
-  <a href="https://github.com/DeadHead04/skillEd/releases"><img src="https://img.shields.io/github/v/release/DeadHead04/skillEd" alt="Latest release" /></a>
+  <a href="https://github.com/DeadHead04/skillEd/releases/latest"><img src="https://img.shields.io/github/v/release/DeadHead04/skillEd?color=167d68" alt="Latest release" /></a>
   <a href="https://github.com/DeadHead04/skillEd/actions/workflows/ci.yml"><img src="https://github.com/DeadHead04/skillEd/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="Apache 2.0 license" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-167d68" alt="Apache 2.0 license" /></a>
 </p>
 
 <p align="center">
-  <a href="#install">Install</a> · <a href="#try-it">Quick start</a> · <a href="https://deadhead04.github.io/skillEd/">Documentation</a> · <a href="https://github.com/DeadHead04/skillEd/releases">Releases</a> · <a href="CONTRIBUTING.md">Contribute</a>
+  <a href="#install">Install</a> · <a href="#your-first-check">First check</a> · <a href="https://deadhead04.github.io/skillEd/guide/mcp">Use with your agent</a> · <a href="https://deadhead04.github.io/skillEd/">Documentation</a>
 </p>
 
-Write the behavior you expect in YAML, run it against your chosen agent, and inspect the results. Keep the same cases as you change a Skill so you can check whether it improved or regressed. Use **skilled-improve** in your agent host to turn failed evaluations into revisions and new regression cases.
+Write down what a Skill should do, run those cases against your agent, and keep the reports. After a change, rerun the same cases and compare results to see what improved and what regressed.
 
-**One installation, CLI or MCP.** The release includes the evaluation engine and
-the improvement workflow, references and templates. Connect it to your agent with
-[MCP](docs/guide/mcp.md), or run the CLI directly. Validate a Skill and compare
-existing results without a model account.
+| Component | What it does | How you use it |
+| --- | --- | --- |
+| **`skilled`** | Validates Skills, runs evaluations, and compares saved reports | CLI commands or MCP tools |
+| **`skilled-improve`** | Guides your agent through diagnosing failures, revising a Skill, and checking the result | Bundled MCP prompt or host workflow |
 
-![The skilled evaluation and improvement workflow](docs/public/overview.svg)
+**One installation includes both.** `skilled-improve` is a workflow, not a second terminal command. Validation, dry runs, and saved-report comparison work without model credentials. Live evaluations use the engine and account you configure.
 
 ## Install
 
-To have your agent handle setup, paste:
-
-> Set up skilled in this project using https://raw.githubusercontent.com/DeadHead04/skillEd/main/instruction.md, then validate a first evaluation without calling a model.
-
-Or install directly:
-
-### macOS and Linux
+<details open>
+<summary><strong>macOS & Linux</strong></summary>
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
@@ -39,9 +33,12 @@ export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 ```
 
-The installer downloads the latest release, verifies its SHA-256 checksum, and installs to `~/.local/bin`. Add the PATH line to `~/.zshrc` or `~/.bashrc` for future terminals. Bash, curl, and standard archive tools are required; **Node and application dependencies are bundled**. No GitHub login is needed.
+Add the PATH line to `~/.zshrc` or `~/.bashrc` for future terminals. Requires Bash, curl, and standard archive tools.
 
-### Windows PowerShell
+</details>
+
+<details>
+<summary><strong>Windows PowerShell</strong></summary>
 
 ```powershell
 $installer = Join-Path $env:TEMP 'skilled-install.ps1'
@@ -53,99 +50,87 @@ skilled --version
 
 Add `$HOME\.local\bin` to your user PATH for future terminals. Follow your organization's script policy if PowerShell blocks downloaded scripts.
 
-[Manual downloads](https://github.com/DeadHead04/skillEd/releases/latest) · [Pinned versions, updates, and uninstall](docs/guide/installation.md)
+</details>
 
-Releases include macOS, Linux, and Windows archives for x64 and ARM64. See [platform verification](docs/guide/windows.md) for the checks performed on each platform. Distribution is through GitHub Releases; an npm registry package and Homebrew formula are not published.
+The installer downloads the latest release, verifies its SHA-256 checksum, and installs to `~/.local/bin`. **The Node runtime and application dependencies are bundled.** No GitHub login or source build is needed.
 
-## Try it
+[Manual downloads](https://github.com/DeadHead04/skillEd/releases/latest) · [Pin a version, update, or uninstall](docs/guide/installation.md) · [Platform verification](docs/guide/windows.md)
 
-Prefer working in your agent? After installation, configure its MCP server to run
-`skilled mcp --workspace /absolute/path/to/your-project`, then ask it to use the
-`skilled-improve` prompt. [MCP setup and tools](docs/guide/mcp.md) explain how to
-enable real evaluations when ready.
+Prefer having your agent handle setup? Paste this into your agent:
 
-Download a small, inspectable Skill and one evaluation case. These macOS/Linux commands use the installed CLI:
+> Set up skilled in this project using https://raw.githubusercontent.com/DeadHead04/skillEd/main/instruction.md, then validate a first evaluation without calling a model.
+
+## Your first check
+
+For a project that already has a `SKILL.md` and `evals/eval.yaml`, run these commands from its root:
 
 ```sh
-mkdir -p skilled-hello/evals/cases
-cd skilled-hello
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/hello-world/SKILL.md -o SKILL.md
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/hello-world/evals/eval.yaml -o evals/eval.yaml
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/hello-world/evals/cases/greeting.yaml -o evals/cases/greeting.yaml
-skilled validate evals/eval.yaml
 skilled validate --skill .
-skilled list-cases evals/eval.yaml
+skilled validate evals/eval.yaml
 skilled run evals/eval.yaml --dry-run
 ```
 
-Validation and the dry run check the suite without calling a model. The [getting started guide](docs/guide/getting-started.md) shows the files in full and how to create them on any platform.
+This checks the Skill, evaluation configuration, and case selection without calling a model. Starting from scratch? The [Hello World walkthrough](docs/guide/getting-started.md) includes every file to create and works on all three operating systems.
 
-For a real evaluation, this example selects **Claude Code** using the host runtime. Install and authenticate that engine first, or change `engine.name` to an engine you already use. Then run:
+Once your chosen engine is installed and authenticated, run the evaluation:
 
 ```sh
 skilled run evals/eval.yaml --format json --format html --format junit
 ```
 
-This calls your selected engine and may incur provider charges. Results are written to the workspace path printed by the CLI. Use [engine and credential configuration](docs/guide/writing-evals.md#credentials) for provider keys or an existing local login. A dry run does not verify engine authentication or model quality.
+Open the HTML report in the directory printed by the CLI to inspect case verdicts and evidence. Live evaluations may incur provider charges; see [engine and credential setup](docs/guide/writing-evals.md#credentials).
 
-## What you can evaluate
+## Improve with your agent
 
-| Capability | Use it to |
-| --- | --- |
-| YAML cases and assertions | Check responses, generated files, and expected behavior with versioned cases |
-| Rule, script, and model judges | Choose simple assertions, custom checks, or model-based grading |
-| Agent engines | Run Claude Code, Codex, OpenCode, Qoder CLI, Qwen Code, or a custom engine |
-| Host, Docker, and OpenSandbox runtimes | Choose where cases execute; configure Docker or a sandbox server when needed |
-| Baselines and repeated runs | Compare with and without a Skill and inspect variation across iterations |
-| Offline result comparison | Compare earlier and revised runs, flag regressions and review coverage changes |
-| Skill integrity | Validate metadata and declared references; verify installed file bytes |
-| MCP tools, resources and prompt | Use evaluation and the bundled improvement workflow from a compatible agent host |
-| JSON, HTML, and JUnit reports | Review results locally and consume them in CI |
-| Anthropic evaluation import | Reuse `evals.json` suites through import or automatic discovery |
-| skilled-improve and host plugins | Help your agent inspect failures, revise a Skill, and add regression cases |
-
-Engine accounts and runtime services are configured separately. Installing the CLI does not sign into an agent or enable host observation capture.
-
-## Evaluate, inspect, improve
-
-1. Define cases in `evals/eval.yaml` and `evals/cases/` beside your `SKILL.md`.
-2. Validate the suite and run it against the selected engine.
-3. Inspect the HTML report and individual case artifacts.
-4. Use [skilled-improve](skills/skilled-improve/README.md) to revise the Skill or strengthen the cases, then rerun.
-
-Useful commands for an existing suite:
+Connect your agent host to the installed CLI using the [MCP setup guide](docs/guide/mcp.md). The server command is:
 
 ```sh
-skilled run evals/eval.yaml --baseline
-skilled run evals/eval.yaml --iteration 3
-skilled run evals/eval.yaml --event-log events.jsonl
+skilled mcp --workspace /absolute/path/to/your-project
 ```
 
-`--baseline` compares runs with and without the Skill; `--iteration 3` runs three iterations. [CLI reference](docs/guide/cli-reference.md) documents the full command set, output layout, and exit codes.
+Then ask your agent:
 
-To compare two saved runs:
+> Use skilled-improve to validate this Skill and its evaluation suite. Explain the problems and suggest regression cases. Start without calling a model.
+
+The default MCP connection supports validation, dry runs, comparison, and the bundled workflow. To execute evaluations through MCP, configure the engine and add `--allow-execution` to the server arguments.
+
+### The improvement loop
+
+1. **Evaluate.** Run versioned cases and preserve the report as a baseline.
+2. **Inspect.** Review failed assertions and the actual outputs.
+3. **Revise.** Use `skilled-improve` to help your agent edit the Skill or add missing cases.
+4. **Compare.** Rerun the same suite and check the saved reports:
 
 ```sh
 skilled compare baseline/iteration-1/report.json candidate/iteration-1/report.json --fail-on-regression
 ```
 
-See [comparison and scoring](docs/guide/comparison.md) for comparability limits,
-coverage changes, and the 0.2.0 correction that separates gates from judge scores.
-Report comparison detects observed regressions; it is not a background drift monitor.
+Use the report paths from your runs. Comparison checks observed changes and flags coverage differences; it does not continuously monitor conversations. [How comparison and scoring work →](docs/guide/comparison.md)
 
-The optional [Codex plugin](plugins/codex-skilled/README.md) and [DSH plugin](plugins/dsh-skilled/README.md) bundle the improvement workflow and observation integration. Follow the host-specific installation guide to enable them.
+## Built for repeatable evaluation
 
-## Documentation and examples
-
-| Start here | Go deeper |
+| Capability | What you get |
 | --- | --- |
-| [Installation](docs/guide/installation.md) | [Writing evaluations](docs/guide/writing-evals.md) |
-| [Your first evaluation](docs/guide/getting-started.md) | [User configuration](docs/guide/user-config.md) |
-| [Hello World example](examples/hello-world/README.md) | [Code statistics](examples/code-stats/README.md) |
-| [CLI reference](docs/guide/cli-reference.md) | [User simulator](examples/user-simulator/README.md) |
-| [Platform status](docs/guide/windows.md) | [Custom DSH engine](examples/deepseek-harness/README.md) |
+| Versioned YAML cases | Prompts, fixtures, and expected behavior beside your Skill |
+| Flexible grading | Assertions, custom scripts, and model judges |
+| Your agent engine | Claude Code, Codex, OpenCode, Qoder CLI, Qwen Code, or a custom engine |
+| Execution choices | Host, Docker, or a configured OpenSandbox server |
+| Reports you can use | JSON for tooling, HTML for review, and JUnit for CI |
+| Baselines and repetition | With/without-Skill evaluations and repeated runs |
+| Existing evaluation suites | Import Anthropic `evals.json` or use automatic discovery |
 
-Browse the [documentation site](https://deadhead04.github.io/skillEd/) or read the same guides in this repository.
+Host observation capture is a separate, optional integration. See the [Codex plugin](plugins/codex-skilled/README.md) or [DSH plugin](plugins/dsh-skilled/README.md) for setup.
+
+## Find your next step
+
+| I want to… | Guide |
+| --- | --- |
+| Try a complete example | [Your first evaluation](docs/guide/getting-started.md) |
+| Connect my agent | [MCP tools and skilled-improve](docs/guide/mcp.md) |
+| Write cases and choose a judge | [Writing evaluations](docs/guide/writing-evals.md) |
+| Check for regressions | [Comparison and scoring](docs/guide/comparison.md) |
+| Look up commands or exit codes | [CLI reference](docs/guide/cli-reference.md) |
+| Contribute or run the tests | [Contributing](CONTRIBUTING.md) |
 
 ## Development
 
@@ -157,19 +142,17 @@ cd skillEd
 npm ci
 npm run build
 node dist/src/bootstrap.js --help
-npm run typecheck
-npm run test:real
-npm run audit:brand
-npm run docs:build
 ```
 
-The application is TypeScript compiled to ESM. `src/` holds the CLI and execution API; `skills/` and `plugins/` hold host workflows; `examples/`, `tests/`, and `docs/` hold sample suites, verification, and guides. See [CONTRIBUTING.md](CONTRIBUTING.md) for real-service tests, packaging, and contribution checks.
+The application is TypeScript compiled to ESM. `src/` contains the CLI and execution API; `skills/` and `plugins/` contain agent workflows; `examples/`, `tests/`, and `docs/` contain examples, verification, and guides. [Contribution checks and real-service testing →](CONTRIBUTING.md)
 
-## Release status
+## Release and verification
 
-**0.1.0 is an early release.** The release pipeline exercised packaged CLI/API execution and installation on Linux, macOS, and Windows. Full provider/model coverage is separate: live authenticated model scenarios require configured accounts and are not established by package checks. See [verification and known limits](docs/verification.md), including the OpenSandbox artifact-collection limitation.
+**skilled is an early-stage project.** [Release 0.2.0](https://github.com/DeadHead04/skillEd/releases/tag/v0.2.0) includes the MCP server, Skill integrity checks, and saved-report comparison. Distribution is through GitHub Releases; an npm registry package and Homebrew formula are not published.
 
-[Report a bug](https://github.com/DeadHead04/skillEd/issues/new/choose) with the CLI version, operating system, command, and sanitized output.
+Packaged execution and installation have been tested on Linux, macOS, and Windows. Native architecture coverage, authenticated model scenarios, and service limits are documented in [verification and release scope](docs/verification.md). Archive availability is not a claim that every device or provider combination has been tested.
+
+[Report a bug](https://github.com/DeadHead04/skillEd/issues/new/choose) · [Changelog](CHANGELOG.md) · [Security policy](SECURITY.md)
 
 ## License
 

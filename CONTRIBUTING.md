@@ -33,6 +33,8 @@ The cumulative gate records logs, counts, revision and platform. A skipped test 
 
 ## Pull requests
 
+`main` is protected, including for administrators. Work on a feature branch and open a pull request. Before merging, update the branch with `main`, resolve review conversations, and pass `verify`, all three `native-package` checks (Linux, macOS, and Windows), and CodeQL's `analyze` check. Direct pushes, force pushes, and branch deletion are blocked. A second person's approval is optional; review the diff and test evidence before merging your own work.
+
 Keep changes focused and describe the user-visible behavior plus checks performed. Preserve license notices. Do not commit personal credentials, caches, generated archives or `dist/` output. Changes to user-facing behavior should update the English documentation and changelog. [AGENTS.md](AGENTS.md) contains repository guidance for coding agents.
 
 ## Documentation and proposals

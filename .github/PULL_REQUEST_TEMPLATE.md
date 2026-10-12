@@ -12,9 +12,12 @@
 
 ## Test plan
 
-- [ ] `make test` passes
-- [ ] `make verify` passes (fmt + vet + lint)
-- [ ] Manual testing steps (if applicable):
+- [ ] Relevant real tests pass; commands and results are included below.
+- [ ] `npm run typecheck` and `npm run audit:brand` pass.
+- [ ] `npm run docs:build` passes for documentation changes.
+- [ ] Required CI checks pass; skipped or unavailable checks are explained.
+
+<!-- Include manual verification and screenshots when the presentation changes. -->
 
 ## Notes for reviewers
 
