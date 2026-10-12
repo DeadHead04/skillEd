@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="340" viewBox="0 0 1120 340" role="img" aria-labelledby="title desc">
+  <title id="title">skilled — Test agent skills. Improve with evidence.</title>
+  <desc id="desc">Define cases, evaluate behavior, and compare results. One installation includes the CLI, MCP tools, and the skilled-improve workflow.</desc>
+  <rect width="1120" height="340" rx="20" fill="#102b28"/>
+  <path d="M740 0v340M860 0v340M980 0v340M680 85h440M680 170h440M680 255h440" stroke="#20423c"/>
+  <g font-family="system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <text x="52" y="57" fill="#82dfbc" font-size="14" letter-spacing="3" font-weight="600">SKILL EVALUATION · CLI + MCP</text>
+    <text x="50" y="126" fill="#f3faf7" font-size="43" font-weight="650" letter-spacing="-1.4">Test agent skills.</text>
+    <text x="50" y="182" fill="#82dfbc" font-size="43" font-weight="650" letter-spacing="-1.4">Improve with evidence.</text>
+    <text x="52" y="227" fill="#c1d8ce" font-size="18">Know what changed. Keep what works.</text>
+    <text x="52" y="294" fill="#c1d8ce" font-size="14">skilled + skilled-improve</text>
+    <rect x="718" y="49" width="346" height="64" rx="12" fill="#173730" stroke="#35584d"/>
+    <rect x="718" y="137" width="346" height="64" rx="12" fill="#173730" stroke="#35584d"/>
+    <rect x="718" y="225" width="346" height="64" rx="12" fill="#173730" stroke="#35584d"/>
+    <g fill="#82dfbc" font-size="14" font-weight="600"><text x="741" y="88">01</text><text x="741" y="176">02</text><text x="741" y="264">03</text></g>
+    <g fill="#f3faf7" font-size="19" font-weight="500"><text x="784" y="88">Define cases</text><text x="784" y="176">Evaluate behavior</text><text x="784" y="264">Compare results</text></g>
+    <path d="M891 114v22m-5-6 5 6 5-6M891 202v22m-5-6 5 6 5-6" stroke="#82dfbc" fill="none" stroke-width="2"/>
+  </g>
+</svg>

@@ -1,22 +1,8 @@
 # Installation
 
-Install **`skilled` 0.1.0** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The default command is `skilled`, and the workflow is `skilled-improve`.
+Install **`skilled` 0.2.0** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.2.0). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The command is `skilled`; the bundled `skilled-improve` workflow is used by your agent through MCP or a host integration, not as a separate terminal command.
 
 The repository and release assets are public. No GitHub login is required. This project does not publish the unqualified `skilled` npm registry package; install the GitHub release or the exact npm tarball attached to it.
-
-## Names and paths
-
-| Component | Name or location |
-| --- | --- |
-| Product / CLI | `skilled` |
-| Improvement workflow | `skilled-improve` |
-| Codex / DSH plugins | `codex-skilled` / `dsh-skilled` |
-| Product environment variables | `SKILLED_…` |
-| Project configuration | `.skilled.yaml` |
-| User configuration | `$XDG_CONFIG_HOME/skilled/config.yaml`, or `~/.config/skilled/config.yaml` |
-| Credentials | `~/.skilled/credentials.yaml` |
-
-The logo, docs, reports, CLI help, plugin manifests and release filenames use these names. Provider-owned environment variables retain their provider names. Apache-2.0 and Alibaba copyright notices are preserved. The original checkout and migration records are separate from the product.
 
 ## Install from GitHub Releases
 
@@ -34,9 +20,9 @@ Bash, curl, and standard archive tools are required. Add the PATH line to your s
 To inspect the installer before running it or pin a release:
 
 ```sh
-curl -fsSL https://github.com/DeadHead04/skillEd/releases/download/v0.1.0/install.sh -o install.sh
+curl -fsSL https://github.com/DeadHead04/skillEd/releases/download/v0.2.0/install.sh -o install.sh
 # Review install.sh, then run:
-SKILLED_VERSION=0.1.0 bash install.sh
+SKILLED_VERSION=0.2.0 bash install.sh
 ```
 
 ### Windows PowerShell
@@ -50,7 +36,7 @@ skilled --version
 skilled --help
 ```
 
-Add `$HOME\.local\bin` to your user PATH for future terminals. Pass `-Version '0.1.0'` to pin the version and `-InstallDir <path>` to choose the destination. If PowerShell prevents downloaded scripts, inspect the script and follow your organization's script policy.
+Add `$HOME\.local\bin` to your user PATH for future terminals. Pass `-Version '0.2.0'` to pin the version and `-InstallDir <path>` to choose the destination. If PowerShell prevents downloaded scripts, inspect the script and follow your organization's script policy.
 
 ### Private forks and mirrors
 
@@ -64,7 +50,7 @@ Use `SKILLED_REPOSITORY=owner/repository` for another GitHub repository, or `SKI
 | --- | --- | --- |
 | Release installer | Bash or PowerShell; GitHub CLI/login for private assets | Versioned GitHub Release |
 | Self-contained archive | Matching OS/architecture; no separate Node, Go or Python | Release `.tar.gz` or `.zip` plus checksum |
-| npm tarball | Node 24.21.0 or later in the 24.x series, npm | Exact release `skilled-0.1.0.tgz` |
+| npm tarball | Node 24.21.0 or later in the 24.x series, npm | Exact release `skilled-0.2.0.tgz` |
 | Source checkout | Node 24.21.0, npm, Git | `npm ci` and `npm run build` |
 
 Engine/provider credentials are separate from installing the CLI. Docker is required when selecting the Docker runtime. OpenSandbox needs its configured server. See [user configuration](./user-config.md).
@@ -92,7 +78,7 @@ Run from the repository root. This example selects macOS Apple Silicon. Change `
 
 ```sh
 target=darwin-arm64
-version=0.1.0
+version=0.2.0
 bundle="skilled_${version}_${target}"
 
 # Verify before extracting. On Linux use sha256sum -c instead.
@@ -113,7 +99,7 @@ If the archive has not been built, use `npm run package -- --target=darwin-arm64
 Use `win32-x64` or `win32-arm64` to match Windows. From the repository root in PowerShell:
 
 ```powershell
-$bundle = 'skilled_0.1.0_win32-x64'
+$bundle = 'skilled_0.2.0_win32-x64'
 $archive = Join-Path $PWD "artifacts/$bundle.zip"
 $expected = ((Get-Content "$archive.sha256") -split '\s+')[0]
 if ((Get-FileHash -Algorithm SHA256 $archive).Hash -ne $expected) {
@@ -134,7 +120,7 @@ Add that bundle directory to your user PATH for future terminals. The release wo
 From the repository root, with the candidate tarball already built:
 
 ```sh
-npm install --global ./artifacts/skilled-0.1.0.tgz
+npm install --global ./artifacts/skilled-0.2.0.tgz
 skilled --version
 skilled --help
 ```
@@ -142,7 +128,7 @@ skilled --help
 The npm package uses the installed Node runtime. Alternatively, run without a global installation:
 
 ```sh
-npm exec --yes --package=./artifacts/skilled-0.1.0.tgz -- skilled --version
+npm exec --yes --package=./artifacts/skilled-0.2.0.tgz -- skilled --version
 ```
 
 These commands deliberately identify the local tarball. This project has not published the unqualified npm package name. `private: true` currently prevents accidental registry publication. Packaging maintainers can create just the npm tarball with `npm run build` followed by `npm pack --pack-destination artifacts`.
@@ -152,11 +138,11 @@ These commands deliberately identify the local tarball. This project has not pub
 Download the matching platform archive and its checksum, then use the local extraction instructions above:
 
 ```sh
-gh release download v0.1.0 --repo DeadHead04/skillEd \
-  --pattern 'skilled_0.1.0_darwin-arm64.tar.gz*' --dir artifacts
+gh release download v0.2.0 --repo DeadHead04/skillEd \
+  --pattern 'skilled_0.2.0_darwin-arm64.tar.gz*' --dir artifacts
 ```
 
-Replace `darwin-arm64` with `darwin-x64`, `linux-arm64`, or `linux-x64`. Windows uses `skilled_0.1.0_win32-x64.zip*` or `win32-arm64`. For the npm tarball, download `skilled-0.1.0.tgz` and its `.sha256` file, verify the hash, then install that exact file globally. Never substitute an unrelated package from the npm registry.
+Replace `darwin-arm64` with `darwin-x64`, `linux-arm64`, or `linux-x64`. Windows uses `skilled_0.2.0_win32-x64.zip*` or `win32-arm64`. For the npm tarball, download `skilled-0.2.0.tgz` and its `.sha256` file, verify the hash, then install that exact file globally. Never substitute an unrelated package from the npm registry.
 
 ## Verify, update and uninstall
 
@@ -170,6 +156,20 @@ skilled run examples/code-stats/evals/eval.yaml --dry-run
 For an archive update, verify and extract the new version, then change the PATH entry. For a release update, rerun the public installation command above with `SKILLED_VERSION=latest` (PowerShell: `-Version latest`); a failed validation preserves the existing wrapper, and prior content-addressed bundles remain on disk. For npm, install the new local tarball using the same global-install command.
 
 To uninstall npm, run `npm uninstall --global skilled`. For a manually extracted archive, remove its PATH entry and the specific extracted bundle directory. For the hosted installer, remove its `skilled`/`skilled.cmd` wrapper and its owned bundle directories under `INSTALL_DIR/.skilled/`. User configuration, credentials and evaluation workspaces are separate and are not part of uninstalling the executable.
+
+## Names and paths
+
+| Component | Name or location |
+| --- | --- |
+| Product / CLI | `skilled` |
+| Improvement workflow | `skilled-improve` |
+| Codex / DSH plugins | `codex-skilled` / `dsh-skilled` |
+| Product environment variables | `SKILLED_…` |
+| Project configuration | `.skilled.yaml` |
+| User configuration | `$XDG_CONFIG_HOME/skilled/config.yaml`, or `~/.config/skilled/config.yaml` |
+| Credentials | `~/.skilled/credentials.yaml` |
+
+The logo, docs, reports, CLI help, plugin manifests and release filenames use these names. Provider-owned environment variables retain their provider names. Apache-2.0 and Alibaba copyright notices are preserved. The original checkout and migration records are separate from the product.
 
 ## Plugins, image and publication
 

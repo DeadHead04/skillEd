@@ -5,7 +5,7 @@ const base = process.env.SKILLED_DOCS_BASE || "/";
 export default defineConfig({
   base,
   title: "skilled",
-  description: "Evaluate Agent Skills, agents and workspaces.",
+  description: "Test agent skills, compare results, and improve with evidence. A TypeScript CLI with bundled MCP tools and the skilled-improve workflow.",
   lang: "en-US",
   cleanUrls: true,
   ignoreDeadLinks: false,
@@ -15,28 +15,35 @@ export default defineConfig({
     search: { provider: "local" },
     socialLinks: [{ icon: "github", link: "https://github.com/DeadHead04/skillEd" }],
     nav: [
-      { text: "Guide", link: "/guide/getting-started" },
+      { text: "Get started", link: "/guide/getting-started" },
+      { text: "Use with your agent", link: "/guide/mcp" },
       { text: "CLI reference", link: "/guide/cli-reference" },
+      { text: "Releases", link: "https://github.com/DeadHead04/skillEd/releases" },
     ],
     sidebar: [
       {
-        text: "Start",
+        text: "Start here",
         items: [
           { text: "Installation", link: "/guide/installation" },
           { text: "Getting started", link: "/guide/getting-started" },
           { text: "Use with MCP", link: "/guide/mcp" },
-          { text: "Comparison and scoring", link: "/guide/comparison" },
-          { text: "Windows and platform status", link: "/guide/windows" },
-          { text: "Verification and release scope", link: "/verification" },
         ],
       },
       {
-        text: "Reference",
+        text: "Evaluate and improve",
         items: [
           { text: "Writing evaluations", link: "/guide/writing-evals" },
+          { text: "Compare results", link: "/guide/comparison" },
+          { text: "Import existing cases", link: "/guide/migration" },
+        ],
+      },
+      {
+        text: "Reference and verification",
+        items: [
           { text: "CLI commands", link: "/guide/cli-reference" },
           { text: "User configuration", link: "/guide/user-config" },
-          { text: "Migration", link: "/guide/migration" },
+          { text: "Platform status", link: "/guide/windows" },
+          { text: "Verification and release scope", link: "/verification" },
           { text: "CI maintenance", link: "/guide/ci-maintenance" },
         ],
       },

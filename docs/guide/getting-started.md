@@ -69,6 +69,7 @@ Open a terminal in `skilled-hello` and run:
 
 ```sh
 skilled validate evals/eval.yaml
+skilled validate --skill .
 skilled list-cases evals/eval.yaml
 skilled run evals/eval.yaml --dry-run
 ```
@@ -100,7 +101,9 @@ A baseline run compares behavior with and without the Skill. Repeated iterations
 
 ## Improve from evidence
 
-Install [skilled-improve](https://github.com/DeadHead04/skillEd/tree/main/skills/skilled-improve) or the appropriate [Codex](https://github.com/DeadHead04/skillEd/tree/main/plugins/codex-skilled) / [DSH](https://github.com/DeadHead04/skillEd/tree/main/plugins/dsh-skilled) plugin using its host-specific instructions.
+The CLI release already includes `skilled-improve`. [Connect your agent through MCP](./mcp.md) and load the `skilled-improve` prompt, or have it read the `skilled://workflow/skilled-improve` resource. No second executable or separate download is required. Add `--allow-execution` to the server arguments when you are ready for live evaluations.
+
+For host observation features, install the optional [Codex](https://github.com/DeadHead04/skillEd/tree/main/plugins/codex-skilled) or [DSH](https://github.com/DeadHead04/skillEd/tree/main/plugins/dsh-skilled) plugin using its host-specific instructions.
 
 Ask your agent: “Use skilled-improve to inspect the failed evaluations, improve this Skill or its cases, and rerun.” The workflow uses evaluation artifacts as evidence. Installing the CLI alone does not enable plugin observation capture.
 
