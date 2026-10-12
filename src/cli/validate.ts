@@ -7,12 +7,21 @@ import {
 } from "../config/index.js";
 import { type CliContext, errorMessage } from "./context.js";
 import { resolveEvalPath } from "./run.js";
+import { validateSkillSource } from "../skill/integrity.js";
 export function registerValidateCommand(root: Command, ctx: CliContext): void {
   root
     .command("validate")
     .argument("[path]", "Path to evals/eval.yaml")
-    .description("Validate evaluation configuration and case files")
-    .action(async (file: string | undefined) => {
+    .option("--skill <directory>", "Validate SKILL.md metadata and declared local references")
+    .description("Validate evaluation configuration or a Skill source directory")
+    .action(async (file: string | undefined, options: { skill?: string }) => {
+      if (options.skill) {
+        if (file) throw new Error("provide either an evaluation path or --skill <directory>, not both");
+        const result = await validateSkillSource(options.skill);
+        if (!result.valid) throw new Error(`Skill validation failed:\n${result.errors.map((error) => `- ${error}`).join("\n")}`);
+        ctx.stdout(`✓ SKILL.md is valid (${result.references.length} declared local reference(s))\n`);
+        return;
+      }
       const evalPath = await resolveEvalPath(ctx, file ? [file] : []);
       let result;
       try {

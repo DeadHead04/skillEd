@@ -4,6 +4,7 @@ import path from "node:path";
 import { validateGlob } from "../config/validator.js";
 import { NoneRuntime } from "../runtime/none.js";
 import type { Runtime } from "./types.js";
+import { assertSkillSelection, createSkillManifest, verifyInstalledSkill } from "../skill/integrity.js";
 // Pattern matching below is translated from doublestar/v4 match.go.
 // Copyright (c) 2014 Bob Matcuk. MIT License:
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -354,19 +355,23 @@ export async function installSkill(
       target,
       exclude,
     );
-    if (result.alreadyInstalled) return;
+    if (result.alreadyInstalled) {
+      await assertSkillSelection(source, await listSkillFiles(source, include, exclude));
+      return;
+    }
     filtered = result.exclude;
   }
   const files = await listSkillFiles(source, include, filtered);
-  let uploaded = 0;
-  for (const file of files) {
-    const src = path.join(source, file);
-    if ((await stat(src)).isDirectory()) continue;
-    await rt.uploadFile(src, path.join(target, file), signal);
-    uploaded++;
-  }
-  if (uploaded === 0)
+  const selected: string[] = [];
+  for (const file of files)
+    if (!(await stat(path.join(source, file))).isDirectory()) selected.push(file);
+  if (selected.length === 0)
     throw new Error(
       `skill source ${source} selected 0 files (include=[${include.join(" ")}] exclude=[${exclude.join(" ")}]): refusing to install an empty skill`,
     );
+  await assertSkillSelection(source, files);
+  const manifest = await createSkillManifest(source, selected, signal);
+  for (const entry of manifest)
+    await rt.uploadFile(path.join(source, entry.path), path.join(target, entry.path), signal);
+  await verifyInstalledSkill(rt, target, manifest, signal);
 }

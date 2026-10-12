@@ -41,9 +41,9 @@ import {
 import type { Simulator } from "../usersimulator/index.js";
 import { Provisioner } from "../mcp/index.js";
 import type { Input, Judge } from "../judge/types.js";
-import { newResult, sessionResultFromError } from "../judge/types.js";
+import { newResult, newSkipResult, sessionResultFromError } from "../judge/types.js";
 import { newJudge, mergeJudgeConfig } from "../judge/factory.js";
-import { checkExpect, toAssertionResults } from "../judge/expect.js";
+import { checkExpect } from "../judge/expect.js";
 import { ScriptJudge, JudgeEvaluationError } from "../judge/script.js";
 import { skillInfosFromRefs } from "../judge/judge-skill.js";
 import { defaultOutcomeAggregator } from "../judge/aggregation.js";
@@ -628,9 +628,6 @@ export class DefaultEvaluator {
       recordSkippedJudges(result, plan, "gate_failed");
       return result;
     }
-    const assertions = result.expectResult
-      ? toAssertionResults(result.expectResult)
-      : [];
     const final = plan.multi
       ? await runMultipleJudges(
           this,
@@ -659,14 +656,6 @@ export class DefaultEvaluator {
           signal,
           ctx,
         );
-    if (!plan.multi && assertions.length && final.grading) {
-      final.grading.assertion_results.unshift(...assertions);
-      final.grading.summary.passed += assertions.length;
-      final.grading.summary.total += assertions.length;
-      if (final.grading.summary.total)
-        final.grading.summary.pass_rate =
-          final.grading.summary.passed / final.grading.summary.total;
-    }
     return final;
   }
   async runExpectPreCheck(
@@ -681,8 +670,11 @@ export class DefaultEvaluator {
     if (!expect) return false;
     result.expectResult = await checkExpect(expect, input);
     if (result.expectResult.passed) return false;
-    result.grading = newResult(
-      toAssertionResults(result.expectResult),
+    // Gates determine whether judging runs; they are not rubric assertions.
+    // Keep diagnostics in expectResult and award no benchmark credit for an
+    // unexecuted judge, including scripts whose assertion count is dynamic.
+    result.grading = newSkipResult(
+      "expect_gate_failed",
       result.turns,
       turnsTotal,
     );
