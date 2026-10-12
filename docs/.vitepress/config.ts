@@ -24,6 +24,8 @@ export default defineConfig({
         items: [
           { text: "Installation", link: "/guide/installation" },
           { text: "Getting started", link: "/guide/getting-started" },
+          { text: "Use with MCP", link: "/guide/mcp" },
+          { text: "Comparison and scoring", link: "/guide/comparison" },
           { text: "Windows and platform status", link: "/guide/windows" },
           { text: "Verification and release scope", link: "/verification" },
         ],

@@ -4,7 +4,7 @@ The source repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skil
 
 ## Install the CLI release
 
-The current version is `0.1.0`. The repository is public; no GitHub login is required.
+Install the latest published release. The repository is public; no GitHub login is required.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
@@ -13,6 +13,18 @@ skilled --version
 ```
 
 This installs the complete runtime bundle. For Windows PowerShell, pinned versions, updates, or manual downloads, follow the [installation guide](../../../docs/guide/installation.md). Private forks can use `SKILLED_USE_GH=1` / `-UseGh` with an authorized GitHub CLI login. Never put credentials in URLs.
+
+## MCP connection
+
+The release includes the MCP server, `skilled-improve`, reference files and YAML
+templates. Configure a stdio server whose executable is the installed `skilled`
+launcher and whose arguments are `mcp --workspace /absolute/path/to/project`.
+Add `--allow-execution` for trusted real evaluations; validation and comparison
+work without it. Load the `skilled-improve` prompt or the resource
+`skilled://workflow/skilled-improve`. Referenced files are resources under the
+same URI, for example `skilled://workflow/skilled-improve/references/eval-yaml.md`.
+No separate global CLI lookup is required inside an established MCP session.
+See the [MCP guide](../../../docs/guide/mcp.md) for host configuration examples.
 
 ## CLI from source
 
@@ -32,7 +44,7 @@ To make `skilled` available on PATH, run `npm link` after the build. When assist
 
 A release bundle contains the application and a pinned Node runtime. Pick the archive for your operating system and CPU from the [release page](https://github.com/DeadHead04/skillEd/releases), verify its SHA-256, and extract the whole directory. Run `./skilled --version` from the extracted bundle on macOS or Linux, or `.\skilled.cmd --version` on Windows. Keep the complete extracted directory together.
 
-For private downloads, use `gh release download v0.1.0 --repo DeadHead04/skillEd`, or enable `SKILLED_USE_GH=1` / `-UseGh` in the installer.
+For private downloads, use `gh release download v0.2.0 --repo DeadHead04/skillEd`, or enable `SKILLED_USE_GH=1` / `-UseGh` in the installer.
 
 To build an archive locally instead of downloading the release:
 

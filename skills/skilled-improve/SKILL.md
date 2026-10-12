@@ -99,7 +99,7 @@ capture onto the pinned Codex 0.80.0 evaluation adapter.
 
 If the user asks how to install either host plugin, or the required observation
 tools are missing and the user asks to enable them, read
-`references/install.md` under "Install an observation host plugin (optional)". Do not
+the "Codex plugin" or "DSH plugin" section of `references/install.md`. Do not
 install or enable a plugin unless the user asks.
 
 Claude Code, qodercli, Qwen Code, and other Agent Engines are not supported for
@@ -136,15 +136,24 @@ request does not start from an observation, use the normal flow below.
 
 ### Step 0: Make sure skilled is installed
 
-Before doing anything, verify `skilled` is available:
+If the host provides the skilled MCP tools, use those tools and the bundled
+workflow resources directly. There is no separate Skill installation or global
+CLI lookup required in that session. Validation, dry runs and offline comparison
+do not call a model. Execution requires the server's `--allow-execution` option,
+the selected engine's credentials and the user's requested evaluation scope.
+
+For CLI use, verify `skilled` is available:
 
 ```bash
 command -v skilled && skilled --version
 ```
 
-If a version is printed, continue. For this migration build, use the locally built CLI archive or checkout. No hosted release destination has been configured yet.
+If a version is printed, continue. Published releases bundle the CLI, Node runtime,
+MCP server and this workflow. Follow `references/install.md` for the verified
+release installer; no separate npm install is required.
 
-From the checkout root, run `npm ci`, then `npm run build`. The CLI entrypoint is `node dist/src/bootstrap.js`; add a launcher named `skilled` on your local `PATH`, or use the launcher from the matching local archive. See `references/install.md` for exact local setup.
+For development from a checkout, run `npm ci`, then `npm run build`. The CLI
+entrypoint is `node dist/src/bootstrap.js`.
 
 More details, including optional Codex and DSH observation host plugins:
 `references/install.md`.
@@ -198,10 +207,18 @@ See `references/eval-yaml.md` and `references/case-yaml.md`.
 ### Step 4: Validate the configuration
 
 ```bash
+skilled validate --skill <skill-root>
 skilled validate <skill-root>/evals/eval.yaml
 ```
 
 Expect: `✓ eval.yaml is valid (loaded N case(s))`.
+
+Via MCP, use `skilled_validate_skill` and `skilled_validate` with workspace-relative
+paths. Preserve separate baseline and candidate report files, then use
+`skilled_compare` (or `skilled compare`) to inspect status, score and coverage
+changes. Read comparability warnings: identical case IDs alone do not prove
+identical evaluation inputs. Gates and judge scores are separate from 0.2.0;
+refresh older mixed gate/judge baselines before comparing assertion percentages.
 
 For a case-authoring request, finish here with the config and case paths plus
 validation status. Do not start a background evaluation as part of scaffolding.

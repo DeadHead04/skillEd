@@ -13,13 +13,21 @@ hero:
       text: Get Started
       link: /guide/getting-started
     - theme: alt
-      text: Writing Evals
-      link: /guide/writing-evals
+      text: Connect your agent
+      link: /guide/mcp
     - theme: alt
       text: Install the CLI
       link: /guide/installation
 
 features:
+  - title: CLI and MCP in one installation
+    details: Use the evaluation tools and bundled skilled-improve prompt, references and templates from your agent host.
+    link: /guide/mcp
+    linkText: Connect with MCP
+  - title: Compare saved runs
+    details: Check verdict and score changes, review case coverage, and flag regressions without another model call.
+    link: /guide/comparison
+    linkText: Understand comparisons
   - title: Improve from evaluation results
     details: Use skilled-improve with your agent to inspect failed cases, revise a Skill, and rerun the same checks.
     link: /guide/getting-started#improve-from-evidence

@@ -1,6 +1,30 @@
 # CLI Reference
 
-skilled provides the following commands, covering the full evaluation lifecycle: validate → run → list cases → generate reports → import legacy formats.
+skilled provides commands for validating Skills and evaluation suites, running
+cases, generating and comparing reports, importing formats, and serving MCP.
+
+## skilled mcp
+
+```sh
+skilled mcp --workspace /absolute/path/to/project
+skilled mcp --workspace /absolute/path/to/project --allow-execution
+```
+
+Starts a stdio MCP server with validation, comparison and run tools, bundled
+workflow resources and the `skilled-improve` prompt. The required `--workspace`
+sets the root for tool paths. Execution is disabled unless `--allow-execution`
+is set; dry-run and read-only tools work without it. See [MCP setup](./mcp.md).
+
+## skilled compare
+
+```sh
+skilled compare <before.json> <after.json> [--format text|json] [--fail-on-regression]
+```
+
+Compares existing evaluation reports by case ID and configuration. Defaults to
+text output. The optional regression flag returns exit code 1 for matched-case
+regressions; added/removed coverage is reported separately. No model is called.
+See [comparison semantics and scoring](./comparison.md).
 
 ---
 
@@ -152,6 +176,7 @@ skilled validate [path to eval.yaml]
 ```bash
 skilled validate
 skilled validate ./evals/eval.yaml
+skilled validate --skill ./my-skill
 ```
 
 On success:
@@ -165,6 +190,11 @@ The validator checks that:
 - `eval.yaml` and every referenced case file exist and parse correctly
 - All required fields are present
 - Field values are within the allowed range
+
+`--skill <directory>` selects source validation instead of eval validation; do
+not also supply an eval path. It requires a regular `SKILL.md` no larger than
+4 MiB, nonempty `name` and `description` metadata, and valid declared local file
+references. See [source and installed-file integrity](./comparison.md#validate-source-and-installed-files).
 
 ---
 

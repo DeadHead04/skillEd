@@ -16,9 +16,20 @@
 
 Write the behavior you expect in YAML, run it against your chosen agent, and inspect the results. Keep the same cases as you change a Skill so you can check whether it improved or regressed. Use **skilled-improve** in your agent host to turn failed evaluations into revisions and new regression cases.
 
+**One installation, CLI or MCP.** The release includes the evaluation engine and
+the improvement workflow, references and templates. Connect it to your agent with
+[MCP](docs/guide/mcp.md), or run the CLI directly. Validate a Skill and compare
+existing results without a model account.
+
 ![The skilled evaluation and improvement workflow](docs/public/overview.svg)
 
 ## Install
+
+To have your agent handle setup, paste:
+
+> Set up skilled in this project using https://raw.githubusercontent.com/DeadHead04/skillEd/main/instruction.md, then validate a first evaluation without calling a model.
+
+Or install directly:
 
 ### macOS and Linux
 
@@ -48,6 +59,11 @@ Releases include macOS, Linux, and Windows archives for x64 and ARM64. See [plat
 
 ## Try it
 
+Prefer working in your agent? After installation, configure its MCP server to run
+`skilled mcp --workspace /absolute/path/to/your-project`, then ask it to use the
+`skilled-improve` prompt. [MCP setup and tools](docs/guide/mcp.md) explain how to
+enable real evaluations when ready.
+
 Download a small, inspectable Skill and one evaluation case. These macOS/Linux commands use the installed CLI:
 
 ```sh
@@ -57,6 +73,7 @@ curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/he
 curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/hello-world/evals/eval.yaml -o evals/eval.yaml
 curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/examples/hello-world/evals/cases/greeting.yaml -o evals/cases/greeting.yaml
 skilled validate evals/eval.yaml
+skilled validate --skill .
 skilled list-cases evals/eval.yaml
 skilled run evals/eval.yaml --dry-run
 ```
@@ -80,6 +97,9 @@ This calls your selected engine and may incur provider charges. Results are writ
 | Agent engines | Run Claude Code, Codex, OpenCode, Qoder CLI, Qwen Code, or a custom engine |
 | Host, Docker, and OpenSandbox runtimes | Choose where cases execute; configure Docker or a sandbox server when needed |
 | Baselines and repeated runs | Compare with and without a Skill and inspect variation across iterations |
+| Offline result comparison | Compare earlier and revised runs, flag regressions and review coverage changes |
+| Skill integrity | Validate metadata and declared references; verify installed file bytes |
+| MCP tools, resources and prompt | Use evaluation and the bundled improvement workflow from a compatible agent host |
 | JSON, HTML, and JUnit reports | Review results locally and consume them in CI |
 | Anthropic evaluation import | Reuse `evals.json` suites through import or automatic discovery |
 | skilled-improve and host plugins | Help your agent inspect failures, revise a Skill, and add regression cases |
@@ -102,6 +122,16 @@ skilled run evals/eval.yaml --event-log events.jsonl
 ```
 
 `--baseline` compares runs with and without the Skill; `--iteration 3` runs three iterations. [CLI reference](docs/guide/cli-reference.md) documents the full command set, output layout, and exit codes.
+
+To compare two saved runs:
+
+```sh
+skilled compare baseline/iteration-1/report.json candidate/iteration-1/report.json --fail-on-regression
+```
+
+See [comparison and scoring](docs/guide/comparison.md) for comparability limits,
+coverage changes, and the 0.2.0 correction that separates gates from judge scores.
+Report comparison detects observed regressions; it is not a background drift monitor.
 
 The optional [Codex plugin](plugins/codex-skilled/README.md) and [DSH plugin](plugins/dsh-skilled/README.md) bundle the improvement workflow and observation integration. Follow the host-specific installation guide to enable them.
 

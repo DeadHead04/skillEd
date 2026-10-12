@@ -41,7 +41,7 @@ cd dist/bundled-plugins/dsh-skilled
 npm pack
 ```
 
-This produces a local `dsh-skilled-0.1.0-dev.0.tgz`. Install this archive through DSH's supported local plugin flow in an isolated profile. The package is private and is installed from its archive. Packaged releases, when published, are listed in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd/releases); no npm registry publication is required. The build copies the canonical `skills/skilled-improve` workflow and observation schema into this self-contained plugin bundle.
+This produces a local `dsh-skilled-<version>.tgz`. Install this archive through DSH's supported local plugin flow in an isolated profile. The package is private and is installed from its archive. Packaged releases are listed in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd/releases); no npm registry publication is required. The build copies the canonical `skills/skilled-improve` workflow and observation schema into this self-contained plugin bundle.
 
 ## Capabilities
 

@@ -1,6 +1,12 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
+
+- Separate prerequisite gates from judge rubric scores; unexecuted judges receive zero benchmark credit. Refresh older mixed gate/judge baselines.
+- Add strict `validate --skill` metadata and local-reference checks, installation selection preflight and SHA-256 installed-file readback.
+- Add offline `compare` with case/configuration matching, coverage and provenance warnings, and a regression exit flag.
+- Add a bundled stdio MCP server with validation, comparison, bounded evaluation execution, workflow resources and the improvement prompt.
+- Propagate CLI interrupts to evaluation cleanup and test the packaged MCP connection on native release targets.
 
 - Reorganize the public README around installation, a first evaluation, and feature guides.
 - Add a Hello World evaluation and real CLI validation, case listing, and dry-run coverage.

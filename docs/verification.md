@@ -16,6 +16,29 @@ The gate writes its source revision, enabled services, test totals, skipped chec
 
 ## Published release evidence
 
+For 0.2.0, the release acceptance adds installed-bundle MCP discovery, workflow
+and template reads, source validation, dry runs and offline comparison. Source
+tests exercise actual local SHA-256 engine runs over MCP, negative verdicts,
+cancellation and time limits. Native package CI also runs the cancellation and
+time-limit tests on Linux, macOS and Windows. Check the
+[CI workflow](https://github.com/DeadHead04/skillEd/actions/workflows/ci.yml) and
+[release workflow](https://github.com/DeadHead04/skillEd/actions/workflows/release.yml)
+for the result on the exact commit being installed.
+
+The implementation plan has three sequential gates:
+
+1. Correctness: reproduce scoring errors; test source selection and installed-byte
+   integrity using real files and runtimes, including opt-in Docker checks.
+2. Integration: compare actual reports; connect a real MCP SDK client; execute a
+   local engine and verify cancellation; build English setup documentation.
+3. Publication: run the cumulative suite and branding audit; execute native
+   archives; publish the accepted bytes; install the published release on each
+   native CI operating system. Provider-backed tests remain separately gated by
+   credentials and an explicit spending limit.
+
+See [comparison and scoring](./guide/comparison.md) and [MCP setup](./guide/mcp.md)
+for shipped behavior and limitations.
+
 [Release 0.1.0](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0) was published from commit `6063f74ba7f7d513e03b8e687c7f4accdb41baf4`. Its [release workflow](https://github.com/DeadHead04/skillEd/actions/runs/38136609356) passed all eight jobs:
 
 - Release archive build and publication with checksum verification.
