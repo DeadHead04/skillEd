@@ -2,7 +2,7 @@
 
 Install **`skilled` 0.1.0** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The default command is `skilled`, and the workflow is `skilled-improve`.
 
-The repository is currently private. GitHub login is required to download its source or release assets. This project does not publish the unqualified `skilled` npm registry package; install the GitHub release or the exact npm tarball attached to it.
+The repository and release assets are public. No GitHub login is required. This project does not publish the unqualified `skilled` npm registry package; install the GitHub release or the exact npm tarball attached to it.
 
 ## Names and paths
 
@@ -22,43 +22,39 @@ The logo, docs, reports, CLI help, plugin manifests and release filenames use th
 
 ### macOS and Linux
 
-Install [GitHub CLI](https://cli.github.com/) and authenticate with access to this repository:
-
 ```sh
-gh auth login
-installer_dir="$(mktemp -d)"
-gh release download v0.1.0 --repo DeadHead04/skillEd --pattern install.sh --dir "$installer_dir"
-SKILLED_USE_GH=1 SKILLED_VERSION=0.1.0 bash "$installer_dir/install.sh"
+curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 skilled --help
 ```
 
-Add the PATH line to your shell startup file, such as `~/.zshrc` or `~/.bashrc`. `SKILLED_USE_GH=1` uses your existing GitHub CLI login; it does not place tokens in URLs. The installer checks the archive checksum, product, version and target, runs the bundled executable, and installs the command only after validation passes. `INSTALL_DIR` overrides `~/.local/bin`.
+Bash, curl, and standard archive tools are required. Add the PATH line to your shell startup file, such as `~/.zshrc` or `~/.bashrc`. The installer checks the archive checksum, product, version and target, runs the bundled executable, and installs the command only after validation passes. `INSTALL_DIR` overrides `~/.local/bin`.
+
+To inspect the installer before running it or pin a release:
+
+```sh
+curl -fsSL https://github.com/DeadHead04/skillEd/releases/download/v0.1.0/install.sh -o install.sh
+# Review install.sh, then run:
+SKILLED_VERSION=0.1.0 bash install.sh
+```
 
 ### Windows PowerShell
 
 ```powershell
-gh auth login
-$installerDir = Join-Path ([IO.Path]::GetTempPath()) ([Guid]::NewGuid().ToString('N'))
-gh release download v0.1.0 --repo DeadHead04/skillEd --pattern install.ps1 --dir $installerDir
-& (Join-Path $installerDir 'install.ps1') -UseGh -Version '0.1.0'
+$installer = Join-Path $env:TEMP 'skilled-install.ps1'
+Invoke-WebRequest https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.ps1 -OutFile $installer
+& $installer
 $env:Path = "$(Join-Path $HOME '.local/bin');$env:Path"
 skilled --version
 skilled --help
 ```
 
-Add `$HOME\.local\bin` to your user PATH for future terminals. If your PowerShell policy prevents downloaded scripts, inspect the script and follow your organization's script policy.
+Add `$HOME\.local\bin` to your user PATH for future terminals. Pass `-Version '0.1.0'` to pin the version and `-InstallDir <path>` to choose the destination. If PowerShell prevents downloaded scripts, inspect the script and follow your organization's script policy.
 
-### Public repository or mirror
+### Private forks and mirrors
 
-When the repository is public, the same download-and-install flow works without GitHub login:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
-```
-
-For a fixed public version, download the script first and run `SKILLED_VERSION=0.1.0 bash install.sh`. On Windows, download `install.ps1` and run `./install.ps1 -Version '0.1.0'`. These anonymous commands cannot download a private repository; use `SKILLED_USE_GH=1` / `-UseGh` above.
+For a private fork, install [GitHub CLI](https://cli.github.com/) and authenticate with access to that fork. Download its installer with `gh release download`, then enable `SKILLED_USE_GH=1` (PowerShell: `-UseGh`). This uses your existing GitHub CLI login without putting tokens in URLs. This mode is optional and is not required for this public repository.
 
 Use `SKILLED_REPOSITORY=owner/repository` for another GitHub repository, or `SKILLED_RELEASE_BASE_URL` for an HTTP mirror containing `vVERSION/` directories. Authenticated GitHub mode cannot be combined with mirror URLs. `latest` selects the latest non-prerelease GitHub release.
 
@@ -75,7 +71,7 @@ Engine/provider credentials are separate from installing the CLI. Docker is requ
 
 ## Build from source
 
-Use Node **24.21.0** and npm. While the repository is private, authenticate Git with an authorized account or clone using `gh repo clone DeadHead04/skillEd`:
+Use Node **24.21.0**, npm, and Git:
 
 ```sh
 git clone https://github.com/DeadHead04/skillEd.git
@@ -131,7 +127,7 @@ skilled.cmd --version
 skilled.cmd --help
 ```
 
-Add that bundle directory to your user PATH for future terminals. The release workflow verifies the archive on a native Windows runner before publication and tests the PowerShell installer against the published assets. The local development machine cannot execute Windows binaries.
+Add that bundle directory to your user PATH for future terminals. The release workflow verifies the archive on a native Windows runner before publication and tests the PowerShell installer against the published assets. Other architectures require separate native execution checks; see [platform status](./windows.md).
 
 ## Install the local npm package
 
@@ -171,7 +167,7 @@ skilled validate examples/code-stats/evals/eval.yaml
 skilled run examples/code-stats/evals/eval.yaml --dry-run
 ```
 
-For an archive update, verify and extract the new version, then change the PATH entry. For a release update, download the latest installer and rerun with `SKILLED_USE_GH=1 SKILLED_VERSION=latest` (PowerShell: `-UseGh -Version latest`); a failed validation preserves the existing wrapper, and prior content-addressed bundles remain on disk. For npm, install the new local tarball using the same global-install command.
+For an archive update, verify and extract the new version, then change the PATH entry. For a release update, rerun the public installation command above with `SKILLED_VERSION=latest` (PowerShell: `-Version latest`); a failed validation preserves the existing wrapper, and prior content-addressed bundles remain on disk. For npm, install the new local tarball using the same global-install command.
 
 To uninstall npm, run `npm uninstall --global skilled`. For a manually extracted archive, remove its PATH entry and the specific extracted bundle directory. For the hosted installer, remove its `skilled`/`skilled.cmd` wrapper and its owned bundle directories under `INSTALL_DIR/.skilled/`. User configuration, credentials and evaluation workspaces are separate and are not part of uninstalling the executable.
 
@@ -179,6 +175,6 @@ To uninstall npm, run `npm uninstall --global skilled`. For a manually extracted
 
 `npm run build` assembles the two plugin bundles under `dist/bundled-plugins/`. They require their respective host and a compatible Node installation; installing the CLI does not enable a plugin or its observation capture automatically. The root README links each plugin's setup instructions.
 
-The Action image can be built with `docker build -f action/Dockerfile -t skilled-action:local .`. This image runs the Action entrypoint; it is separate from the desktop CLI installation. The release workflow builds archives, verifies them on Linux/macOS/Windows, and publishes accepted assets to `DeadHead04/skillEd`. It then tests the downloaded installers against that release. Container and npm publication still need registry/package ownership and credentials; public docs hosting is a separate setup step. See [CI maintenance](./ci-maintenance.md).
+The Action image can be built with `docker build -f action/Dockerfile -t skilled-action:local .`. This image runs the Action entrypoint; it is separate from the desktop CLI installation. The release workflow builds archives, verifies them on Linux/macOS/Windows, and publishes accepted assets to `DeadHead04/skillEd`. It then tests the downloaded installers against that release. Container and npm publication still need registry/package ownership and credentials. The [documentation site](https://deadhead04.github.io/skillEd/) is deployed from this repository. See [CI maintenance](./ci-maintenance.md).
 
-Verification covers macOS ARM64, Linux ARM64 Docker, macOS x64 through Rosetta and Linux x64 through Docker emulation. All six archives have integrity evidence; translated execution does not certify a native x64 host.
+The published release passed native archive and installer checks on Linux, macOS, and Windows. Separate development checks covered Linux ARM64 Docker and translated/emulated x64 execution. See [verification evidence](../verification.md) for scope; six packaged targets do not imply six native device checks.

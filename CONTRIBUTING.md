@@ -1,6 +1,6 @@
 # Contributing to skilled
 
-Use Node 24.21.0, npm and Git. Development takes place in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). Private repository access requires authorized Git credentials or an authenticated `gh repo clone DeadHead04/skillEd`.
+Use Node 24.21.0, npm and Git. Development takes place in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The repository is public and can be cloned without GitHub authentication.
 
 ```sh
 git clone https://github.com/DeadHead04/skillEd.git
@@ -39,4 +39,4 @@ Keep changes focused and describe the user-visible behavior plus checks performe
 
 Run `npm run docs:dev` to preview the VitePress site and `npm run docs:build` before shipping it. `SKILLED_DOCS_BASE` controls a deployment subpath. The `proposals/` archive retains design history; use `proposals/init-proposal.sh` to start a new proposal when a new feature or contract change needs a written design.
 
-GitHub releases belong to `DeadHead04/skillEd`. Configure its release environment and permissions before publishing a version. npm, container and documentation hosting remain separate publication decisions. Local packages and passing checks do not establish that a public release exists.
+GitHub releases belong to `DeadHead04/skillEd`. Configure its release environment and permissions before publishing a version. Documentation deploys to [GitHub Pages](https://deadhead04.github.io/skillEd/) from `main` through `.github/workflows/docs.yml`. npm registry and container publication remain separate decisions. Local packages and passing checks do not establish that an additional public release exists.

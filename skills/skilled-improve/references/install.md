@@ -4,18 +4,15 @@ The source repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skil
 
 ## Install the CLI release
 
-The current version is `0.1.0`. For this private repository, use GitHub CLI authenticated with repository access:
+The current version is `0.1.0`. The repository is public; no GitHub login is required.
 
 ```sh
-gh auth login
-installer_dir="$(mktemp -d)"
-gh release download v0.1.0 --repo DeadHead04/skillEd --pattern install.sh --dir "$installer_dir"
-SKILLED_USE_GH=1 SKILLED_VERSION=0.1.0 bash "$installer_dir/install.sh"
+curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 ```
 
-This installs the complete runtime bundle. Windows uses the release's `install.ps1 -UseGh -Version 0.1.0`; see the installation guide. Public repositories can use `curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash` without authentication. Private repositories require the authenticated method above. Never put credentials in URLs.
+This installs the complete runtime bundle. For Windows PowerShell, pinned versions, updates, or manual downloads, follow the [installation guide](../../../docs/guide/installation.md). Private forks can use `SKILLED_USE_GH=1` / `-UseGh` with an authorized GitHub CLI login. Never put credentials in URLs.
 
 ## CLI from source
 

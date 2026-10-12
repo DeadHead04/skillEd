@@ -16,12 +16,12 @@ hero:
       text: Writing Evals
       link: /guide/writing-evals
     - theme: alt
-      text: Implementation migration
-      link: /guide/migration#implementation-migration
+      text: Install the CLI
+      link: /guide/installation
 
 features:
-  - title: Eval-to-Evolution with skilled-improve
-    details: Create evals through natural conversation, then let skilled-improve diagnose failures, repair or expand cases, and rerun skilled until the suite evolves.
+  - title: Improve from evaluation results
+    details: Use skilled-improve with your agent to inspect failed cases, revise a Skill, and rerun the same checks.
     link: /guide/getting-started#improve-from-evidence
     linkText: Learn more
   - title: Declarative Eval Config
@@ -52,6 +52,6 @@ features:
 
 Start with the behavior you want to check: a response, a generated file, a tool call or a scripted condition. `skilled` runs those cases against the selected engine, gathers evidence and reports each result. Use `skilled-improve` with your agent to inspect failures, revise a Skill or add missing cases, then run the suite again.
 
-Choose local, Docker or OpenSandbox execution. Existing Anthropic `evals.json` suites can be consumed directly or imported as YAML. JSON, JUnit and HTML outputs support both local review and CI. Source and releases live in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd); the [installation guide](./guide/installation.md) explains source builds and verified archive installation.
+Choose local, Docker or OpenSandbox execution. Existing Anthropic `evals.json` suites can be consumed directly or imported as YAML. JSON, JUnit and HTML outputs support both local review and CI. Source and releases live in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd); the [installation guide](./guide/installation.md) covers public installers, updates, and source builds.
 
 ![How skilled evaluates and evolves Agent Skills through automatic eval repair and iteration](/overview.svg)

@@ -1,0 +1,5 @@
+input:
+  prompt: Please greet me.
+expect:
+  must_contain:
+    - "Hello, world!"

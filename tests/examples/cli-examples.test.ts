@@ -37,6 +37,7 @@ function cli(args: string[], env: NodeJS.ProcessEnv) {
   );
 }
 for (const [name, count] of [
+  ["hello-world", 1],
   ["code-stats", 4],
   ["deepseek-harness", 1],
   ["user-simulator", 2],

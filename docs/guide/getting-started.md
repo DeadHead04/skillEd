@@ -1,168 +1,113 @@
-# Getting started
+# Your first evaluation
 
-`skilled` evaluates Agent Skills, agents and workspaces. The `skilled-improve` workflow helps an agent inspect reports, improve the Skill or cases, and rerun the evaluation.
+This walkthrough creates a small Skill and a real evaluation case. You can validate the files without a model account, then run the case after configuring an agent engine.
 
-Start with the [CLI installer](./installation.md#install-from-github-releases). It installs a versioned `skilled` command with a bundled runtime. Run `skilled --version` and `skilled --help` to verify it.
+## 1. Install the CLI
 
-## Optional: develop from a local checkout
-
-Start with the TypeScript source in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The CLI version is `0.1.0`. Use Node **24.21.0**, npm and Git. A private checkout requires authorized Git credentials, or use `gh repo clone DeadHead04/skillEd`:
+Follow [Installation](./installation.md) for macOS, Linux, or Windows. Release archives bundle their own runtime; you do not need Node or a source build.
 
 ```sh
-git clone https://github.com/DeadHead04/skillEd.git
-cd skillEd
-npm ci
-npm run build
-node dist/src/bootstrap.js --version
-node dist/src/bootstrap.js --help
+skilled --version
+skilled --help
 ```
 
-The development command is `node dist/src/bootstrap.js`. An extracted self-contained archive exposes `skilled` (`skilled.cmd` on Windows), including its own Node runtime. Commands below use that installed launcher; substitute the development command when working from source.
+## 2. Create a Skill and a case
 
-```sh
-npm run package -- --target=darwin-arm64
-node scripts/verify-package.mjs artifacts/skilled_0.1.0_darwin-arm64.tar.gz
-```
-
-Choose the archive for the target machine. Available native checks cover macOS arm64 and Linux arm64 Docker; untested targets and authenticated model combinations are not certified by building an archive.
-
-## Evaluate a Skill
-
-Keep `SKILL.md` beside `evals/`. Case file paths and repository fixture paths are relative to that Skill root.
+Create these files with your editor in a new `skilled-hello` directory:
 
 ```text
-my-skill/
+skilled-hello/
   SKILL.md
   evals/
     eval.yaml
-    cases/basic.yaml
+    cases/
+      greeting.yaml
 ```
 
-```sh
-skilled validate ./my-skill/evals/eval.yaml
-skilled list-cases ./my-skill/evals/eval.yaml
-skilled run ./my-skill/evals/eval.yaml --dry-run
-skilled run ./my-skill/evals/eval.yaml --format json --format html --format junit
-```
+`SKILL.md` defines the behavior being evaluated:
 
-Actual engine/model execution needs configured credentials. Use environment variables or `~/.skilled/credentials.yaml`, and follow the [user configuration guide](./user-config.md). `--dry-run` makes no model call. Do not put real credentials in committed YAML.
-
-## Improve from evidence
-
-The canonical workflow is `skills/skilled-improve/SKILL.md`. Build host bundles with `npm run build` and `node scripts/package-plugins.mjs`, then install `dist/bundled-plugins/codex-skilled` or `dist/bundled-plugins/dsh-skilled` through that host's local plugin interface.
-
-Ask the agent: “Use skilled-improve to add evaluations for this Skill, inspect failed reports, improve the Skill or its cases, and rerun.” The workflow reads the same evaluation artifacts as the CLI. It does not make a skipped or unavailable check pass.
-
-## Examples
-
-From the checkout, validate and list the included `examples/code-stats/evals/eval.yaml`, `examples/deepseek-harness/evals/eval.yaml`, or `examples/user-simulator/evals/eval.yaml`. Their README files describe the required agents and credentials. The DSH example uses a compiled TypeScript ACP bridge. Go files inside the code-statistics fixture are sample input, not application dependencies.
-
-## Verification boundaries
-
-Real local processes, Docker, OpenSandbox, MCP, reports, event logs and plugin services have separate recorded checks. Live authenticated model calls require an agreed model and spending limit. The tested OpenSandbox execd 1.0.16 removes stdout line separators, affecting glob artifact collection in both implementations; direct downloads and reports remain covered.
-
-## Core concepts
-
-To evaluate a Skill with skilled you need two things:
-
-1. **eval.yaml** — the entrypoint config that declares the runtime environment, the Agent Engine and model, and the global grading strategy.
-2. **case.yaml** — a single evaluation case that defines the prompt sent to the Agent, the expected output, and grading rules.
-
-They live inside the `evals/` folder of your Skill:
-
-```text
-my-skill/
-  SKILL.md              # Your Skill definition
-  evals/                # Evaluation root
-    eval.yaml           # Entrypoint config
-    cases/              # One file per case
-      basic-test.yaml
-      edge-case.yaml
-    fixtures/           # Optional test resources
-      repos/            # Repository templates
-      scripts/          # Grading scripts
-```
-
+```markdown
+---
+name: hello-world
+description: Return a short greeting when the user asks to be greeted.
 ---
 
-## 5-minute quick start
+When asked for a greeting, respond with exactly `Hello, world!`.
+```
 
-### Step 1 — Create the eval config
-
-Inside your Skill directory, create `evals/eval.yaml`:
+`evals/eval.yaml` selects the host runtime and Claude Code engine:
 
 ```yaml
 schema_version: v1alpha1
 
 environment:
-  type: none                    # Plain-text Skills don't need an isolated container
+  type: none
 
 engine:
-  name: claude_code             # Use Claude Code as the Agent Engine
+  name: claude_code
 
 cases:
   files:
-    - evals/cases/hello-world.yaml
+    - evals/cases/greeting.yaml
 ```
 
-> **Tip:** When `evals/eval.yaml` lives under a directory that contains `SKILL.md`, skilled installs the current Skill automatically. The omitted fields use defaults: JSON report output, `timeout_seconds: 300`, `max_turns: 10`, and `parallelism: 1`. Add `engine.model`, `skills`, `cases.defaults`, or `report` only when you need to override them.
-
-For the full `eval.yaml` schema, see [Writing Evals](./writing-evals).
-
-### Step 2 — Write an Eval Case
-
-Create `evals/cases/hello-world.yaml`:
+`evals/cases/greeting.yaml` defines the prompt and the expected response:
 
 ```yaml
 input:
-  prompt: |
-    Please generate a Hello World program
-
+  prompt: Please greet me.
 expect:
   must_contain:
-    - "Hello"
-    - "World"
-  must_not_contain:
-    - "error"
+    - "Hello, world!"
 ```
 
-The case `id` defaults to the filename (`hello-world`). Add a `judge` block only when you need script-based or agent-based grading.
+The case ID defaults to `greeting`. Case paths are relative to the Skill root. Because `SKILL.md` is beside `evals/`, skilled provisions this Skill automatically. This suite is also available under [examples/hello-world](https://github.com/DeadHead04/skillEd/tree/main/examples/hello-world).
 
-### Step 3 — Validate the config
+## 3. Validate without calling a model
 
-This step is optional, but useful before the first run: it checks `eval.yaml` and all referenced case files without starting an Agent Engine.
+Open a terminal in `skilled-hello` and run:
 
-```bash
-skilled validate
+```sh
+skilled validate evals/eval.yaml
+skilled list-cases evals/eval.yaml
+skilled run evals/eval.yaml --dry-run
 ```
 
-On success you should see:
+The suite should validate and list the `greeting` case. These commands do not execute the agent or verify its authentication. They give you a way to check file paths, configuration, and case selection before a live run.
 
-```text
-✓ eval.yaml is valid (loaded 1 case(s))
+## 4. Configure the engine and run
+
+This example uses Claude Code on the host (`environment.type: none`). Install that engine and authenticate it before running the case. You can use an existing local login with the model block omitted, or configure a provider through environment variables or `~/.skilled/credentials.yaml`. See [credentials and connection recipes](./writing-evals.md#credentials).
+
+To use another supported engine, change `engine.name` and configure its account. Host logins are not automatically copied into Docker or OpenSandbox runtimes. Provider requests may incur charges.
+
+```sh
+skilled run evals/eval.yaml --format json --format html --format junit
 ```
 
-### Step 4 — Run the evaluation
+The CLI prints the results directory. Open its HTML report to inspect the response and assertions; use JSON for tooling and JUnit for CI. A successful case means the response satisfied the configured assertion. Review the actual report before deciding whether your Skill meets its broader requirements.
 
-```bash
-skilled run
+## 5. Add a regression case
+
+Create another case under `evals/cases/`, add its path to `cases.files`, and rerun. Keep the cases as you revise `SKILL.md` so changes are checked against the same expectations.
+
+```sh
+skilled run evals/eval.yaml --baseline
+skilled run evals/eval.yaml --iteration 3
 ```
 
-You will see output similar to:
+A baseline run compares behavior with and without the Skill. Repeated iterations help expose variation and make additional engine calls. See [output layout and flags](./cli-reference.md).
 
-```text
-Running 1 case(s) with agent claude_code
-[Runner] Running 1 cases with agent claude_code
-[Evaluator] Skill installed: <skill-name>
-[Evaluator] Running case hello-world (with_skill): Skill should respond to a basic request
-[Evaluator] Case hello-world: PASS (pass_rate: 100.0%)
-[INFO] Results written to ./<skill-name>-workspace/iteration-1
-```
+## Improve from evidence
 
----
+Install [skilled-improve](https://github.com/DeadHead04/skillEd/tree/main/skills/skilled-improve) or the appropriate [Codex](https://github.com/DeadHead04/skillEd/tree/main/plugins/codex-skilled) / [DSH](https://github.com/DeadHead04/skillEd/tree/main/plugins/dsh-skilled) plugin using its host-specific instructions.
+
+Ask your agent: “Use skilled-improve to inspect the failed evaluations, improve this Skill or its cases, and rerun.” The workflow uses evaluation artifacts as evidence. Installing the CLI alone does not enable plugin observation capture.
 
 ## Next steps
 
-- [Writing Evals](./writing-evals) — full reference for `eval.yaml` and case files.
-- [CLI Reference](./cli-reference) — every command and flag.
-- [Migrating from Anthropic](./migration) — if you already have an Anthropic skill-creator `evals.json`.
+- [Writing evaluations](./writing-evals.md): schemas, environments, engines, and grading.
+- [User configuration](./user-config.md): `skilled init`, config files, and telemetry.
+- [CLI reference](./cli-reference.md): commands, output layout, and exit codes.
+- [Import existing evaluations](./migration.md): use Anthropic-style `evals.json`.
+- [Verification status](../verification.md): release checks and known limitations.

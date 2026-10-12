@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Reorganize the public README around installation, a first evaluation, and feature guides.
+- Add a Hello World evaluation and real CLI validation, case listing, and dry-run coverage.
+- Document anonymous release installation and correct the published platform verification scope.
+- Publish the English documentation through GitHub Pages.
+
 This file records releases of `skilled` maintained in
 [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd).
 

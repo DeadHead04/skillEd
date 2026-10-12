@@ -14,19 +14,27 @@ npm run docs:build
 
 The gate writes its source revision, enabled services, test totals, skipped checks and logs to `evidence/runs/`. The default gate does not enable external services or model requests. See [the real-service setup guide](./guide/ci-maintenance.md) for real-service settings. Native CI verifies the packaged CLI/API on Linux, macOS and Windows; the complete test suite runs on Ubuntu.
 
-## Available evidence
+## Published release evidence
 
-Before repository publication, the integrated TypeScript candidate passed 1,559 tests with zero failures and two authenticated simulator tests skipped. Separate archive acceptance exercised macOS ARM64, Linux ARM64 Docker, macOS x64 via Rosetta and Linux x64 via Docker emulation. Six archive targets passed integrity checks. Installer tests used real archive downloads through local HTTP, including corrupted downloads and wrong-version/target rejection. The Action container executed successful and intentionally failing evaluations and produced JSON, JUnit and HTML reports.
+[Release 0.1.0](https://github.com/DeadHead04/skillEd/releases/tag/v0.1.0) was published from commit `6063f74ba7f7d513e03b8e687c7f4accdb41baf4`. Its [release workflow](https://github.com/DeadHead04/skillEd/actions/runs/38136609356) passed all eight jobs:
 
-These are recorded development results, not claims that every original assertion or every provider/platform combination has been tested. The latest GitHub workflow run and its retained evidence apply to its exact commit. Publication changes are verified again before upload.
+- Release archive build and publication with checksum verification.
+- Packaged CLI/API acceptance on native Linux, macOS, and Windows runners.
+- Installation of the actual published assets, version checks, and latest-version reinstall on those three operating systems.
+
+The [source CI run](https://github.com/DeadHead04/skillEd/actions/runs/38136607439) passed the cumulative gate and native package checks for that commit. Before publication, real-service development checks also exercised Docker, OpenSandbox, MCP, plugin services, reports, and the Action container. The full suite and its optional service checks have different prerequisites; a skipped live-model check is not a pass.
+
+Six CLI targets have archive integrity checks. Native execution applies to each runner's architecture, not every OS/CPU combination. Separate development checks exercised macOS ARM64, Linux ARM64 Docker, macOS x64 through Rosetta, and Linux x64 through Docker emulation.
+
+The repository and release downloads are public. The npm tarball is a release asset; no npm registry package or container registry image has been published. The latest workflow evidence applies to its exact commit, not automatically to every subsequent change.
 
 ## Remaining limits
 
 - Authenticated engines, model judges, user simulators and a successful model-backed DSH ACP session need explicit provider/model access and a spending ceiling. The two skipped simulator tests do not enumerate every unavailable live-model path.
-- Native Windows and native x64 testing were unavailable in the development environment. Translated or emulated execution is recorded separately.
+- Native Windows ARM64 and every provider/OS/architecture combination have not been established by the three native CI jobs. Translated or emulated execution is recorded separately.
 - OpenSandbox execd 1.0.16 removes stdout line separators in the tested implementations. Direct downloads and reports are checked; glob-based artifact collection is not certified for that server version.
 - JavaScript integer precision is limited to the safe-integer range. Some uncommon formatting/parser boundaries are not asserted exhaustively.
-- Public release downloads, npm registry installation and published image pulls require actual published assets. Repository source availability is separate from an installable release.
+- A live engine evaluation still requires a configured engine and provider account. Package checks do not demonstrate model quality or authenticate all providers.
 
 ## Candidate integrity
 
@@ -36,4 +44,4 @@ The source and release retain the Apache-2.0 license and copyright notices. Prod
 
 ## Optional GitHub security services
 
-Workflow analysis runs for this private repository and retains its SARIF artifact. CodeQL and Security-tab uploads require code scanning entitlement; set the repository variable `SKILLED_CODE_SCANNING_ENABLED=true` after enabling that service. Private-repository attestations require an eligible GitHub plan; set `SKILLED_ATTESTATIONS_ENABLED=true` only when available. Hash and license verification remain mandatory regardless of those options. See GitHub's [code-scanning availability](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning) and [attestation requirements](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations).
+Workflow analysis retains its SARIF artifact. CodeQL, Security-tab uploads, and release attestations are enabled by the workflows for this public repository. Availability of a workflow does not imply that it passed for an earlier release: v0.1.0 was published while the repository was private. Private forks can opt into entitled services with `SKILLED_CODE_SCANNING_ENABLED=true` and `SKILLED_ATTESTATIONS_ENABLED=true`. Hash and license verification remain mandatory regardless of those options.
