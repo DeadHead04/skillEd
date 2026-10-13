@@ -2,7 +2,7 @@
 
 The canonical workflow creates evaluation cases, validates suites, reviews real reports, and improves a Skill from observed failures. Read `SKILL.md` for the workflow and `references/` for CLI and schema details.
 
-The CLI release includes this workflow. With [MCP](../../docs/guide/mcp.md), load
+The CLI release includes this workflow. With [MCP](https://deadhead04.github.io/skillEd/guide/mcp), load
 the `skilled-improve` prompt or `skilled://workflow/skilled-improve` resource;
 references and templates are available through the same server. A second
 executable or separate Skill download is not required.

@@ -14,6 +14,47 @@ npm run docs:build
 
 The gate writes its source revision, enabled services, test totals, skipped checks and logs to `evidence/runs/`. The default gate does not enable external services or model requests. See [the real-service setup guide](./guide/ci-maintenance.md) for real-service settings. Native CI verifies the packaged CLI/API on Linux, macOS and Windows; the complete test suite runs on Ubuntu.
 
+## 0.3.0 candidate acceptance
+
+The repair suite covers negative-rule denominators, skipped-assertion import,
+real rule-output comparison, debug/full-run gate semantics, project workflow
+activation/update/removal, and real MCP EOF/SIGTERM cleanup with active children.
+The native archive probe also installs and removes the workflow for both hosts.
+Session lookup respects `CLAUDE_CONFIG_DIR` and `CODEX_HOME`; native records supply
+observed model names. Unavailable usage is labeled in JSON through `usage_status`.
+
+The local cumulative gate passed 1,571 tests with zero failures and 33 skips,
+including a real Chrome report check. Three policy evaluations each passed through
+installed Codex and Claude Code using native subscription logins. These checks do
+not certify every provider, device, observer host or remote sandbox service.
+
+The compatibility reference and intentional scoring differences are recorded in
+[compatibility.json](./compatibility.json) and [Scoring](./guide/scoring.md).
+The older file-disposition ledgers are historical bookkeeping, not a claim that
+every original assertion was reexecuted. Candidate evidence is complemented by the CI result for the final release commit;
+native CI does not replace authenticated host acceptance.
+
+The fresh installed Codex host discovered the workflow and attempted the real
+baseline. Shell execution encountered the host sandbox's nested-process restriction.
+A second attempt through the configured MCP server reached `skilled_run`, but the
+host rejected it: `MCP tool call requires approval, but approval policy is never`.
+No successful baseline, revision, or held-out result was produced by that session.
+The full autonomous improvement cycle therefore remains **unverified**; permitting
+that tool requires the user's host approval, not a change to evaluation assertions.
+
+| Behavior | Maintained evidence | State |
+| --- | --- | --- |
+| Negative rules and stable denominators | `tests/judge/scoring-contract.test.ts` | Passed locally |
+| Failed gate skips judges and fails the case | `tests/evaluator/gate-scoring.test.ts`, `tests/cli/commands.test.ts` | Passed; intentional scoring difference |
+| Skipped assertions survive report conversion | `tests/judge/scoring-contract.test.ts`, report suites | Passed locally |
+| Unchanged real rule output remains comparable | `tests/judge/scoring-contract.test.ts` | Passed locally |
+| MCP EOF and termination clean up active work | `tests/mcp/shutdown.test.ts` | Passed locally on macOS |
+| Scoped native session lookup | `tests/agent/session-lookup.test.ts` | Passed locally |
+| Project workflow install, repeat, edit protection, removal | `tests/cli/setup.test.ts`, extracted archive probe | Passed locally for both host layouts |
+| Installed reference paths | `scripts/verify-package.mjs` | Passed locally |
+| Native subscription policy evaluation | Six installed CLI cases across Codex and Claude Code | Passed locally |
+| Autonomous baseline → revision → held-out evaluation | Fresh installed Codex session | Blocked by host approval; Claude full cycle unverified |
+
 ## Published release evidence
 
 For 0.2.0, the release acceptance adds installed-bundle MCP discovery, workflow
@@ -53,7 +94,7 @@ The repository and release downloads are public. The npm tarball is a release as
 
 ## Remaining limits
 
-- Authenticated engines, model judges, user simulators and a successful model-backed DSH ACP session need explicit provider/model access and a spending ceiling. The two skipped simulator tests do not enumerate every unavailable live-model path.
+- Authenticated engines, model judges, user simulators and a successful model-backed DSH ACP session need explicit provider/model access. Separately billed API tests also need a spending ceiling. The two skipped simulator tests do not enumerate every unavailable live-model path.
 - Native Windows ARM64 and every provider/OS/architecture combination have not been established by the three native CI jobs. Translated or emulated execution is recorded separately.
 - OpenSandbox execd 1.0.16 removes stdout line separators in the tested implementations. Direct downloads and reports are checked; glob-based artifact collection is not certified for that server version.
 - JavaScript integer precision is limited to the safe-integer range. Some uncommon formatting/parser boundaries are not asserted exhaustively.
