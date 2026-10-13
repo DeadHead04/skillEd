@@ -13,7 +13,7 @@ npm run audit:brand
 npm run docs:build
 ```
 
-The Makefile provides `build`, `verify`, `test`, `test-action`, `e2e`, `hooks`, `package`, `package-plugins`, `docs` and `fmt-check`. Windows helpers are under `scripts/windows/`. Go-specific lint/build tooling from the original implementation is not a dependency of this application.
+The Makefile provides `build`, `verify`, `test`, `test-action`, `e2e`, `hooks`, `package`, `package-plugins`, `docs` and `fmt-check`. Windows helpers are under `scripts/windows/`. Application development uses the Node and TypeScript toolchain above; a Go toolchain is not required.
 
 ## Structure and behavior
 

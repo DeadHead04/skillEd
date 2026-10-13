@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Clarify released-product setup and compatibility guidance, including public documentation availability and authenticated workflow verification limits.
 - Refresh the README and documentation with clearer installation, evaluation, and agent-workflow paths, plus a responsive light/dark theme.
 - Update installation examples for 0.2.0 and document the protected-branch contribution process.
 

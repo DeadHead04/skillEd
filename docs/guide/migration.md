@@ -126,10 +126,10 @@ Conversion mapping:
 The recommended user journey: **build and iterate the Skill with Anthropic skill-creator → onboard CI with `skilled run --auto` → use `skilled import` to switch to native YAML when deeper customization is needed.**
 
 
-## Implementation migration
+## Configuration and compatibility
 
-This candidate translates the pinned implementation to TypeScript while preserving configuration fields and behavior. Product command: `skilled`; workflow: `skilled-improve`; project configuration: `.skilled.yaml`; user directory: `~/.skilled`. Legacy names are not runtime aliases. See [verification status](../verification.md) for current coverage.
+After importing your evaluation cases, use `skilled` to validate and run them. The bundled `skilled-improve` workflow helps your agent inspect failures and revise a Skill. Project configuration belongs in `.skilled.yaml`; see [user configuration](./user-config.md) for configuration and credential locations.
 
-Behavior comparisons use a fixed reference snapshot. Historical design records may contain Go examples and original version numbers; they are not build instructions for this candidate. Application code is under `src/`, host integrations under `plugins/`, and the DSH example bridge is TypeScript. Sample `.go` files in `examples/code-stats` are test input only.
+Import converts supported case fields; it does not establish that a configured engine is installed or authenticated. Validate the imported suite, inspect the selected cases with a dry run, and perform a real evaluation before using the result as a baseline. See [verification and release scope](../verification.md) for tested behavior and remaining limits.
 
-The source and release repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). Use the [installation guide](./installation.md) for source setup and release installers. Registry publication, public docs hosting and authenticated model/device checks have their own prerequisites and remain unverified until completed.
+Source and releases are available in [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd), with [public documentation](https://deadhead04.github.io/skillEd/). The [installation guide](./installation.md) covers release installers and source builds. An npm registry package is not published; provider-backed evaluation requires your configured engine and account.
