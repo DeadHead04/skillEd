@@ -1,12 +1,12 @@
 # Repository guidance
 
-`skilled` is a TypeScript/ESM evaluation CLI; the improvement workflow is `skilled-improve`. The pinned original implementation and migration records are outside this product checkout. Preserve behavior when porting; do not add legacy-name runtime aliases.
+`skilled` is a TypeScript/ESM evaluation CLI; the improvement workflow is `skilled-improve`. Preserve documented behavior and serialized contracts when changing the implementation. Use the versioned reference fixtures to check compatibility; do not add legacy-name runtime aliases.
 
 ## Setup and checks
 
 Use Node 24.21.0 (`.nvmrc`), `npm ci`, and `npm run build`. The executable entrypoint is `src/bootstrap.ts`; CLI glue is in `src/cli`, public execution in `src/api`, and domain logic in the corresponding `src/` module. Plugin and example TypeScript is compiled with the application.
 
-Run `npm run typecheck` and meaningful tests for affected behavior. Build before running compiled tests. Run the cumulative phase gate for an integrated migration milestone; keep failed, skipped and unavailable checks visible. Avoid clean builds while another agent is using `dist/`; coordinate shared interfaces and dependency changes.
+Run `npm run typecheck` and meaningful tests for affected behavior. Build before running compiled tests. Run the cumulative phase gate for integrated release verification; keep failed, skipped and unavailable checks visible. Avoid clean builds while another agent is using `dist/`; coordinate shared interfaces and dependency changes.
 
 Acceptance uses actual production functions, files, processes, services and hosts. Do not substitute fake models, executables or runtimes for required real integration checks. Authenticated model calls need explicitly configured credentials and a spending limit. Missing accounts or devices must be recorded as unverified.
 

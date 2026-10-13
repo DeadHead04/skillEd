@@ -169,7 +169,7 @@ To uninstall npm, run `npm uninstall --global skilled`. For a manually extracted
 | User configuration | `$XDG_CONFIG_HOME/skilled/config.yaml`, or `~/.config/skilled/config.yaml` |
 | Credentials | `~/.skilled/credentials.yaml` |
 
-The logo, docs, reports, CLI help, plugin manifests and release filenames use these names. Provider-owned environment variables retain their provider names. Apache-2.0 and Alibaba copyright notices are preserved. The original checkout and migration records are separate from the product.
+The logo, docs, reports, CLI help, plugin manifests and release filenames use these names. Provider-owned environment variables retain their provider names. Apache-2.0 and Alibaba copyright notices are preserved in the distribution.
 
 ## Plugins, image and publication
 
