@@ -139,7 +139,7 @@ async function installationProbe() {
       }
       const installedSkill = join(root, folder, "skills/skilled-improve/SKILL.md");
       assert.match(await readFile(installedSkill, "utf8"), /name: skilled-improve/);
-      assert.match(await readFile(join(root, folder, "skills/skilled-improve/references/install.md"), "utf8"), /https:\/\/deadhead04.github.io\/skillEd\/guide\/installation/);
+      assert.match(await readFile(join(root, folder, "skills/skilled-improve/references/install.md"), "utf8"), /https:\/\/deadhead04\.github\.io\/skillEd\/guide\/installation/);
       const removed = run(["setup", "--host", host, "--remove"]);
       assert.equal(removed.status, 0, removed.stderr);
       await assert.rejects(readFile(installedSkill), { code: "ENOENT" });
