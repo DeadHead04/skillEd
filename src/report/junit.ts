@@ -70,7 +70,7 @@ export function buildFailureBody(c: CaseResult): string {
   for (const m of c.judge_results ?? [])
     lines.push(`- judge ${m.id} (${m.type}): ${m.status} ${m.error ?? ""}`);
   for (const a of c.grading?.assertion_results ?? [])
-    if (!a.passed) lines.push(`- ${a.text}: ${a.evidence}`);
+    if (!a.passed) lines.push(`- ${a.skipped ? "SKIPPED: " : ""}${a.text}: ${a.evidence}`);
   for (const t of c.turn_results ?? [])
     if (t.status !== "completed")
       lines.push(

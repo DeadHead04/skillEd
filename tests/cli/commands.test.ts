@@ -432,7 +432,7 @@ test("debug rule judge runs real assertions, expectation gate and optional repor
   assert.match(out.stderr, /judge skipped/);
   assert.equal(
     JSON.parse(await readFile(path.join(dir, "grading.json"), "utf8")).status,
-    "FAIL",
+    "SKIP",
   );
 });
 test("debug script judge launches real executable with readable transcript and removes transient file", async (t) => {
@@ -518,12 +518,20 @@ for (const [i, referenceJudge] of reference.judges.entries())
     );
     const out = await run(dir, referenceJudge.command.args);
     assert.equal(out.code, referenceJudge.command.code, out.stderr);
-    assert.equal(out.stderr, referenceJudge.command.stderr);
+    // Gate scoring intentionally excludes prerequisites from judge credit.
+    const gateFailure = referenceJudge.command.stderr.includes("[expect] FAIL");
+    const expectedStderr = gateFailure
+      ? referenceJudge.command.stderr.replace("[judge]  FAIL — 0/2", "[judge]  SKIP — 0/0")
+      : referenceJudge.command.stderr;
+    assert.equal(out.stderr, expectedStderr);
     assert.equal(out.stdout, referenceJudge.command.stdout);
-    assert.deepEqual(
-      JSON.parse(await readFile(path.join(dir, "grading.json"), "utf8")),
-      referenceJudge.grading,
-    );
+    const grading = JSON.parse(await readFile(path.join(dir, "grading.json"), "utf8"));
+    const legacy = JSON.parse(JSON.stringify(grading, (key, value) =>
+      ["id", "scoring_version", "rubric_id"].includes(key) ? undefined : value));
+    assert.deepEqual(legacy, gateFailure ? {
+      ...(referenceJudge.grading as Record<string, unknown>), status: "SKIP", skip_reason: "expect_gate_failed",
+      assertion_results: [], summary: { passed: 0, failed: 0, total: 0, pass_rate: 0 },
+    } : referenceJudge.grading);
   });
 for (const referenceReport of reference.reports)
   test(`actual pinned Go offline ${referenceReport.format} report matches bytes`, async (t) => {

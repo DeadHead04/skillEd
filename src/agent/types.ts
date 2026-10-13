@@ -37,6 +37,8 @@ export interface SessionArtifacts {
   logs?: string;
 }
 export interface SessionResult {
+  /** Unavailable counts retain legacy numeric zero; this field disambiguates. */
+  usage_status?: "reported" | "unavailable";
   engine?: string;
   applied_protocol?: string;
   requested_provider?: string;

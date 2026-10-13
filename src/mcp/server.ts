@@ -606,28 +606,36 @@ export async function serveMcp(options: McpOptions): Promise<void> {
   try {
     server = await createMcpServer({ ...options, signal });
     const connectedServer = server;
-    await new Promise<void>((resolve, reject) => {
-      const abort = () => {
-        void connectedServer
-          .close()
-          .then(() => connectedServer.waitForIdle())
-          .then(resolve, reject);
-      };
-      connectedServer.onerror = (error) => {
-        process.stderr.write(`skilled MCP: ${bounded(error.message, 2048)}\n`);
-      };
-      connectedServer.onclose = () => {
-        controller.abort();
-        signal.removeEventListener("abort", abort);
-        void connectedServer.waitForIdle().then(resolve, reject);
-      };
-      signal.addEventListener("abort", abort, { once: true });
-      if (signal.aborted) {
-        resolve();
-        return;
-      }
-      void connectedServer.connect(new StdioServerTransport()).catch(reject);
-    });
+    let detach = () => {};
+    try {
+      await new Promise<void>((resolve, reject) => {
+        let closing = false;
+        const shutdown = () => {
+          if (closing) return;
+          closing = true;
+          detach();
+          controller.abort();
+          void connectedServer.close()
+            .then(() => connectedServer.waitForIdle()).then(resolve, reject);
+        };
+        detach = () => {
+          signal.removeEventListener("abort", shutdown);
+          process.stdin.removeListener("end", shutdown);
+          process.stdin.removeListener("close", shutdown);
+        };
+        connectedServer.onerror = (error) => {
+          process.stderr.write(`skilled MCP: ${bounded(error.message, 2048)}\n`);
+        };
+        connectedServer.onclose = shutdown;
+        signal.addEventListener("abort", shutdown, { once: true });
+        process.stdin.once("end", shutdown);
+        process.stdin.once("close", shutdown);
+        if (signal.aborted || process.stdin.readableEnded) { shutdown(); return; }
+        void connectedServer.connect(new StdioServerTransport()).catch(reject);
+      });
+    } finally {
+      detach();
+    }
   } finally {
     controller.abort();
     await server?.close();

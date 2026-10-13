@@ -7,6 +7,7 @@ export interface AnthropicGrading {
   judge_context?: ContextMetadata | null;
 }
 export interface AnthropicExpectation {
+  skipped?: boolean;
   text: string;
   passed: boolean;
   evidence: string;
@@ -29,6 +30,7 @@ export function convertToAnthropicGrading(
   return {
     expectations: (result?.assertion_results ?? []).map((a) => ({
       text: a.text,
+        ...(a.skipped ? { skipped: true } : {}),
       passed: a.passed,
       evidence: a.evidence,
     })),

@@ -31,12 +31,18 @@ const expected = JSON.parse(
   await readFile(path.join(fixtureRoot, "reference-results.json"), "utf8"),
 );
 function project(r: EvalResult) {
+  const grading = r.grading ? (() => {
+    const { scoring_version, rubric_id, ...legacy } = r.grading!;
+    assert.equal(scoring_version, "skilled/2");
+    assert.match(rubric_id!, /^[a-f0-9]{64}$/);
+    return { ...legacy, assertion_results: legacy.assertion_results.map(({ id, ...a }) => a) };
+  })() : null;
   return {
     caseID: r.caseID,
     configuration: r.configuration,
     status: r.status,
     turnsTotal: r.turnsTotal,
-    grading: r.grading ?? null,
+    grading,
     final_message: r.final_message ?? "",
     exit_code: r.exit_code,
     turns: r.turns,

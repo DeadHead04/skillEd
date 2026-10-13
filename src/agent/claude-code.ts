@@ -258,6 +258,8 @@ export class ClaudeCodeAgent extends CLIAgent {
       exit_code: result.exitCode,
       duration_ms: Date.now() - start,
       turns: countTurns(parsed.transcript),
+      ...(parsed.model ? { model: parsed.model } : {}),
+      usage_status: parsed.inputTokens || parsed.outputTokens ? "reported" : "unavailable",
       input_tokens: parsed.inputTokens,
       output_tokens: parsed.outputTokens,
       final_message: parsed.finalMsg,
@@ -474,7 +476,7 @@ export const findClaudeSessionFile = (
   findAgentSessionJSONL(
     rt,
     {
-      projectsRootTmpl: "$home/.claude/projects",
+      projectsRootTmpl: "${CLAUDE_CONFIG_DIR:-$home/.claude}/projects",
       sessionDepth: 1,
       findExtra: "",
     },
@@ -494,6 +496,7 @@ export function buildStreamJSON(messages: Message[]): string {
     .join("");
 }
 export interface ParsedClaude {
+  model?: string;
   transcript: Transcript;
   finalMsg: string;
   inputTokens: number;
@@ -507,7 +510,8 @@ interface Usage {
 }
 interface ClaudeEvent {
   type?: string;
-  message?: { content?: unknown; usage?: Usage };
+  model?: string;
+  message?: { content?: unknown; usage?: Usage; model?: string };
   tool_call?: { id?: string; name: string; input?: Record<string, unknown> };
   tool_result?: { call_id?: string; status?: string; content?: unknown };
   result?: string;
@@ -640,6 +644,8 @@ export function parseStreamOutput(output: string): ParsedClaude {
   } catch {}
   for (const e of events) {
     if (!e) continue;
+    if (typeof e.model === "string" && e.model) out.model = e.model;
+    if (typeof e.message?.model === "string" && e.message.model) out.model = e.message.model;
     if (e.type === "user") {
       turn++;
       if (e.message)
@@ -690,6 +696,8 @@ export function parseSessionJSONL(text: string): ParsedClaude {
   };
   let turn = 0;
   for (const e of jsonLines(text)) {
+    if (typeof e.model === "string" && e.model) out.model = e.model;
+    if (typeof e.message?.model === "string" && e.message.model) out.model = e.message.model;
     if (e.type === "user") {
       turn++;
       if (e.message) {

@@ -31,6 +31,8 @@ export interface AgentConfiguration {
   version?: string;
 }
 export interface CaseResult {
+  /** Unavailable counts retain legacy numeric zero; this field disambiguates. */
+  usage_status?: "reported" | "unavailable";
   case_id: string;
   title: string;
   status: Status;

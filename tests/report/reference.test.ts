@@ -124,7 +124,11 @@ for (const [i, v] of vectors.entries())
             html: html.replace(match[1]!, "EMBEDDED_REPORT_DATA"),
           };
         };
-        assert.deepEqual(extract(actual), extract(v.output));
+        // The presentation adds skipped-state support; legacy embedded data stays exact.
+        const updatedTemplate = v.output
+          .replace('var sc = exp.passed ?', 'var sc = exp.skipped ? "a-skip" : exp.passed ?')
+          .replace('var icon = exp.passed ?', 'var icon = exp.skipped ? "SKIP" : exp.passed ?');
+        assert.deepEqual(extract(actual), extract(updatedTemplate));
       } else assert.equal(actual, v.output);
     } finally {
       await rm(root, { recursive: true, force: true });

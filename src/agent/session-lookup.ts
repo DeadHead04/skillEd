@@ -82,6 +82,7 @@ export async function findAgentSessionJSONL(
       {
         ...opts,
         env: {
+          ...opts.env,
           SKILLED_SESSION_WS: workspace,
           SKILLED_SESSION_WSKEY: key,
           SKILLED_SESSION_CWD_MARKERS:

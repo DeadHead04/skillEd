@@ -147,6 +147,7 @@ export function caseResultToEmbeddedCase(c: CaseResult): embeddedCase {
     e.grading = {
       expectations: (c.grading.assertion_results ?? []).map((a) => ({
         text: a.text,
+        ...(a.skipped ? { skipped: true } : {}),
         passed: a.passed,
         evidence: a.evidence,
       })),

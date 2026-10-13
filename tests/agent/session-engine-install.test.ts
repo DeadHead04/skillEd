@@ -42,7 +42,7 @@ for (const [name, make] of [
           observation.version,
           "installed official CLI must report a version",
         );
-        if (name === "codex") assert.equal(observation.version, "0.80.0");
+        if (name === "codex") assert.equal(observation.version, "0.162.1");
         t.diagnostic(
           JSON.stringify({
             engine: name,

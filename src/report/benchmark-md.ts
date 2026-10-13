@@ -32,7 +32,7 @@ export function writeBenchmarkExpectations(
   return (
     "\n| Expectation | Result | Evidence |\n|-------------|--------|----------|\n" +
     expectations
-      .map((e) => `| ${e.text} | ${e.passed ? "✅" : "❌"} | ${e.evidence} |\n`)
+      .map((e) => `| ${e.text} | ${e.skipped ? "SKIP" : e.passed ? "✅" : "❌"} | ${e.evidence} |\n`)
       .join("")
   );
 }

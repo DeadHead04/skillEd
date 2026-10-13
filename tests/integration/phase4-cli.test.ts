@@ -45,7 +45,9 @@ function normalize(value: any): any {
               "elapsed_ms",
               "time",
               "invocation_id",
-            ].includes(k),
+              "scoring_version",
+              "rubric_id",
+            ].includes(k) && !(k === "id" && "passed" in value && "text" in value),
         )
         .map(([k, v]) => [k, normalize(v)]),
     );
