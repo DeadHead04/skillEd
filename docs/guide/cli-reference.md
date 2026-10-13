@@ -3,6 +3,24 @@
 skilled provides commands for validating Skills and evaluation suites, running
 cases, generating and comparing reports, importing formats, and serving MCP.
 
+## skilled setup
+
+```sh
+skilled setup --host codex
+skilled setup --host claude-code --project /absolute/path/to/project
+skilled setup --host codex --remove
+```
+
+Available from version 0.3.0. Installs the bundled `skilled-improve` workflow into
+`.agents/skills/skilled-improve` for Codex or `.claude/skills/skilled-improve` for
+Claude Code. `--host` is required; `--project` defaults to the current directory
+and must name an existing project. Start a new host session after setup.
+
+Repeat setup after upgrading the CLI. It updates only an unchanged managed copy;
+local edits and unrelated host settings are preserved. `--remove` removes only an
+unchanged managed copy. Setup does not log in to an engine or approve host tools.
+See [getting started](./getting-started.md) for the evaluation workflow.
+
 ## skilled mcp
 
 ```sh
