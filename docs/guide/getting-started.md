@@ -105,7 +105,7 @@ requires enforced filesystem isolation and cannot use this guide's native
 
 ## Improve from evidence
 
-The CLI includes `skilled-improve`. Project-local setup requires **skilled 0.3.0 or newer**; check `skilled --version` first. If the public release is older, follow the [source build instructions](./installation.md#build-from-source), then use `node /absolute/path/to/skillEd/dist/src/bootstrap.js` in place of `skilled` below.
+The CLI includes `skilled-improve`. Project-local setup requires **skilled 0.3.0 or newer**; check `skilled --version` first. [The published v0.3.0 release](https://github.com/DeadHead04/skillEd/releases/tag/v0.3.0) includes these commands. If your installed version is older, [update it with the release installer](./installation.md#verify-update-and-uninstall).
 
 From your project directory, run
 `skilled setup --host codex` or `skilled setup --host claude-code`, then start a new

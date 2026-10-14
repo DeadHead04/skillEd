@@ -2,9 +2,22 @@
 
 ## Unreleased
 
+- Refresh project onboarding, public release links, and the README with an actual evaluation report and verified release evidence.
+
+## 0.3.0
+
+- Add project-local `skilled-improve` setup for Codex and Claude Code, including repeat setup, edited-file protection, and removal.
+- Preserve sandbox and approval policy when resuming Codex sessions.
+- Add durable MCP jobs with idempotent starts, reconnectable status/results, cancellation, and supervisor cleanup across native operating systems.
+- Preserve configured HTML and JUnit reports alongside JSON; isolate concurrent run output directories.
+- Require verified Docker filesystem isolation for with/without-Skill benchmarks and use clean grading snapshots.
+- Correct negative-rule scoring, skipped-assertion import, and comparison of actual rule outputs.
+- Add explicit Docker Codex login-file forwarding with credential validation and cleanup. Live authenticated Docker model execution remains unverified; see the verification guide.
+- Verify native archives and published versioned/latest installation on Linux, macOS, and Windows, including workflow setup for both hosts.
+
 - Clarify released-product setup and compatibility guidance, including public documentation availability and authenticated workflow verification limits.
 - Refresh the README and documentation with clearer installation, evaluation, and agent-workflow paths, plus a responsive light/dark theme.
-- Update installation examples for 0.2.0 and document the protected-branch contribution process.
+- Document the protected-branch contribution process.
 
 ## 0.2.0
 
