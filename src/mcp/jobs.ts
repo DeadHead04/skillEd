@@ -1,6 +1,5 @@
 import { mkdir, readFile, writeFile, rename, realpath, readdir, stat } from "node:fs/promises";
 import path from "node:path";
-import os from "node:os";
 import { spawn } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -19,7 +18,6 @@ export interface JobState {
   updatedAt: string;
   ownerPid: number;
   outputDir: string;
-  bootTimeMs?: number;
   exitCode?: number;
   error?: string;
   stdout?: string;
@@ -59,9 +57,7 @@ export async function readJob(root: string, runId: string): Promise<JobState> {
   const dir = await safeDirectory(root, runId);
   const state = await readJson<JobState>(path.join(dir, "state.json"));
   // Never signal a PID from persisted metadata: process IDs may have been reused.
-  const differentBoot = state.bootTimeMs !== undefined &&
-    Math.abs((Date.now() - os.uptime() * 1000) - state.bootTimeMs) > 60_000;
-  if (!terminal.has(state.status) && (!alive(state.ownerPid) || differentBoot)) {
+  if (!terminal.has(state.status) && !alive(state.ownerPid)) {
     state.status = "interrupted";
     state.error = "Evaluation worker exited before recording a terminal result. Inspect partial reports; use a new idempotency key to retry.";
     state.updatedAt = new Date().toISOString();
@@ -96,7 +92,7 @@ export async function startJob(root: string, key: string, spec: JobSpec): Promis
     }
     throw new Error("Run reservation is incomplete; no duplicate was started. Inspect the job directory before retrying with a new key.");
   }
-  const state: JobState = { runId: id, status: "starting", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ownerPid: process.pid, bootTimeMs: Date.now() - os.uptime() * 1000, outputDir: path.relative(spec.workspace, spec.outputDir) };
+  const state: JobState = { runId: id, status: "starting", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), ownerPid: process.pid, outputDir: path.relative(spec.workspace, spec.outputDir) };
   await atomicJson(path.join(dir, "spec.json"), spec);
   await atomicJson(path.join(dir, "state.json"), state);
   const child = spawn(process.execPath, [worker, root, id], {
