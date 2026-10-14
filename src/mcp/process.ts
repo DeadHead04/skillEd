@@ -20,7 +20,10 @@ export async function runMcpCli(
     const child = spawn(process.execPath, [bootstrap, ...args], {
       cwd: workspace,
       env: { ...process.env, NO_COLOR: "1", SKILLED_MCP_SUPERVISED: "1" },
-      detached: process.platform !== "win32",
+      // Windows libuv assigns non-detached children to the parent's kill-on-
+      // close job. The evaluation must survive supervisor death long enough
+      // to expire its lease and clean up shell descendants itself.
+      detached: true,
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe", "ipc"],
     });
