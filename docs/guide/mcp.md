@@ -60,13 +60,63 @@ prompts, have the agent read the workflow resource.
 | `skilled_validate_skill` | `path`: Skill directory | Metadata and declared file-reference errors |
 | `skilled_validate` | `path`: eval YAML or Skill directory | Validated cases and engine name |
 | `skilled_run` | `path`, optional `dryRun`, `outputDir`, `timeoutSeconds`, `model`, `provider` | Dry-run case list or real CLI outcome and report location |
+| `skilled_start` | `path`, `idempotencyKey`, optional `outputDir`, `timeoutSeconds`, `model`, `provider` | Persistent background run ID and state |
+| `skilled_status` / `skilled_results` | `runId` | Saved lifecycle state, outcome and report paths |
+| `skilled_cancel` | `runId` | Cancellation request; poll status until cleanup finishes |
 | `skilled_compare` | `before`, `after`: report JSON paths | Matched case changes, regressions, coverage and comparability warnings |
 
 Paths are relative to the selected workspace. `skilled_run` defaults to
-`dryRun: true`; `dryRun: false` needs the execution-enabled server. It runs one
-evaluation at a time, with a default timeout of 300 seconds and maximum of 3,600.
+`dryRun: true`; `dryRun: false` needs the execution-enabled server. Synchronous execution runs one
+evaluation per server at a time, with a default timeout of 300 seconds and maximum of 3,600.
 Cancellation requests CLI/runtime cleanup. Full reports remain on disk when
 responses are truncated. Validation and comparison do not call a model.
+
+## Long evaluations and reconnecting
+
+Use `skilled_start` for evaluations that may outlast a host's MCP tool timeout:
+
+```json
+{"path":"skills/refund-policy", "idempotencyKey":"refund-policy-baseline-1", "timeoutSeconds":1200}
+```
+
+The execution-enabled server returns a `runId` promptly. Call `skilled_status`
+with that ID until the state is terminal, then read `skilled_results`. Both return
+saved state and report paths; they never run the evaluation again. The suite's
+HTML and JUnit formats are preserved, and JSON is always included for comparison.
+
+The worker continues after the client disconnects or the MCP server closes.
+Reconnect to the **same workspace**, then use the saved run ID. If the initial
+response was lost, repeat `skilled_start` with the same idempotency key and
+arguments. It returns the existing job; changed arguments with the same key are
+rejected. Use a new key for an intentional rerun. Each distinct key starts an
+independent job, so limit concurrent starts to your available resources.
+
+Job state is stored under `.skilled-mcp/jobs`. `outputDir` is a **base** directory;
+each synchronous or background run receives its own `.skilled-runs/<id>` child.
+The default base is `.skilled-mcp/runs`. Always use the returned `outputDir` and
+report paths. Concurrent requests with the same base cannot overwrite one
+another. Passing a directory inside an existing `.skilled-runs` tree is rejected. Keep these local runtime files out of source control. Responses include bounded
+stdout/stderr previews and at most 256 report paths (32 KiB); `truncated` and
+`reportsTruncated` identify shortened listings. Full reports remain in `outputDir`. Jobs
+have states `starting`, `running`, `completed`, `failed`, `cancelled`,
+`timed_out`, or `interrupted`. A stale heartbeat yields `unresponsive`; do not
+launch a duplicate while execution is uncertain. Cancellation still requests
+cleanup, and a recovered worker can resume reporting its actual state. A failed verdict gives a nonzero CLI exit and a
+`failed` job; inspect its report to distinguish case failures from execution
+errors. A machine restart does not resume model execution automatically: a dead
+worker is reported as interrupted, with partial reports retained.
+
+To stop a background run, use `skilled_cancel` on an execution-enabled server.
+Cancellation is a request; poll until terminal state confirms cleanup. Closing
+the client is not cancellation for these explicit background jobs. Synchronous
+`skilled_run` retains its original request cancellation and server shutdown
+behavior.
+
+If using synchronous execution, the host's tool timeout must exceed
+`timeoutSeconds` plus cleanup time. For a 1,200-second budget, a Codex server
+configuration can set `tool_timeout_sec = 1500` under `[mcp_servers.skilled]`.
+That host setting is separate from the evaluation budget; increasing one does
+not increase the other. See the [Codex MCP configuration documentation](https://learn.chatgpt.com/docs/extend/mcp).
 
 ## Where drift detection fits
 

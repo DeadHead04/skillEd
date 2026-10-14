@@ -11,7 +11,11 @@ const cancel = (message: unknown) => {
 };
 process.once("SIGINT", interrupt);
 process.once("SIGTERM", terminate);
-if (process.send) process.on("message", cancel);
+const disconnect = () => controller.abort(new Error("Evaluation supervisor disconnected"));
+if (process.send) {
+  process.on("message", cancel);
+  process.once("disconnect", disconnect);
+}
 try {
   await execute(VERSION, process.argv.slice(2), { signal: controller.signal });
 } catch {
@@ -20,5 +24,6 @@ try {
   process.removeListener("SIGINT", interrupt);
   process.removeListener("SIGTERM", terminate);
   process.removeListener("message", cancel);
+  process.removeListener("disconnect", disconnect);
   if (process.connected) process.disconnect();
 }
