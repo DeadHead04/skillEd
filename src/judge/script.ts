@@ -1,4 +1,7 @@
 // Modified for the skilled TypeScript distribution.
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { fingerprint, scoringVersion } from "./scoring.js";
 import type { Context } from "@opentelemetry/api";
 import type { Runtime, ExecResult } from "../runtime/types.js";
 import { RuntimeExecutionError } from "../runtime/types.js";
@@ -58,13 +61,16 @@ export class ScriptJudge implements Judge {
         );
       }
     try {
-      return await this.evaluateInRuntime(
+      const scriptFingerprint = createHash("sha256").update(await readFile(this.scriptPath)).digest("hex");
+      const result = await this.evaluateInRuntime(
         rt,
         resolveInput(input),
         timeout,
         bounded,
         context,
       );
+      return { ...result, scoring_version: scoringVersion,
+        rubric_id: fingerprint({ type: "script", content: scriptFingerprint, timeout }) };
     } finally {
       if (own) await rt.close();
     }

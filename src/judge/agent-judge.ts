@@ -1,4 +1,5 @@
 // Modified for the skilled TypeScript distribution.
+import { fingerprint, scoringVersion } from "./scoring.js";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -285,6 +286,10 @@ export class AgentJudge implements Judge {
         evidence: formatCriterionEvidence(r),
       })),
       result = newResult(assertions, i.turnsExecuted, i.turnsTotal);
+    result.scoring_version = scoringVersion;
+    result.rubric_id = fingerprint({ type: "agent_judge", criteria: this.criteria,
+      passThreshold: this.passThreshold, context: this.context, model: this.model,
+      observedModel: session.model ?? null, engine: this.agent.name(), skills: this.judgeSkills });
     setJudgeSession(result, session);
     result.judge_context = buildContextMetadata(session, materialized, prompt);
     if (assertions.length)

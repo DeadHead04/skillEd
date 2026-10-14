@@ -590,6 +590,7 @@ export function resultToBenchmarkRun(
     expectations: res.grading?.assertion_results.length
       ? res.grading.assertion_results.map((a) => ({
           text: a.text,
+        ...(a.skipped ? { skipped: true } : {}),
           passed: a.passed,
           evidence: a.evidence,
         }))
@@ -702,6 +703,7 @@ export function evalResultToCaseResult(res: EvalResult): report.CaseResult {
     configuration: res.configuration,
     prompt: res.prompt,
     response: responseContent(res),
+    ...(res.usage_status ? { usage_status: res.usage_status } : {}),
     observed_model: res.model,
     observed_version: res.version,
     turn_results: evalTurnResultsToReport(res.turnResults),

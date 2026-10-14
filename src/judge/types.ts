@@ -59,6 +59,9 @@ export interface Judge {
   ): Promise<Result>;
 }
 export interface AssertionResult {
+  /** Stable criterion identity, independent of result wording. */
+  id?: string;
+  skipped?: boolean;
   text: string;
   passed: boolean;
   evidence: string;
@@ -70,6 +73,8 @@ export interface ResultSummary {
   pass_rate: number;
 }
 export interface Result {
+  scoring_version?: string;
+  rubric_id?: string;
   status: Status;
   skip_reason?: string;
   error_reason?: string;

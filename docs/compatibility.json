@@ -1,0 +1,20 @@
+{
+  "review_date": "2026-10-14",
+  "reference_commit": "4d13bf104ff74aa725470d3489669537f9265f3e",
+  "previous_reference_commit": "12deb53a19147704e3f547602962edf6d22e0c54",
+  "scoring_contract": "skilled/2",
+  "intentional_differences": [
+    "Prerequisite checks remain outside rubric credit; a failed gate fails the case and skips the judge.",
+    "Scoring provenance and stable rubric identities are additive serialized metadata.",
+    "Project activation, general report comparison and the general MCP server are additional capabilities."
+  ],
+  "required_regression_tests": [
+    "tests/judge/scoring-contract.test.ts",
+    "tests/evaluator/gate-scoring.test.ts",
+    "tests/cli/commands.test.ts",
+    "tests/cli/setup.test.ts",
+    "tests/mcp/shutdown.test.ts",
+    "tests/agent/session-lookup.test.ts"
+  ],
+  "scope": "A reference pin and passing file inventories do not certify all provider/platform behavior. See verification.md and recorded cumulative gates."
+}

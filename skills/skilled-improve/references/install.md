@@ -1,6 +1,6 @@
 # Install skilled and its workflow
 
-The source repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The executable is `skilled`; the workflow is `skilled-improve`. See the [installation guide](../../../docs/guide/installation.md) for platform selection, PATH setup, updates, and removal.
+The source repository is [DeadHead04/skillEd](https://github.com/DeadHead04/skillEd). The executable is `skilled`; the workflow is `skilled-improve`. See the [installation guide](https://deadhead04.github.io/skillEd/guide/installation) for platform selection, PATH setup, updates, and removal.
 
 ## Install the CLI release
 
@@ -12,7 +12,7 @@ export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 ```
 
-This installs the complete runtime bundle. For Windows PowerShell, pinned versions, updates, or manual downloads, follow the [installation guide](../../../docs/guide/installation.md). Private forks can use `SKILLED_USE_GH=1` / `-UseGh` with an authorized GitHub CLI login. Never put credentials in URLs.
+This installs the complete runtime bundle. For Windows PowerShell, pinned versions, updates, or manual downloads, follow the [installation guide](https://deadhead04.github.io/skillEd/guide/installation). Private forks can use `SKILLED_USE_GH=1` / `-UseGh` with an authorized GitHub CLI login. Never put credentials in URLs.
 
 ## MCP connection
 
@@ -24,7 +24,7 @@ work without it. Load the `skilled-improve` prompt or the resource
 `skilled://workflow/skilled-improve`. Referenced files are resources under the
 same URI, for example `skilled://workflow/skilled-improve/references/eval-yaml.md`.
 No separate global CLI lookup is required inside an established MCP session.
-See the [MCP guide](../../../docs/guide/mcp.md) for host configuration examples.
+See the [MCP guide](https://deadhead04.github.io/skillEd/guide/mcp) for host configuration examples.
 
 ## CLI from source
 
@@ -67,3 +67,18 @@ Use the host's supported local-plugin flow to install this directory after the u
 `npm run build` assembles `dist/bundled-plugins/dsh-skilled`. Run `npm pack` in that directory to create a local plugin archive, then install it through DSH's supported local package flow in an isolated profile. The package is private and does not require an npm registry publication. The tested host contract uses services 0.1.5-rc.2 and Cordis 4.0.2; verify compatibility before choosing another host version.
 
 Both plugins include the canonical workflow and observation schema. Capture requires host setup; DSH also requires `observer.enabled: true`. Installing the CLI alone does not enable capture.
+
+
+## Project activation
+
+After installing the CLI, run `skilled setup --host codex` or
+`skilled setup --host claude-code` from the target project, then start a new host
+session there. The command installs this bundled workflow in the project Skill
+location. Repeat it after a CLI upgrade. Locally edited copies are preserved and
+must be moved or reconciled before update. Use the same command with `--remove`
+to remove an unmodified managed copy. MCP is optional for this path.
+
+A successful native login status check does not guarantee the next model request
+will succeed. Treat expired sessions and model/version incompatibility as
+infrastructure errors, preserve evidence, and request reauthentication if needed.
+Never convert those errors into policy failures or silently switch billing routes.

@@ -19,6 +19,7 @@ import {
 } from "./completion.js";
 import { registerDebugCommand } from "./debug.js";
 import { registerCompareCommand } from "./compare.js";
+import { registerSetupCommand } from "./setup.js";
 import { registerMcpCommand } from "./mcp.js";
 export function parseLongFlag(arg: string): {
   name: string;
@@ -100,6 +101,7 @@ export function createRoot(version: string, ctx: CliContext): Command {
   registerDebugCommand(root, ctx);
   registerCompareCommand(root, ctx);
   registerMcpCommand(root, ctx);
+  registerSetupCommand(root, ctx);
   registerImportCommand(root, ctx);
   registerInitCommand(root, ctx);
   registerCompletionCommand(root, ctx);

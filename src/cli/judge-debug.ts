@@ -9,7 +9,7 @@ import {
   ScriptJudge,
   newAgentJudge,
   checkExpect,
-  toAssertionResults,
+  newSkipResult,
   newResult,
   type Judge,
   type Input,
@@ -161,8 +161,8 @@ export async function evaluateJudgeWithExpect(
     ctx.stderr(
       `[expect] FAIL — ${er.failures?.length ?? 0} checks failed, judge skipped\n`,
     );
-    return newResult(
-      toAssertionResults(er),
+    return newSkipResult(
+      "expect_gate_failed",
       input.turnsExecuted,
       input.turnsTotal,
     );
@@ -194,7 +194,8 @@ export async function generateDebugReport(
       newCaseResult({
         case_id: input.case_id,
         title: "Judge debug: " + input.case_id,
-        status: result.status,
+        status: result.skip_reason === "expect_gate_failed" ? "FAIL" : result.status,
+        gates: input.expect ? await checkExpect(input.expect, toJudgeInput(input)) : null,
         duration_ms: 1000,
         turns: input.turns_executed,
         grading: result,

@@ -30,7 +30,7 @@ const jsonl = (...records: unknown[]) =>
 test("Codex constructor and provider routing preserve supported configuration", () => {
   const defaults = new CodexAgent({ name: "" });
   assert.equal(defaults.name(), "codex");
-  assert.equal(defaults.cfg.skillPath, ".codex/skills");
+  assert.equal(defaults.cfg.skillPath, ".agents/skills");
   assert.deepEqual(defaults.runProviderConfig(), {});
   for (const provider of ["", "openai"]) {
     const agent = new CodexAgent({
@@ -67,7 +67,7 @@ test("Codex constructor and provider routing preserve supported configuration", 
   );
 });
 test("Codex command builders preserve pinned installation, prompts, provider flags and resume semantics", () => {
-  assert.match(defaultCodexInstallCmdForVersion(""), /@openai\/codex@0\.80\.0/);
+  assert.match(defaultCodexInstallCmdForVersion(""), /@openai\/codex@0\.162\.1/);
   assert.match(
     defaultCodexInstallCmdForVersion("1.2.3"),
     /--include=optional '@openai\/codex@1.2.3'/,

@@ -78,7 +78,8 @@ test("real rule and expect filesystem grading including failure-first and argume
   }).failure;
   const fail = await new RuleBasedJudge(cfg).evaluate(input);
   assert.equal(fail.status, "FAIL");
-  assert.equal(fail.assertion_results.length, 1);
+  assert.equal(fail.assertion_results.length, 4);
+  assert.equal(fail.assertion_results.filter(a => a.skipped).length, 3);
   const expect = decode<Expect>("Expect", {
     must_contain: ["alpha"],
     must_not_contain: ["beta"],

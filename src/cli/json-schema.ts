@@ -568,6 +568,8 @@ export const jsonSchemas: Record<
   },
   "judge.AssertionResult": {
     fields: [
+      { name: "id", target: "id", type: "string", optional: true },
+      { name: "skipped", target: "skipped", type: "bool", optional: true },
       {
         name: "text",
         target: "text",
@@ -800,6 +802,8 @@ export const jsonSchemas: Record<
   },
   "judge.Result": {
     fields: [
+      { name: "scoring_version", target: "scoring_version", type: "string", optional: true },
+      { name: "rubric_id", target: "rubric_id", type: "string", optional: true },
       {
         name: "status",
         target: "status",
@@ -1030,6 +1034,7 @@ export const jsonSchemas: Record<
   },
   "report.CaseResult": {
     fields: [
+      { name: "usage_status", target: "usage_status", type: "string", optional: true },
       {
         name: "case_id",
         target: "case_id",

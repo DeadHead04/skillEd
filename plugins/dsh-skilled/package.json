@@ -1,6 +1,6 @@
 {
   "name": "dsh-skilled",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Test and iteratively improve Agent Skills with skilled inside DeepSeek Harness.",
   "type": "module",
   "main": "index.js",

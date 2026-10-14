@@ -89,24 +89,35 @@ function gradingScore(value: unknown, label: string, judges: unknown): Score | n
     const a = object(value, `${label}.assertion_results[${i}]`);
     if (typeof a.text !== "string" || typeof a.passed !== "boolean")
       throw new Error(`${label}.assertion_results[${i}] requires text and passed`);
-    return { text: a.text, passed: a.passed };
+    if (a.skipped !== undefined && typeof a.skipped !== "boolean")
+      throw new Error(`${label}.assertion_results[${i}].skipped must be boolean`);
+    if (a.skipped && a.passed) throw new Error(`${label}: skipped assertion cannot pass`);
+    return { text: a.text, passed: a.passed, id: optionalString(a.id, `${label}.assertion.id`) };
   });
   if (assertions.length !== total || assertions.filter(a => a.passed).length !== passed)
     throw new Error(`${label} assertions do not match summary counts`);
   let judgeSignature: string[] = [];
   if (judges != null) {
     if (!Array.isArray(judges)) throw new Error(`${label}: judge_results must be an array`);
+    const judgeKeys = new Set<string>();
     judgeSignature = judges.map((value, i) => {
       const j = object(value, `judge_results[${i}]`);
       if (typeof j.id !== "string" || !j.id || typeof j.type !== "string" || !j.type)
         throw new Error(`judge_results[${i}] requires id and type`);
       status(j.status, `judge_results[${i}].status`);
-      return JSON.stringify([j.id, j.type]);
+      const judgeKey = JSON.stringify([j.id, j.type]);
+      if (judgeKeys.has(judgeKey)) throw new Error("duplicate judge_results key");
+      judgeKeys.add(judgeKey);
+      const nested = j.result == null ? null : gradingScore(j.result, `judge_results[${i}].result`, undefined);
+      return JSON.stringify([j.id, j.type, nested?.rubric ?? null]);
     });
     if (new Set(judgeSignature).size !== judgeSignature.length) throw new Error("duplicate judge_results key");
   }
   if (!total || assertions.some(a => !a.text.trim()) || !["PASS", "FAIL"].includes(grading.status as string)) return null;
-  return { value: rate, rubric: JSON.stringify([assertions.map(a => a.text), judgeSignature.sort()]) };
+  const version = optionalString(grading.scoring_version, `${label}.scoring_version`);
+  const rubric = optionalString(grading.rubric_id, `${label}.rubric_id`);
+  if (version && !rubric) return null;
+  return { value: rate, rubric: JSON.stringify([version ?? "legacy-text", rubric ?? assertions.map(a => a.text), judgeSignature.sort()]) };
 }
 /** Validate the result.json/report.json fields used by comparison; never fill in missing verdicts. */
 export function validateComparisonInput(value: unknown): ComparisonInput {

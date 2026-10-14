@@ -113,7 +113,7 @@ export function writeMarkdownJudgeDetails(input: Input): string {
       if (member.skip_reason) out += `, ${markdownText(member.skip_reason)}`;
       out += "\n";
       for (const assertion of member.result?.assertion_results ?? []) {
-        out += `  - ${assertion.passed}: ${markdownText(assertion.text)}`;
+        out += `  - ${assertion.skipped ? "SKIP" : assertion.passed}: ${markdownText(assertion.text)}`;
         if (assertion.evidence) out += ` — ${markdownText(assertion.evidence)}`;
         out += "\n";
       }
@@ -129,7 +129,7 @@ export function writeMarkdownCaseDetails(c: CaseResult): string {
     out += `- Error Reason: ${markdownText(c.grading.error_reason)}\n`;
   for (const a of c.grading?.assertion_results ?? []) {
     if (a.passed) continue;
-    out += `- Failed: ${markdownText(a.text)}\n`;
+    out += `- ${a.skipped ? "Skipped" : "Failed"}: ${markdownText(a.text)}\n`;
     if (a.evidence) out += `  - Evidence: ${markdownText(a.evidence)}\n`;
   }
   for (const t of c.turn_results ?? []) {

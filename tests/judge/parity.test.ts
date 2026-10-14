@@ -3553,6 +3553,10 @@ test("captured original Go judge corpus (95 vectors)", async () => {
       actual = parseShebang(r.body);
       expected.options ??= [];
     } else actual = buildJudgePrompt(r.criteria, null);
-    assert.deepEqual(actual, expected, JSON.stringify(r));
+    // Stable scoring provenance is additive to the pinned reference corpus.
+    // Negative-rule and gate semantic changes have separate real-process tests.
+    const legacy = JSON.parse(JSON.stringify(actual, (key, value) =>
+      ["id", "scoring_version", "rubric_id"].includes(key) ? undefined : value));
+    assert.deepEqual(legacy, expected, JSON.stringify(r));
   }
 });

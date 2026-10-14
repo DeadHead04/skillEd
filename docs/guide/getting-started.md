@@ -101,7 +101,24 @@ A baseline run compares behavior with and without the Skill. Repeated iterations
 
 ## Improve from evidence
 
-The CLI release already includes `skilled-improve`. [Connect your agent through MCP](./mcp.md) and load the `skilled-improve` prompt, or have it read the `skilled://workflow/skilled-improve` resource. No second executable or separate download is required. Add `--allow-execution` to the server arguments when you are ready for live evaluations.
+The CLI includes `skilled-improve`. From your project directory, run
+`skilled setup --host codex` or `skilled setup --host claude-code`, then start a new
+host session in that directory. Ask it to use skilled-improve and identify the Skill
+to evaluate. Multiple Skills need an explicit target; a project without a Skill can
+use an evaluation with `skills: []`.
+
+Setup is project-local. Repeat it to update an unmodified copy after a CLI upgrade;
+`skilled setup --host codex --remove` (or `--host claude-code`) removes that copy.
+Local edits are protected. It does not change global host settings or authenticate
+an engine. Use your existing native login for actual model evaluations.
+
+MCP is an optional integration route. If your host's shell sandbox prevents a
+nested engine from starting, use the MCP server with `--allow-execution` and the
+selected project workspace and approve the tool through your host. `--allow-execution`
+enables the server capability; it does not override the host approval policy. If
+the host requires approval, stop and approve it in the host before retrying. Do not weaken the evaluation or classify that startup
+error as a failed policy check. Pin the engine version and set its executable PATH
+in the evaluation environment when several CLI installations coexist. [Connect your agent through MCP](./mcp.md) and load the `skilled-improve` prompt, or have it read the `skilled://workflow/skilled-improve` resource. No second executable or separate download is required. Add `--allow-execution` to the server arguments when you are ready for live evaluations.
 
 For host observation features, install the optional [Codex](https://github.com/DeadHead04/skillEd/tree/main/plugins/codex-skilled) or [DSH](https://github.com/DeadHead04/skillEd/tree/main/plugins/dsh-skilled) plugin using its host-specific instructions.
 

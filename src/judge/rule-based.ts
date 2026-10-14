@@ -1,4 +1,5 @@
 // Modified for the skilled TypeScript distribution.
+import { fingerprint, scoringVersion } from "./scoring.js";
 import { regexMatches } from "../regex/index.js";
 import { toolCalls, type Transcript } from "../contracts/transcript.js";
 import type {
@@ -43,22 +44,30 @@ export class RuleBasedJudge implements Judge {
   async evaluate(input: Input): Promise<Result> {
     const i = resolveInput(input),
       assertions: AssertionResult[] = [];
-    for (const rule of this.failure) {
+    let failureMatched = false;
+    for (const [index, rule] of this.failure.entries()) {
       const a = await evaluateAssertion(rule, i);
-      if (a.passed)
-        assertions.push(
-          assertion(
-            "failure: " + a.text,
-            false,
-            "failure rule matched: " + a.evidence,
-          ),
-        );
+      failureMatched ||= a.passed;
+      assertions.push({
+        id: `failure:${index}:${fingerprint(rule)}`,
+        text: "failure: " + a.text,
+        passed: !a.passed,
+        evidence: a.passed ? "failure rule matched: " + a.evidence
+          : "failure rule did not match: " + a.evidence,
+      });
     }
-    if (assertions.length)
-      return newResult(assertions, i.turnsExecuted, i.turnsTotal);
-    for (const rule of this.success)
-      assertions.push(await evaluateAssertion(rule, i));
-    return newResult(assertions, i.turnsExecuted, i.turnsTotal);
+    for (const [index, rule] of this.success.entries()) {
+      const id = `success:${index}:${fingerprint(rule)}`;
+      assertions.push(failureMatched
+        ? { id, text: `success rule ${index + 1}`, passed: false, skipped: true,
+            evidence: "not evaluated: failure rule matched" }
+        : { ...await evaluateAssertion(rule, i), id });
+    }
+    return {
+      ...newResult(assertions, i.turnsExecuted, i.turnsTotal),
+      scoring_version: scoringVersion,
+      rubric_id: fingerprint({ type: "rule_based", success: this.success, failure: this.failure }),
+    };
   }
 }
 export const newRuleBasedJudge = (cfg: JudgeConfig) => new RuleBasedJudge(cfg);

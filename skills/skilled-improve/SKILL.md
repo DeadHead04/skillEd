@@ -95,7 +95,7 @@ Use this mode when the user asks to record the current Skill interaction or
 feedback and observation tools are available. It requires either a current
 Codex release with the `codex-skilled` plugin and lifecycle-hook support, or DSH with
 the skilled plugin's observer explicitly enabled. Do not retrofit observation
-capture onto the pinned Codex 0.80.0 evaluation adapter.
+capture onto the evaluation adapter without verifying host plugin support.
 
 If the user asks how to install either host plugin, or the required observation
 tools are missing and the user asks to enable them, read
@@ -141,6 +141,11 @@ workflow resources directly. There is no separate Skill installation or global
 CLI lookup required in that session. Validation, dry runs and offline comparison
 do not call a model. Execution requires the server's `--allow-execution` option,
 the selected engine's credentials and the user's requested evaluation scope.
+
+For project-local activation, the user can run `skilled setup --host codex` or
+`skilled setup --host claude-code` and start a fresh host session. This uses the
+bundled canonical workflow and does not require MCP. Do not install a second copy
+when the host already loaded this Skill.
 
 For CLI use, verify `skilled` is available:
 

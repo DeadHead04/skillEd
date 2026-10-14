@@ -82,7 +82,21 @@ Open the HTML report in the directory printed by the CLI to inspect case verdict
 
 ## Improve with your agent
 
-Connect your agent host to the installed CLI using the [MCP setup guide](docs/guide/mcp.md). The server command is:
+From your project folder, activate the bundled workflow for your host:
+
+```sh
+skilled setup --host codex
+# Or:
+skilled setup --host claude-code
+```
+
+Start a new host session in that project, then ask: **Use skilled-improve to evaluate this Skill.**
+Setup copies the canonical workflow into the host's project Skill directory. It preserves
+host settings and refuses to overwrite local workflow edits. Repeat the command after
+upgrading skilled; use `--remove` to remove an unmodified managed copy. Existing engine
+logins work for local evaluation; Docker and a separate API key are optional.
+
+For tool-based integration, use the optional [MCP setup guide](docs/guide/mcp.md). The server command is:
 
 ```sh
 skilled mcp --workspace /absolute/path/to/your-project
@@ -99,7 +113,7 @@ The default MCP connection supports validation, dry runs, comparison, and the bu
 1. **Evaluate.** Run versioned cases and preserve the report as a baseline.
 2. **Inspect.** Review failed assertions and the actual outputs.
 3. **Revise.** Use `skilled-improve` to help your agent edit the Skill or add missing cases.
-4. **Compare.** Rerun the same suite and check the saved reports:
+4. **Compare.** Rerun the same suite and check the saved reports. See the [scoring contract](docs/guide/scoring.md) for skipped checks and compatible baselines:
 
 ```sh
 skilled compare baseline/iteration-1/report.json candidate/iteration-1/report.json --fail-on-regression

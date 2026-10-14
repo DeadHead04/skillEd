@@ -587,8 +587,8 @@
       html += '<ul class="assertion-list">';
       for (var i = 0; i < g.expectations.length; i++) {
         var exp = g.expectations[i];
-        var sc = exp.passed ? "a-pass" : "a-fail";
-        var icon = exp.passed ? "\u2713" : "\u2717";
+        var sc = exp.skipped ? "a-skip" : exp.passed ? "a-pass" : "a-fail";
+        var icon = exp.skipped ? "SKIP" : exp.passed ? "\u2713" : "\u2717";
         html += '<li class="assertion-item"><span class="assertion-status ' + sc + '">' + icon + '</span>';
         html += '<span>' + esc(exp.text) + '</span>';
         if (exp.evidence) html += '<div class="assertion-evidence">' + esc(exp.evidence) + '</div>';

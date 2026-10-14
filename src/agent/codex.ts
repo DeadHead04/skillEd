@@ -46,7 +46,7 @@ import {
   RuntimeExecutionError,
   type MCPServerConfig,
 } from "../runtime/types.js";
-export const codexDefaultVersion = "0.80.0",
+export const codexDefaultVersion = "0.162.1",
   codexProcessSandbox = "--sandbox workspace-write",
   codexBypassSandbox = "--dangerously-bypass-approvals-and-sandbox",
   codexCustomWireAPI = "chat",
@@ -88,6 +88,7 @@ export interface CodexEvent {
   usage?: CodexUsage | null;
 }
 export interface CodexParseResult {
+  model?: string;
   transcript: Transcript;
   threadID: string;
   finalMsg: string;
@@ -654,6 +655,7 @@ export async function parseCodexOutputFile(
   return resultOnly(state);
 }
 export interface CodexSessionPayload {
+  model?: string;
   type?: string;
   role?: string;
   content?: { type?: string; text?: string }[];
@@ -822,6 +824,8 @@ export async function parseCodexSessionFileWithLimit(
       } catch {
         return;
       }
+      if (event.type === "turn_context" && typeof event.payload.model === "string" && event.payload.model)
+        parsed.model = event.payload.model;
       if (event.type === "response_item") {
         const r = parseCodexSessionResponseItem(event.payload, turn);
         parsed.transcript.push(...r.messages);
@@ -992,11 +996,11 @@ export async function findCodexSessionPath(
   threadID = threadID.trim();
   if (!threadID) return "";
   const script =
-    'home=$(printenv HOME); [ -n "$home" ] || exit 0\nroot="$home/.codex/sessions"; [ -d "$root" ] || exit 0\nfind "$root" -type f -name "*$SKILLED_CODEX_THREAD_ID*.jsonl" 2>/dev/null | head -1';
+    'home=$(printenv HOME); [ -n "$home" ] || exit 0\nroot="${CODEX_HOME:-$home/.codex}/sessions"; [ -d "$root" ] || exit 0\nfind "$root" -type f -name "*$SKILLED_CODEX_THREAD_ID*.jsonl" 2>/dev/null | head -1';
   try {
     const r = await rt.exec(script, {
       ...opts,
-      env: { SKILLED_CODEX_THREAD_ID: threadID },
+      env: { ...opts.env, SKILLED_CODEX_THREAD_ID: threadID },
     });
     const value = r.stdout.trim();
     return r.exitCode === 0 && value.endsWith(".jsonl") ? value : "";
@@ -1097,7 +1101,7 @@ export class CodexAgent extends CLIAgent {
       name: cfg.name || "codex",
       checkCmd: cfg.checkCmd || "command -v codex",
       versionCmd: cfg.versionCmd || "codex --version",
-      skillPath: cfg.skillPath || ".codex/skills",
+      skillPath: cfg.skillPath || ".agents/skills",
     });
   }
   jsonlLimits(): { recordBytes: number; outputBytes: number } {
@@ -1366,6 +1370,7 @@ export class CodexAgent extends CLIAgent {
       } catch (e) {
         errors.push(e);
       }
+      let observedModel: string | undefined;
       let transcript = parsed.transcript,
         finalMsg = parsed.finalMsg,
         inputTokens = parsed.inputTokens,
@@ -1400,6 +1405,7 @@ export class CodexAgent extends CLIAgent {
               local,
               limits.recordBytes,
             );
+            if (session.model) observedModel = session.model;
             if (session.error) errors.push(session.error);
             if (
               session.transcript.length > parsed.transcript.length &&
@@ -1433,6 +1439,8 @@ export class CodexAgent extends CLIAgent {
         exit_code: execution.exitCode,
         duration_ms: Math.floor(performance.now() - start),
         turns: codexTurns(final.transcript),
+        ...(observedModel ? { model: observedModel } : {}),
+        usage_status: inputTokens || outputTokens ? "reported" : "unavailable",
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         final_message: final.finalMsg,

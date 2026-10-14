@@ -195,3 +195,26 @@ test("post-cancel cleanup downloads actual files, registers artifact and cleans 
     await s.cleanup();
   }
 });
+
+test("Claude session lookup uses the runtime configuration directory, including spaces", async () => {
+  const { findClaudeSessionFile } = await import("../../src/agent/claude-code.js");
+  const s = await setup();
+  try {
+    const configured = path.join(s.root, "private claude");
+    const expected = await session(path.join(configured, "projects", canonicalWorkspaceKey(s.workspace), "scoped.jsonl"), JSON.stringify({ cwd: s.workspace }));
+    await session(path.join(s.home, ".claude/projects", canonicalWorkspaceKey(s.workspace), "wrong.jsonl"), JSON.stringify({ cwd: s.workspace }), 10);
+    assert.equal(await findClaudeSessionFile(s.rt, { env: { CLAUDE_CONFIG_DIR: configured } }), expected);
+  } finally { await s.cleanup(); }
+});
+
+test("Codex session lookup uses CODEX_HOME and reads the observed model from its native record", async () => {
+  const { findCodexSessionPath, parseCodexSessionFile } = await import("../../src/agent/codex.js");
+  const s = await setup();
+  try {
+    const configured = path.join(s.root, "private codex");
+    const expected = await session(path.join(configured, "sessions", "rollout-test-thread.jsonl"),
+      JSON.stringify({ type: "turn_context", payload: { model: "observed-model" } }));
+    assert.equal(await findCodexSessionPath(s.rt, "test-thread", { env: { CODEX_HOME: configured } }), expected);
+    assert.equal((await parseCodexSessionFile(expected)).model, "observed-model");
+  } finally { await s.cleanup(); }
+});

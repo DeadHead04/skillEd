@@ -132,6 +132,18 @@ async function installationProbe() {
           timeout: 120_000,
         },
       );
+    for (const [host, folder] of [["codex", ".agents"], ["claude-code", ".claude"]]) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const setup = run(["setup", "--host", host]);
+        assert.equal(setup.status, 0, setup.stderr);
+      }
+      const installedSkill = join(root, folder, "skills/skilled-improve/SKILL.md");
+      assert.match(await readFile(installedSkill, "utf8"), /name: skilled-improve/);
+      assert.match(await readFile(join(root, folder, "skills/skilled-improve/references/install.md"), "utf8"), /https:\/\/deadhead04\.github\.io\/skillEd\/guide\/installation/);
+      const removed = run(["setup", "--host", host, "--remove"]);
+      assert.equal(removed.status, 0, removed.stderr);
+      await assert.rejects(readFile(installedSkill), { code: "ENOENT" });
+    }
     const validated = run(["validate", evalPath]);
     assert.equal(validated.status, 0, validated.stderr);
     const sourceValidated = run(["validate", "--skill", root]);

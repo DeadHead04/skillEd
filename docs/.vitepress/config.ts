@@ -34,6 +34,7 @@ export default defineConfig({
         items: [
           { text: "Writing evaluations", link: "/guide/writing-evals" },
           { text: "Compare results", link: "/guide/comparison" },
+          { text: "Scoring contract", link: "/guide/scoring" },
           { text: "Import existing cases", link: "/guide/migration" },
         ],
       },
