@@ -29,7 +29,7 @@ installed Codex and Claude Code using native subscription logins. These checks d
 not certify every provider, device, observer host or remote sandbox service.
 
 The compatibility reference and intentional scoring differences are recorded in
-[compatibility.json](./compatibility.json) and [Scoring](./guide/scoring.md).
+[compatibility.json](https://github.com/DeadHead04/skillEd/blob/main/docs/compatibility.json) and [Scoring](./guide/scoring.md).
 The older file-disposition ledgers are historical bookkeeping, not a claim that
 every original assertion was reexecuted. Candidate evidence is complemented by the CI result for the final release commit;
 native CI does not replace authenticated host acceptance.
