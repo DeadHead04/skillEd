@@ -154,8 +154,8 @@ async function waitForFile(file: string): Promise<number> {
   }
   throw new Error("Real worker did not start");
 }
-async function waitForExit(pid: number) {
-  const deadline = Date.now() + 15000;
+async function waitForExit(pid: number, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       process.kill(pid, 0);
@@ -175,8 +175,12 @@ test("CLI MCP stdio discovers real workflow, reference resources, templates and 
   assert.deepEqual(
     (await client.listTools()).tools.map((tool) => tool.name).sort(),
     [
+      "skilled_cancel",
       "skilled_compare",
+      "skilled_results",
       "skilled_run",
+      "skilled_start",
+      "skilled_status",
       "skilled_validate",
       "skilled_validate_skill",
     ],
@@ -353,7 +357,7 @@ test(
     controller.abort(new Error("client cancellation"));
     await cancelled;
     await waitForExit(pid);
-    assert.equal((await client.listTools()).tools.length, 4);
+    assert.equal((await client.listTools()).tools.length, 8);
   },
 );
 test(
@@ -400,4 +404,137 @@ test("MCP bounds real large metadata responses and rejects oversized report file
   });
   assert.equal(compared.isError, true);
   assert.match(text(compared), /4 MiB/);
+});
+
+test("MCP preserves configured HTML/JUnit reports and adds JSON for comparison", { timeout: 60000 }, async t => {
+  const { client, workspace } = await setup(t, true);
+  const skill = await fixture(workspace);
+  const file = path.join(workspace, skill, "evals/eval.yaml");
+  const config = JSON.parse(await readFile(file, "utf8"));
+  config.report.formats = ["html", "junit"];
+  await writeFile(file, JSON.stringify(config));
+  const result = await client.callTool({ name: "skilled_run", arguments: { path: skill, dryRun: false } });
+  assert.equal(result.isError, false, text(result));
+  const reports: string[] = JSON.parse(text(result)).reports;
+  for (const extension of ["json", "html", "xml"]) assert.ok(reports.some(file => file.endsWith(`.${extension}`)), JSON.stringify(reports));
+  const json = JSON.parse(await readFile(path.join(workspace, reports.find(file => file.endsWith("result.json"))!), "utf8"));
+  assert.equal(json.case_results.length, 1);
+  const xml = await readFile(path.join(workspace, reports.find(file => file.endsWith(".xml"))!), "utf8");
+  assert.match(xml, /tests="1"/);
+  assert.match(xml, /failures="0"/);
+  const html = await readFile(path.join(workspace, reports.find(file => file.endsWith(".html"))!), "utf8");
+  assert.match(html, /actual-hash/);
+});
+
+async function pollJob(client: Client, runId: string) {
+  const deadline = Date.now() + 20000;
+  while (Date.now() < deadline) {
+    const result = await client.callTool({ name: "skilled_status", arguments: { runId } });
+    assert.equal(result.isError, false, text(result));
+    const state = JSON.parse(text(result));
+    if (!["starting", "running"].includes(state.status)) return state;
+    await new Promise(resolve => setTimeout(resolve, 100));
+  }
+  throw new Error("Job did not finish cleanup");
+}
+async function reconnect(t: test.TestContext, workspace: string, dir: string) {
+  const client = new Client({ name: "reconnected-real-client", version: "1" });
+  await client.connect(new StdioClientTransport({ command: process.execPath,
+    args: [bootstrap, "mcp", "--workspace", workspace, "--allow-execution"],
+    env: { PATH: process.env.PATH!, HOME: dir, USERPROFILE: dir, OTEL_SDK_DISABLED: "true" }, stderr: "pipe" }));
+  t.after(() => client.close());
+  return client;
+}
+test("durable MCP run survives disconnect, reattaches, and deduplicates across servers", { timeout: 45000 }, async t => {
+  const { client, workspace, dir } = await setup(t, true);
+  const pidFile = path.join(dir, "durable-worker.pid");
+  const skill = await fixture(workspace, true, pidFile);
+  const caseFile = path.join(workspace, skill, "evals/cases/hash.yaml");
+  // Exceed the ten-second supervisor lease: active renewal must keep the
+  // evaluation alive even after the original MCP client/server disconnects.
+  await writeFile(caseFile, (await readFile(caseFile, "utf8")).replace("30000", "13000"));
+  const args = { path: skill, idempotencyKey: "reconnect-case", timeoutSeconds: 30 };
+  const started = await client.callTool({ name: "skilled_start", arguments: args });
+  assert.equal(started.isError, false, text(started));
+  const first = JSON.parse(text(started));
+  await waitForFile(pidFile);
+  await client.close(); // Close the entire original stdio server, not only the request.
+  const other = await reconnect(t, workspace, dir);
+  const again = await other.callTool({ name: "skilled_start", arguments: args });
+  assert.equal(again.isError, false, text(again));
+  assert.equal(JSON.parse(text(again)).runId, first.runId);
+  assert.equal(JSON.parse(text(again)).ownerPid, first.ownerPid);
+  const finished = await pollJob(other, first.runId);
+  assert.equal(finished.status, "completed", JSON.stringify(finished));
+  assert.equal(finished.exitCode, 0);
+  assert.ok(finished.reports.some((file: string) => file.endsWith("result.json")));
+  const conflict = await other.callTool({ name: "skilled_start", arguments: { ...args, timeoutSeconds: 31 } });
+  assert.equal(conflict.isError, true);
+  assert.match(text(conflict), /different run arguments/);
+  const results = await other.callTool({ name: "skilled_results", arguments: { runId: first.runId } });
+  assert.deepEqual(JSON.parse(text(results)), finished);
+  for (const invalid of ["../escape", "a".repeat(64)])
+    assert.equal((await other.callTool({ name: "skilled_status", arguments: { runId: invalid } })).isError, true);
+});
+for (const mode of ["cancel", "timeout", "worker-crash"] as const)
+  test(`durable MCP ${mode} cleans up a real running process`, { timeout: 60000 }, async t => {
+    const { client, workspace, dir } = await setup(t, true);
+    const pidFile = path.join(dir, `${mode}.pid`);
+    const skill = await fixture(workspace, true, pidFile);
+    if (mode === "worker-crash") {
+      // The assertion deadline must be shorter than both natural completion
+      // and the case timeout, otherwise a leaked engine could appear cleaned.
+      const caseFile = path.join(workspace, skill, "evals/cases/hash.yaml");
+      const fixtureCase = JSON.parse(await readFile(caseFile, "utf8"));
+      fixtureCase.context.files["engine.cjs"] = fixtureCase.context.files["engine.cjs"].replace("30000", "120000");
+      fixtureCase.constraints.timeout_seconds = 180;
+      await writeFile(caseFile, JSON.stringify(fixtureCase));
+    }
+    const result = await client.callTool({ name: "skilled_start", arguments: { path: skill, idempotencyKey: mode, timeoutSeconds: mode === "timeout" ? 3 : 60 } });
+    assert.equal(result.isError, false, text(result));
+    const state = JSON.parse(text(result));
+    const pid = await waitForFile(pidFile);
+    if (mode === "cancel") {
+      const cancelled = await client.callTool({ name: "skilled_cancel", arguments: { runId: state.runId } });
+      assert.equal(cancelled.isError, false, text(cancelled));
+    } else if (mode === "worker-crash") process.kill(state.ownerPid, "SIGKILL");
+    const finished = await pollJob(client, state.runId);
+    assert.equal(finished.status, mode === "cancel" ? "cancelled" : mode === "timeout" ? "timed_out" : "interrupted", JSON.stringify(finished));
+    await waitForExit(pid, mode === "worker-crash" ? 25000 : 15000);
+  });
+
+test("concurrent clients cannot overwrite identical or nested report destinations", { timeout: 45000 }, async t => {
+  const { client, workspace, dir } = await setup(t, true);
+  const other = await reconnect(t, workspace, dir);
+  const skill = await fixture(workspace);
+  const outcomes = await Promise.all([
+    client.callTool({ name: "skilled_start", arguments: { path: skill, idempotencyKey: "first", outputDir: "shared" } }),
+    other.callTool({ name: "skilled_start", arguments: { path: skill, idempotencyKey: "second", outputDir: "shared" } }),
+    client.callTool({ name: "skilled_run", arguments: { path: skill, dryRun: false, outputDir: "shared/nested" } }),
+  ]);
+  for (const outcome of outcomes) assert.equal(outcome.isError, false, text(outcome));
+  const states = outcomes.map(outcome => JSON.parse(text(outcome)));
+  assert.equal(new Set(states.map(state => state.outputDir)).size, 3);
+  for (const state of states.slice(0, 2)) assert.equal((await pollJob(client, state.runId)).status, "completed");
+  for (const state of states) {
+    const report = JSON.parse(await readFile(await resultFile(path.join(workspace, state.outputDir)), "utf8"));
+    assert.equal(report.case_results.length, 1);
+    assert.equal(report.case_results[0].status, "PASS");
+  }
+  const nested = await other.callTool({ name: "skilled_run", arguments: { path: skill, dryRun: false, outputDir: `${states[0].outputDir}/iteration-1` } });
+  assert.equal(nested.isError, true);
+  assert.match(text(nested), /existing MCP run/);
+});
+
+test("MCP rejects a linked private run namespace before execution", async t => {
+  const { client, workspace } = await setup(t, true);
+  const skill = await fixture(workspace);
+  const base = path.join(workspace, "linked-reports");
+  await mkdir(base);
+  await symlink(base, path.join(base, ".skilled-runs"), process.platform === "win32" ? "junction" : "dir");
+  for (const name of ["skilled_run", "skilled_start"]) {
+    const result = await client.callTool({ name, arguments: { path: skill, ...(name === "skilled_start" ? { idempotencyKey: "linked" } : { dryRun: false }), outputDir: "linked-reports" } });
+    assert.equal(result.isError, true);
+    assert.match(text(result), /must not redirect through symlinks/);
+  }
 });

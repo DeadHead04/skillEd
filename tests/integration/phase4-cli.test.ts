@@ -125,7 +125,9 @@ async function setup(t: test.TestContext, runtime = "none") {
 }
 for (const runtime of ["none", "docker", "opensandbox"])
   test(
-    `complete ${runtime} CLI matches original Go verdicts, reports and 57 lifecycle transitions`,
+    runtime === "docker"
+      ? "complete Docker CLI matches reference verdicts, reports and 57 lifecycle transitions"
+      : `${runtime} CLI refuses a benchmark without a verified isolation boundary`,
     {
       skip:
         runtime === "docker"
@@ -156,6 +158,12 @@ for (const runtime of ["none", "docker", "opensandbox"])
         "--event-log",
         events,
       ]);
+      if (runtime !== "docker") {
+        assert.equal(result.code, 1);
+        assert.match(result.stderr, /benchmark requires the verified isolated runtime/);
+        assert.ok(!(await readdir(root)).includes("output"), "unsafe benchmark must not create report output");
+        return;
+      }
       assert.equal(
         result.code,
         reference.exit_code,
@@ -188,7 +196,6 @@ for (const runtime of ["none", "docker", "opensandbox"])
             await readFile(path.join(...parts, "digest.txt"), "utf8"),
             c.response,
           );
-          if (runtime !== "opensandbox")
             assert.equal(
               await readFile(
                 path.join(
@@ -235,10 +242,6 @@ for (const runtime of ["none", "docker", "opensandbox"])
           `${records.length - transitions.length} unchanged wall-clock heartbeat snapshots validated separately from lifecycle transitions`,
         );
       assert.equal(records.at(-1).payload.status, "COMPLETED");
-      if (runtime === "opensandbox")
-        t.diagnostic(
-          "Original execd newline-loss limitation retained: direct downloads checked; glob collection is not certified on this service version.",
-        );
     },
   );
 test("CLI discovery, selected-case validation, dry-run, aliases, explicit boolean values and append", async (t) => {

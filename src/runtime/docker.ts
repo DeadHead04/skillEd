@@ -3,6 +3,8 @@ import { instrumentExec } from "./instrumentation.js";
 import { randomBytes } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
+import { copyJudgeTree, removeOwnedTree } from "./files.js";
 import { type Shell } from "../platform/index.js";
 import { runProcess } from "./process.js";
 import {
@@ -11,13 +13,16 @@ import {
   type RuntimeConfig,
   type ExecOptions,
   type ExecResult,
+  type JudgeSnapshot,
+  type JudgeSnapshotProvider,
 } from "./types.js";
-export class DockerRuntime implements Runtime {
+export class DockerRuntime implements Runtime, JudgeSnapshotProvider {
   private id = "";
   private started = false;
   private readonly directory: string;
   private config: RuntimeConfig;
   private pending: Promise<void> = Promise.resolve();
+  private privateFiles: { directory: string; path: string }[] = [];
   constructor(config: RuntimeConfig) {
     if (!config.image?.trim())
       throw new Error("docker runtime requires environment.image");
@@ -106,6 +111,12 @@ export class DockerRuntime implements Runtime {
   async close(): Promise<void> {
     return this.serial(async () => {
       if (!this.id) return;
+      let privateCleanupError: unknown;
+      try {
+        await this.clearPrivateFiles();
+      } catch (error) {
+        privateCleanupError = error;
+      }
       await this.checked(
         this.config.delete
           ? ["rm", "-f", this.id]
@@ -113,8 +124,10 @@ export class DockerRuntime implements Runtime {
         undefined,
         30000,
       );
-      this.id = "";
       this.started = false;
+      if (this.config.delete) this.privateFiles = [];
+      else if (privateCleanupError) throw privateCleanupError;
+      this.id = "";
     });
   }
   async start(signal?: AbortSignal): Promise<void> {
@@ -130,8 +143,12 @@ export class DockerRuntime implements Runtime {
     return this.serial(async () => {
       if (!this.id) return;
       if (this.started) {
-        await this.checked(["stop", "--time", "5", this.id], signal);
-        this.started = false;
+        try {
+          await this.clearPrivateFiles();
+        } finally {
+          await this.checked(["stop", "--time", "5", this.id], signal);
+          this.started = false;
+        }
       }
     });
   }
@@ -140,6 +157,91 @@ export class DockerRuntime implements Runtime {
   }
   containerID(): string {
     return this.id;
+  }
+  async stagePrivateFile(
+    source: string,
+    name = "auth.json",
+    signal?: AbortSignal,
+  ): Promise<{ directory: string; path: string }> {
+    this.ensureCreated();
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(name))
+      throw new Error("private file name must be a simple filename");
+    if (!(await fs.lstat(source)).isFile())
+      throw new Error("private file source must be a regular file, not a symlink");
+    const directory = "/tmp/skilled-private-" + randomBytes(12).toString("hex");
+    const entry = { directory, path: directory + "/" + name };
+    await this.checked(["exec", this.id, "mkdir", "-m", "700", directory], signal);
+    this.privateFiles.push(entry);
+    await this.checked(["cp", source, this.id + ":" + entry.path], signal);
+    await this.checked(["exec", this.id, "chmod", "600", entry.path], signal);
+    return entry;
+  }
+  private async clearPrivateFiles(): Promise<void> {
+    if (!this.privateFiles.length) return;
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "skilled-private-cleanup-"));
+    const empty = path.join(root, "empty");
+    await fs.writeFile(empty, "", { mode: 0o600 });
+    try {
+      while (this.privateFiles.length) {
+        const entry = this.privateFiles[0]!;
+        // Docker cp works on stopped containers and does not run code in the
+        // agent-modified root filesystem. Erase credentials before retaining it.
+        await this.checked(["cp", empty, this.id + ":" + entry.path], undefined, 30000);
+        if (this.started) {
+          const removed = await this.command(["exec", this.id, "rm", "-rf", "--", entry.directory], undefined, 30000);
+          if (removed.exitCode !== 0)
+            throw new RuntimeExecutionError("failed to remove private runtime files", removed);
+        }
+        this.privateFiles.shift();
+      }
+    } finally {
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  }
+  async captureJudgeSnapshot(signal?: AbortSignal): Promise<JudgeSnapshot> {
+    this.ensureCreated();
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "skilled-docker-judge-"));
+    const source = path.join(root, "source"),
+      snapshot = path.join(root, "snapshot");
+    try {
+      await this.downloadDir(".", source, signal);
+      // Validate links and special files before copying untrusted workspace data
+      // into a fresh grading container. Never commit the SUT container image.
+      await copyJudgeTree(source, snapshot, signal);
+      await removeOwnedTree(source);
+      let closed = false;
+      return {
+        fork: async (forkSignal, prepare) => {
+          if (closed) throw new Error("snapshot is closed");
+          const runtime = new DockerRuntime({
+            ...this.config, env: { ...this.config.env }, delete: true,
+          });
+          try {
+            await runtime.create(forkSignal);
+            // Trusted provisioning happens before any agent-modified files
+            // exist: setup must not load an injected package script or config.
+            for (const step of this.config.setupSteps ?? []) {
+              const setup = await runtime.exec(step.run, { signal: forkSignal });
+              if (setup.exitCode !== 0)
+                throw new Error("judge setup step failed: " + setup.stderr);
+            }
+            await prepare?.(runtime);
+            await runtime.uploadDir(snapshot, ".", forkSignal);
+            return { runtime, cleanup: () => runtime.close() };
+          } catch (error) {
+            await runtime.close();
+            throw error;
+          }
+        },
+        close: async () => {
+          closed = true;
+          await removeOwnedTree(root);
+        },
+      };
+    } catch (error) {
+      await removeOwnedTree(root);
+      throw error;
+    }
   }
   requiresProcessSandbox(): boolean {
     return false;

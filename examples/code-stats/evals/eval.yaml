@@ -36,7 +36,8 @@ cases:
       - error
 
 benchmark:
-  enabled: true
+  # Enable only after switching to Docker with a clean image and container credentials.
+  enabled: false
 
 judge:
   type: script

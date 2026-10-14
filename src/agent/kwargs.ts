@@ -9,6 +9,7 @@ const known = new Set([
   kwargMaxJSONLRecordBytes,
   kwargMaxJSONLOutputBytes,
   kwargEdition,
+  "codex_auth_file",
 ]);
 export function engineKwargBool(
   kwargs: Record<string, string> | undefined,

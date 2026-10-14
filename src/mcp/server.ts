@@ -11,7 +11,9 @@ import {
   type Tool,
 } from "@modelcontextprotocol/sdk/types.js";
 import { mkdir, readFile, realpath, stat, readdir } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { runMcpCli } from "./process.js";
+export { runMcpCli } from "./process.js";
+import { startJob, readJob, cancelJob, reportFiles, jobId } from "./jobs.js";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,7 +31,6 @@ import { setOutput as setUIOutput } from "../ui/index.js";
 const maxResponseBytes = 64 * 1024;
 const maxFileBytes = 4 * 1024 * 1024;
 const workflowUri = "skilled://workflow/skilled-improve";
-const bootstrap = fileURLToPath(new URL("../bootstrap.js", import.meta.url));
 const workflowFile = fileURLToPath(
   new URL(
     "../../bundled-plugins/codex-skilled/skills/skilled-improve/SKILL.md",
@@ -219,7 +220,7 @@ const tools: Tool[] = [
           type: "string",
           minLength: 1,
           description:
-            "Report directory within the workspace; defaults to a fresh .skilled-mcp/runs directory.",
+            "Report base directory within the workspace. Each run gets a private child directory; defaults to .skilled-mcp/runs.",
         },
         timeoutSeconds: {
           type: "integer",
@@ -240,6 +241,21 @@ const tools: Tool[] = [
     },
   },
 ];
+// Async execution is explicit: synchronous cancellation semantics remain compatible.
+const runProperties = tools.find(tool => tool.name === "skilled_run")!.inputSchema.properties!;
+const { dryRun: _dryRun, ...startProperties } = runProperties;
+tools.push({
+  name: "skilled_start",
+  description: "Start a trusted evaluation as a persistent background job. Requires --allow-execution. Returns a runId; use skilled_status/results/cancel. Survives client disconnection and MCP server shutdown. Reuse the same idempotencyKey and arguments to recover a run without duplicate execution; use a new key for an intentional rerun. Each distinct key starts an independent job and can spend model credits. Workspace checks are not a command sandbox.",
+  inputSchema: { type: "object", properties: { ...startProperties, idempotencyKey: { type: "string", minLength: 1, description: "Stable request identifier (1–128 characters), reused when reconnecting." } }, required: ["path", "idempotencyKey"], additionalProperties: false },
+  annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+});
+for (const name of ["skilled_status", "skilled_results", "skilled_cancel"]) tools.push({
+  name,
+  description: name === "skilled_cancel" ? "Request cancellation of a persistent evaluation. Requires --allow-execution. Poll skilled_status until terminal cleanup completes." : "Read persistent run state and report locations by workspace-scoped runId. Does not start or repeat evaluation. Interrupted workers are reported explicitly.",
+  inputSchema: { type: "object", properties: { runId: { type: "string", minLength: 1 } }, required: ["runId"], additionalProperties: false },
+  annotations: { readOnlyHint: name !== "skilled_cancel", destructiveHint: name === "skilled_cancel", openWorldHint: false },
+});
 // The low-level MCP server validates protocol messages; validate each tool's own arguments as well.
 function argumentsFor(
   name: string,
@@ -294,126 +310,6 @@ async function evaluation(root: string, input: string) {
   validateAll(loaded);
   resolveCustomEngineConfig(config);
   return { file, loaded };
-}
-/** Execute the installed CLI with bounded capture and graceful cancellation before forced termination. */
-export async function runMcpCli(
-  args: string[],
-  workspace: string,
-  signal: AbortSignal,
-  timeoutSeconds: number,
-) {
-  signal.throwIfAborted();
-  return new Promise<{
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-    truncated: boolean;
-  }>((resolve, reject) => {
-    const child = spawn(process.execPath, [bootstrap, ...args], {
-      cwd: workspace,
-      env: { ...process.env, NO_COLOR: "1" },
-      detached: process.platform !== "win32",
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe", "ipc"],
-    });
-    let stdout: Buffer = Buffer.alloc(0),
-      stderr: Buffer = Buffer.alloc(0),
-      truncated = false,
-      stopped: Error | undefined,
-      settled = false;
-    let escalation: NodeJS.Timeout | undefined,
-      drain: NodeJS.Timeout | undefined;
-    const capture = (previous: Buffer, chunk: Buffer): Buffer => {
-      if (previous.length + chunk.length > maxResponseBytes / 3)
-        truncated = true;
-      return Buffer.concat([previous, chunk]).subarray(0, maxResponseBytes / 3);
-    };
-    const kill = (force: boolean) => {
-      if (!child.pid) return;
-      if (!force && child.connected) {
-        child.send({ type: "skilled.cancel" }, (error) => {
-          if (error) kill(true);
-        });
-        return;
-      }
-      if (process.platform === "win32") {
-        const killer = spawn(
-          "taskkill",
-          ["/PID", String(child.pid), "/T", "/F"],
-          { stdio: "ignore", windowsHide: true },
-        );
-        killer.on("error", () => child.kill("SIGKILL"));
-        killer.unref();
-      } else
-        try {
-          process.kill(-child.pid, force ? "SIGKILL" : "SIGTERM");
-        } catch (error) {
-          if ((error as NodeJS.ErrnoException).code !== "ESRCH")
-            child.kill(force ? "SIGKILL" : "SIGTERM");
-        }
-    };
-    const finish = (code: number | null, error?: Error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      clearTimeout(escalation);
-      clearTimeout(drain);
-      signal.removeEventListener("abort", abort);
-      if (stopped || error) reject(stopped ?? error);
-      else
-        resolve({
-          exitCode: code ?? -1,
-          stdout: stdout.toString("utf8"),
-          stderr: stderr.toString("utf8"),
-          truncated,
-        });
-    };
-    const stop = (reason: Error) => {
-      if (settled || stopped) return;
-      stopped = reason;
-      kill(false);
-      escalation = setTimeout(() => {
-        kill(true);
-        drain = setTimeout(() => {
-          child.stdout!.destroy();
-          child.stderr!.destroy();
-          finish(child.exitCode);
-        }, 2000);
-      }, 10000);
-    };
-    const abort = () =>
-      stop(
-        new Error(
-          "Evaluation cancelled; partial reports may remain in outputDir",
-        ),
-      );
-    const timeout = setTimeout(
-      () =>
-        stop(
-          new Error(
-            "Evaluation time limit reached; partial reports may remain in outputDir",
-          ),
-        ),
-      timeoutSeconds * 1000,
-    );
-    child.stdout!.on("data", (data: Buffer) => {
-      stdout = capture(stdout, data);
-    });
-    child.stderr!.on("data", (data: Buffer) => {
-      stderr = capture(stderr, data);
-    });
-    child.on("error", (error) => finish(-1, error));
-    child.on("close", (code) => finish(code));
-    child.on("exit", () => {
-      drain ??= setTimeout(() => {
-        child.stdout!.destroy();
-        child.stderr!.destroy();
-        finish(child.exitCode);
-      }, 2000);
-    });
-    signal.addEventListener("abort", abort, { once: true });
-    if (signal.aborted) abort();
-  });
 }
 export async function createMcpServer(
   options: McpOptions,
@@ -473,7 +369,7 @@ export async function createMcpServer(
           content: {
             type: "text",
             text:
-              "MCP usage: workflow references and templates are available as resources under skilled://workflow/skilled-improve/ (for example references/cli.md and assets/eval.yaml.tmpl). Use skilled_validate_skill, skilled_validate, skilled_run and skilled_compare for the corresponding CLI operations. Tool paths are relative to the configured workspace. skilled_run defaults to validation only; execution needs dryRun:false and an execution-enabled server.\n\n" +
+              "MCP usage: workflow references and templates are available as resources under skilled://workflow/skilled-improve/ (for example references/cli.md and assets/eval.yaml.tmpl). Use skilled_validate_skill, skilled_validate, skilled_run, skilled_start, skilled_status, skilled_results, skilled_cancel and skilled_compare for the corresponding CLI operations. Tool paths are relative to the configured workspace. skilled_run defaults to validation only; synchronous execution needs dryRun:false and an execution-enabled server. Prefer skilled_start for long evaluations, then poll skilled_status and retrieve skilled_results. Reuse the same idempotencyKey to recover a run after reconnecting.\n\n" +
               bounded(await readBounded(workflowFile)),
           },
         },
@@ -524,8 +420,18 @@ export async function createMcpServer(
             engine: loaded.eval.engine.name,
           });
         }
+        case "skilled_status":
+        case "skilled_results":
+        case "skilled_cancel": {
+          if (request.params.name === "skilled_cancel" && !options.allowExecution)
+            throw new Error("Execution is disabled. Start skilled mcp with --allow-execution to cancel a run.");
+          const root = await confined(workspace, ".skilled-mcp/jobs");
+          return response(await (request.params.name === "skilled_cancel" ? cancelJob : readJob)(root, args.runId as string));
+        }
+        case "skilled_start":
         case "skilled_run": {
-          const dryRun = args.dryRun !== false;
+          const asynchronous = request.params.name === "skilled_start";
+          const dryRun = !asynchronous && args.dryRun !== false;
           if (!dryRun && !options.allowExecution)
             throw new Error(
               "Execution is disabled. Start skilled mcp with --allow-execution to run trusted evaluations, or use dryRun:true to validate and list cases.",
@@ -542,21 +448,36 @@ export async function createMcpServer(
               message: "Validated only; no scripts or models were executed.",
             });
           signal.throwIfAborted();
-          const outputDir = await outputDirectory(
+          const outputBase = await outputDirectory(
             workspace,
-            (args.outputDir as string | undefined) ??
-              `.skilled-mcp/runs/${randomUUID()}`,
+            (args.outputDir as string | undefined) ?? ".skilled-mcp/runs",
           );
+          // Private run namespaces cannot overlap, even when independent clients
+          // request identical or nested base directories. Resolve symlinks first.
+          if (path.relative(workspace, outputBase).split(path.sep).includes(".skilled-runs"))
+            throw new Error("outputDir cannot be inside an existing MCP run directory; choose a report base directory");
+          const expectedOutputDir = path.join(outputBase, ".skilled-runs", asynchronous ? jobId(args.idempotencyKey as string) : randomUUID());
+          const outputDir = await outputDirectory(workspace, expectedOutputDir);
+          if (outputDir !== expectedOutputDir)
+            throw new Error("MCP run directories must not redirect through symlinks; choose a report base directory without a linked .skilled-runs namespace");
           const argv = [
             "run",
             file,
             "--output-dir",
             outputDir,
-            "--format",
-            "json",
           ];
+          // JSON is needed for comparison; preserve all user-selected reports.
+          for (const format of new Set(["json", ...loaded.eval.report.formats]))
+            argv.push("--format", format);
           if (args.model) argv.push("--model", args.model as string);
           if (args.provider) argv.push("--provider", args.provider as string);
+          if (asynchronous) {
+            const root = await outputDirectory(workspace, ".skilled-mcp/jobs");
+            return response(await startJob(root, args.idempotencyKey as string, {
+              workspace, argv, outputDir,
+              timeoutSeconds: (args.timeoutSeconds as number | undefined) ?? 300,
+            }));
+          }
           if (active.size)
             throw new Error(
               "An evaluation is already running. Wait for it to finish or cancel it before starting another.",
@@ -571,7 +492,7 @@ export async function createMcpServer(
           try {
             const result = await run;
             return response(
-              { ...result, outputDir: path.relative(workspace, outputDir) },
+              { ...result, outputDir: path.relative(workspace, outputDir), ...await reportFiles(workspace, outputDir) },
               result.exitCode !== 0,
             );
           } finally {

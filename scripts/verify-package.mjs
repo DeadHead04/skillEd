@@ -132,17 +132,41 @@ async function installationProbe() {
           timeout: 120_000,
         },
       );
+    const agentInstructions = "# Existing project instructions\nPreserve this policy.\n";
+    await writeFile(join(root, "AGENTS.md"), agentInstructions);
     for (const [host, folder] of [["codex", ".agents"], ["claude-code", ".claude"]]) {
+      const existingSkill = join(root, folder, "skills/existing-policy/SKILL.md");
+      await mkdir(join(root, folder, "skills/existing-policy"), { recursive: true });
+      await writeFile(existingSkill, "Existing user policy\n");
+      let previousManifest;
       for (let attempt = 0; attempt < 2; attempt++) {
         const setup = run(["setup", "--host", host]);
         assert.equal(setup.status, 0, setup.stderr);
+        const manifest = await readFile(join(root, folder, "skills/skilled-improve/.skilled-install.json"), "utf8");
+        assert.equal(JSON.parse(manifest).version, metadata.version);
+        if (previousManifest) assert.equal(manifest, previousManifest, "Repeated setup must preserve the workflow contents");
+        previousManifest = manifest;
       }
       const installedSkill = join(root, folder, "skills/skilled-improve/SKILL.md");
       assert.match(await readFile(installedSkill, "utf8"), /name: skilled-improve/);
       assert.match(await readFile(join(root, folder, "skills/skilled-improve/references/install.md"), "utf8"), /https:\/\/deadhead04\.github\.io\/skillEd\/guide\/installation/);
+      const pristine = await readFile(installedSkill, "utf8");
+      await writeFile(installedSkill, pristine + "\nLocal user customization\n");
+      for (const args of [["setup", "--host", host], ["setup", "--host", host, "--remove"]]) {
+        const protectedEdit = run(args);
+        assert.notEqual(protectedEdit.status, 0, "Setup must protect locally edited workflows");
+        assert.match(protectedEdit.stderr, /local changes/);
+        assert.equal(await readFile(installedSkill, "utf8"), pristine + "\nLocal user customization\n");
+      }
+      await writeFile(installedSkill, pristine);
       const removed = run(["setup", "--host", host, "--remove"]);
       assert.equal(removed.status, 0, removed.stderr);
       await assert.rejects(readFile(installedSkill), { code: "ENOENT" });
+      assert.equal(run(["setup", "--host", host, "--remove"]).status, 0);
+      assert.equal(await readFile(existingSkill, "utf8"), "Existing user policy\n");
+      assert.equal(await readFile(join(root, "AGENTS.md"), "utf8"), agentInstructions);
+      assert.equal((await readdir(join(root, folder, "skills"))).some(name => name.startsWith(".skilled-setup-")), false);
+
     }
     const validated = run(["validate", evalPath]);
     assert.equal(validated.status, 0, validated.stderr);
@@ -155,7 +179,6 @@ async function installationProbe() {
       evalPath,
       "--output-dir",
       output,
-      "--baseline",
       "--format",
       "json",
       "--format",
@@ -171,7 +194,7 @@ async function installationProbe() {
       await readFile(join(output, "iteration-1/report.json"), "utf8"),
     );
     assert.equal(report.skill_name, "skilled-improve");
-    assert.equal(report.case_results.length, 4);
+    assert.equal(report.case_results.length, 2);
     for (const c of report.case_results) {
       assert.equal(c.status, c.case_id === "package-pass" ? "PASS" : "FAIL");
       const prompt = cases.find((item) => item.id === c.case_id).input.prompt;
@@ -227,12 +250,12 @@ async function installationProbe() {
     assert.equal(records.at(-1).event, "run_finished");
     assert.equal(records.at(-1).payload.status, "COMPLETED");
     assert.equal(records.at(-1).last_event, true);
-    assert.equal(records.filter((r) => r.event === "case_completed").length, 4);
+    assert.equal(records.filter((r) => r.event === "case_completed").length, 2);
 
     const comparison = run(["compare", join(output, "iteration-1/report.json"),
       join(output, "iteration-1/report.json"), "--format", "json", "--fail-on-regression"]);
     assert.equal(comparison.status, 0, comparison.stderr);
-    assert.equal(JSON.parse(comparison.stdout).summary.matched, 4);
+    assert.equal(JSON.parse(comparison.stdout).summary.matched, 2);
 
     // Resolve the SDK from this installation, never the checkout or system Node.
     const { Client } = await import(new URL("./app/node_modules/@modelcontextprotocol/sdk/dist/esm/client/index.js", import.meta.url));
@@ -374,12 +397,14 @@ async function installationProbe() {
       JSON.stringify({
         probe: "full-cli-and-public-api",
         passed: true,
-        cliCases: 4,
+        cliCases: 2,
         apiCases: 1,
         formats: ["json", "junit", "html"],
         events: records.length,
         plugins: ["codex-skilled", "dsh-skilled"],
         mcp: ["stdio", "tools", "workflow", "references", "templates", "prompt"],
+        setupHosts: ["codex", "claude-code"],
+        setup: ["install", "repeat", "protect-local-edits", "remove", "preserve-existing-skills-and-instructions"],
         cwdOutsideCheckout: true,
         systemNodeRequired: false,
       }),

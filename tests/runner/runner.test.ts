@@ -54,7 +54,7 @@ async function setup(t: { after: (fn: () => Promise<void>) => void }) {
   );
   const cfg = decode<EvalConfig>("EvalConfig", structuredClone(fixture.eval));
   cfg.cases.parallelism = 2;
-  cfg.benchmark.enabled = true;
+  cfg.benchmark.enabled = false;
   const loader = await Loader.create(path.join(skill, "evals/eval.yaml"));
   const cases: CaseConfig[] = fixture.cases.map((v: unknown) =>
     decode<CaseConfig>("CaseConfig", v),
@@ -76,6 +76,9 @@ async function setup(t: { after: (fn: () => Promise<void>) => void }) {
 }
 test("runner plans authoritative report identity, global task order and auto iteration without mutation", async (t) => {
   const s = await setup(t);
+  s.cfg.benchmark.enabled = true;
+  s.cfg.environment.type = "docker";
+  s.cfg.environment.image = "node:22";
   await mkdir(path.join(s.output, "iteration-2"), { recursive: true });
   const plan = await s.runner.buildExecutionPlan(s.cases, {
     outputDir: s.output,
@@ -174,7 +177,7 @@ test("report overlap rejects both directions and symlink alias before any deleti
 });
 for (const runtime of ["none", "docker"])
   test(
-    `actual ${runtime} runner: two iterations, baseline, global observers and every report`,
+    `actual ${runtime} runner: two iterations, ${runtime === "docker" ? "isolated baseline" : "single configuration"}, global observers and every report`,
     {
       timeout: 240_000,
       skip:
@@ -183,6 +186,10 @@ for (const runtime of ["none", "docker"])
     async (t) => {
       const s = await setup(t);
       s.cfg.environment.type = runtime;
+      s.cfg.benchmark.enabled = runtime !== "none";
+      const configurations = runtime === "none"
+        ? ["with_skill"] : ["with_skill", "without_skill"];
+      const perIteration = 3 * configurations.length;
       if (runtime === "docker") s.cfg.environment.image = "node:22";
       const events: string[] = [],
         taskStarts: number[] = [],
@@ -226,30 +233,19 @@ for (const runtime of ["none", "docker"])
       );
       assert.deepEqual(
         results.map((r) => r.status),
-        [
-          "PASS",
-          "PASS",
-          "FAIL",
-          "FAIL",
-          "PASS",
-          "PASS",
-          "PASS",
-          "PASS",
-          "FAIL",
-          "FAIL",
-          "PASS",
-          "PASS",
-        ],
+        Array.from({ length: 2 }, () => ["PASS", "FAIL", "PASS"].flatMap(
+          (status) => configurations.map(() => status),
+        )).flat(),
       );
       assert.deepEqual(events, [
         "start:1",
-        "complete:1:6",
+        `complete:1:${perIteration}`,
         "start:2",
-        "complete:2:6",
+        `complete:2:${perIteration}`,
       ]);
       assert.deepEqual(
         taskStarts.sort((a, b) => a - b),
-        Array.from({ length: 12 }, (_, i) => i + 1),
+        Array.from({ length: perIteration * 2 }, (_, i) => i + 1),
       );
       assert.deepEqual(
         taskEnds.sort((a, b) => a - b),
@@ -261,7 +257,7 @@ for (const runtime of ["none", "docker"])
             await readFile(path.join(iter, "result.json"), "utf8"),
           );
         assert.equal(json.skill_name, "skilled-improve");
-        assert.equal(json.case_results.length, 6);
+        assert.equal(json.case_results.length, perIteration);
         assert.equal(json.engine_name, "hash-worker");
         assert.deepEqual(
           JSON.parse(await readFile(path.join(iter, "report.json"), "utf8")),
@@ -278,9 +274,9 @@ for (const runtime of ["none", "docker"])
         const benchmark = JSON.parse(
           await readFile(path.join(iter, "benchmark.json"), "utf8"),
         );
-        assert.equal(benchmark.runs.length, 6);
+        assert.equal(benchmark.runs.length, perIteration);
         assert.equal(benchmark.runs[0].run_number, i);
-        for (const config of ["with_skill", "without_skill"]) {
+        for (const config of configurations) {
           const r = results.find(
             (r) => r.caseID === "hash-pass" && r.configuration === config,
           )!;
@@ -339,7 +335,7 @@ test("runner cancellation returns completed iterations, keeps old artifacts and 
     failure = e;
   }
   assert.ok(failure instanceof EvaluationError);
-  assert.equal(failure.results.length, 2);
+  assert.equal(failure.results.length, 1);
   assert.deepEqual(await readdir(s.output), ["iteration-1"]);
   assert.ok(await readFile(path.join(s.output, "iteration-1/result.json")));
 });
@@ -361,7 +357,7 @@ test("runner preserves prior iteration results when next workspace creation fail
     s.runner.evaluate([s.cases[0]], s.agent, options),
     (e: unknown) =>
       e instanceof EvaluationError &&
-      e.results.length === 2 &&
+      e.results.length === 1 &&
       /failed to init workspace for run 2/.test(e.message),
   );
   assert.equal(await readFile(s.output, "utf8"), "blocked");
@@ -398,7 +394,7 @@ test("runner report writing failure is warned without losing actual evaluation r
       },
     },
   });
-  assert.equal(result.length, 2);
+  assert.equal(result.length, 1);
   await assert.rejects(
     readFile(path.join(s.output, "iteration-1/report.unknown")),
   );

@@ -93,15 +93,21 @@ The CLI prints the results directory. Open its HTML report to inspect the respon
 Create another case under `evals/cases/`, add its path to `cases.files`, and rerun. Keep the cases as you revise `SKILL.md` so changes are checked against the same expectations.
 
 ```sh
-skilled run evals/eval.yaml --baseline
 skilled run evals/eval.yaml --iteration 3
 ```
 
-A baseline run compares behavior with and without the Skill. Repeated iterations help expose variation and make additional engine calls. See [output layout and flags](./cli-reference.md).
+Repeated iterations help expose variation and make additional engine calls.
+To compare behavior with and without the Skill, first configure a clean Docker
+image and its engine credentials, then run with `--baseline`. This comparison
+requires enforced filesystem isolation and cannot use this guide's native
+`none` runtime. See [benchmark setup](./writing-evals.md#benchmark-mode) and
+[output layout and flags](./cli-reference.md).
 
 ## Improve from evidence
 
-The CLI includes `skilled-improve`. From your project directory, run
+The CLI includes `skilled-improve`. Project-local setup requires **skilled 0.3.0 or newer**; check `skilled --version` first. If the public release is older, follow the [source build instructions](./installation.md#build-from-source), then use `node /absolute/path/to/skillEd/dist/src/bootstrap.js` in place of `skilled` below.
+
+From your project directory, run
 `skilled setup --host codex` or `skilled setup --host claude-code`, then start a new
 host session in that directory. Ask it to use skilled-improve and identify the Skill
 to evaluate. Multiple Skills need an explicit target; a project without a Skill can

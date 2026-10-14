@@ -51,6 +51,14 @@ test("source boolean kwarg spellings remain exact", () => {
   ])
     assert.equal(engineKwargBool({ flag: value }, "flag"), false);
 });
+test("Codex login file survives adapter materialization as a path", () => {
+  const engine = defaultEvalConfig().engine;
+  engine.name = "codex";
+  engine.kwargs = { codex_auth_file: "/private/codex/auth.json" };
+  const resolved = resolveAdapterConfig(resolveRunnerConfig(engine));
+  assert.equal(resolved.kwargs.codex_auth_file, engine.kwargs.codex_auth_file);
+  assert.ok(!resolved.warnings.some(value => value.includes("codex_auth_file")));
+});
 test("configuration materialization precedes agent factory and version warnings retain source behavior", () => {
   const engine = defaultEvalConfig().engine;
   engine.name = "qodercli";

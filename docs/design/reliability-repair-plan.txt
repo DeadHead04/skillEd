@@ -1,0 +1,45 @@
+Evaluation reliability repair plan
+
+Objective
+Fix the five findings from the real new-user acceptance journey while preserving
+the TypeScript CLI, native project evaluation, and bundled skilled-improve workflow.
+
+Stage 1: execution boundaries (parallel independent work)
+1. Preserve the original Codex sandbox and approval policy when resuming a session.
+   Check the installed CLI interface; never silently escalate on resume.
+2. Require a verified filesystem boundary for with/without-Skill benchmarks.
+   Native evaluation remains available, but separate directories are not isolation.
+   Keep grading material and other runs out of the model-visible filesystem.
+Acceptance: actual multi-turn Codex execution with a denied out-of-scope write;
+actual Docker runs attempting concurrent and retained-workspace cross-reads.
+
+Stage 2: MCP lifecycle and reports
+3. Add durable, workspace-scoped asynchronous jobs with idempotent start, status,
+   results, cancellation, terminal state, and recovery after client reconnection.
+   Keep synchronous skilled_run compatible and document client timeout settings.
+4. Preserve configured report formats and include machine-readable JSON. Return
+   report paths without repeating model executions.
+Acceptance: production CLI/process tests through the real MCP SDK; disconnect and
+reattach; duplicate prevention; cancel and timeout cleanup; interrupted-worker
+recovery; JSON/JUnit/HTML count parity and actual browser inspection.
+
+Stage 3: integrated real acceptance
+Run typecheck, cumulative phase-5 gate, documentation build, and brand audit.
+Repeat the installed new-user workflow with existing policy Skills: baseline,
+improvement, holdouts, multi-turn pressure, deliberate regression and restoration.
+Record failed checks and unavailable services explicitly. No fabricated models,
+executables, or runtimes may replace required model/host integration evidence.
+Use the user's existing authenticated Codex session, not an API-key fallback.
+
+Stage 4: reviewed release and public installation
+5. Extend native archive/public-install checks to verify Codex setup, workflow
+   files, idempotency and removal. Merge through protected main, then publish the
+   exact accepted commit via the existing gated release workflow. Align stable
+   documentation with the published version. Test public versioned/latest
+   installation in a fresh folder and verify workflow discovery.
+Do not bypass branch protection or claim local macOS tests certify other hosts.
+
+Evidence
+Store detailed local run logs outside the product tree under migration/.
+Commit a concise verification record with the changes; preserve source/legal
+notices. Record actual release/check URLs and any publication blockers.

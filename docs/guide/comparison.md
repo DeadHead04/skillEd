@@ -36,7 +36,9 @@ intended variable in a comparison. A status transition is evidence of a changed
 result, not proof that a Skill edit alone caused it.
 
 `run --baseline` is a different experiment: it runs with and without the Skill
-in one evaluation. `compare` compares any two completed report files, including
+in one evaluation using the verified Docker isolation boundary. Native `none`
+and OpenSandbox benchmarks are blocked; ordinary evaluations remain supported.
+See [benchmark setup](./writing-evals.md#benchmark-mode). `compare` compares any two completed report files, including
 an earlier version and a revised version. It does not orchestrate those runs.
 
 ## Case pass rates and assertion scores

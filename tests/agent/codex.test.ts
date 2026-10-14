@@ -1,9 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile, readFile, stat, rm } from "node:fs/promises";
+import { mkdtemp, writeFile, readFile, stat, rm, symlink } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 import { NoneRuntime } from "../../src/runtime/none.js";
+import { readCodexAuthFile } from "../../src/agent/codex-auth.js";
 import {
   CodexAgent,
   buildCodexRunCmd,
@@ -24,9 +25,46 @@ import {
   checkCodexRemoteJSONLSize,
   codexArtifactTransferOptions,
   buildCodexMCPInstallCmd,
+  codexProcessSandbox,
+  codexBypassSandbox,
 } from "../../src/agent/codex.js";
 const jsonl = (...records: unknown[]) =>
   records.map((r) => JSON.stringify(r)).join("\n");
+test("Codex Docker login rejects an actual auth-file symlink", async (t) => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "skilled-auth-symlink-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const source = path.join(directory, "auth.json"), link = path.join(directory, "linked-auth.json");
+  await writeFile(source, "invalid-auth-content");
+  try { await symlink(source, link, "file"); }
+  catch (error) {
+    if (process.platform === "win32" && ["EPERM", "EACCES"].includes((error as NodeJS.ErrnoException).code ?? "")) {
+      t.skip("Windows host does not permit creating a symlink; native symlink acceptance unverified");
+      return;
+    }
+    throw error;
+  }
+  await assert.rejects(readCodexAuthFile(link), /regular file, not a symlink/);
+  assert.equal(await readFile(source, "utf8"), "invalid-auth-content");
+});
+test("Codex Docker login opt-in rejects unsafe sources without disclosing file contents", async (t) => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "skilled-auth-validation-"));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  await assert.rejects(readCodexAuthFile("auth.json"), /absolute host path/);
+  await assert.rejects(readCodexAuthFile(directory), /regular file/);
+  const file = path.join(directory, "auth.json");
+  await writeFile(file, "PRIVATE_VALUE_MUST_NOT_APPEAR invalid-json");
+  await assert.rejects(readCodexAuthFile(file), (error) => {
+    assert.ok(error instanceof Error);
+    assert.match(error.message, /valid native ChatGPT login JSON/);
+    assert.ok(!error.message.includes("PRIVATE_VALUE"));
+    return true;
+  });
+  await writeFile(file, JSON.stringify({ auth_mode: "apikey", OPENAI_API_KEY: "PRIVATE_VALUE_MUST_NOT_APPEAR" }));
+  await assert.rejects(readCodexAuthFile(file), /API-key authentication is not accepted/);
+  const runtime = new NoneRuntime({ type: "none", workspaceDir: directory });
+  await runtime.create();
+  await assert.rejects(new CodexAgent({ name: "codex", kwargs: { codex_auth_file: file } }).check(runtime), /only for the Docker runtime/);
+});
 test("Codex constructor and provider routing preserve supported configuration", () => {
   const defaults = new CodexAgent({ name: "" });
   assert.equal(defaults.name(), "codex");
@@ -91,10 +129,20 @@ test("Codex command builders preserve pinned installation, prompts, provider fla
   );
   assert.ok(run.includes("'user'\\''s request'"));
   assert.ok(run.includes('model_providers.vendor.wire_api="chat"'));
-  assert.match(
-    buildCodexResumeCmdWithLastMessage("session", "next", "model", p, "last"),
-    /^codex exec resume .*--dangerously-bypass-approvals-and-sandbox/,
+  const resume = buildCodexResumeCmdWithLastMessage(
+    "session", "next", "model", p, "last",
   );
+  assert.match(resume, /^codex exec --sandbox workspace-write resume /);
+  assert.ok(!resume.includes(codexBypassSandbox));
+  for (const sandbox of [codexProcessSandbox, codexBypassSandbox]) {
+    const command = buildCodexResumeCmdWithLastMessage(
+      "session", "user's next request", "model", p, "last", sandbox,
+    );
+    assert.ok(command.startsWith(`codex exec ${sandbox} resume `));
+    assert.ok(command.includes("'user'\\''s next request'"));
+    assert.ok(command.includes('model_providers.vendor.wire_api="chat"'));
+    assert.ok(command.includes("--output-last-message 'last'"));
+  }
   assert.match(
     buildCodexRunStdinCmdWithLastMessage("prompt", "m", {}, "", "last"),
     /^cat 'prompt' \| codex exec/,

@@ -105,6 +105,9 @@ export function multiJudgeError(
     : new Error(summary);
 }
 export interface JudgePhaseRunner {
+  prepareJudgeRuntime?(
+    rt: Runtime, cfg: JudgeConfig, agent: Agent, signal?: AbortSignal,
+  ): Promise<void>;
   prepareOutputDir(
     configuration: string,
     caseID: string,
@@ -192,7 +195,12 @@ export async function runMultipleJudges(
         (member.timeout_seconds ?? 0) * 1000,
       );
       try {
-        const fork = await snapshot.fork(bounded.signal);
+        const fork = await snapshot.fork(
+          bounded.signal,
+          (runtime) => e.prepareJudgeRuntime?.(
+            runtime, member, agent, bounded.signal,
+          ) ?? Promise.resolve(),
+        );
         try {
           const memberInput = judgeInputForWorkspace(
               input,

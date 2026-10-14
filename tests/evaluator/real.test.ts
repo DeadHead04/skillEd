@@ -114,7 +114,7 @@ for (const concurrency of [1, 2, 4])
         ends: string[] = [];
       const e = h.evaluator({
         concurrency,
-        withBaseline: true,
+        withBaseline: false,
         taskObserver: {
           onTaskStart(_ctx: unknown, task: { id: string }) {
             starts.push(task.id);
@@ -124,16 +124,15 @@ for (const concurrency of [1, 2, 4])
           },
         },
       });
-      const cases = ["alpha", "beta", "gamma"].map((v) => h.makeCase(v));
+      const cases = ["alpha", "beta", "gamma", "delta"].map((v) => h.makeCase(v));
       const results = await e.evaluateAll(cases);
       assert.deepEqual(
         results.map((r) => [r.caseID, r.configuration, r.status]),
         cases.flatMap((c) => [
           ["" + c.id, "with_skill", "PASS"],
-          ["" + c.id, "without_skill", "PASS"],
         ]),
       );
-      assert.equal(starts.length, 6);
+      assert.equal(starts.length, 4);
       assert.deepEqual([...starts].sort(), [...ends].sort());
       const stream = (await fs.readFile(events, "utf8"))
         .trim()
