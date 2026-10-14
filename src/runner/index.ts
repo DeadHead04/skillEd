@@ -28,6 +28,7 @@ import { debugContextf, warnContextf } from "../logging/index.js";
 import * as ui from "../ui/index.js";
 import * as report from "../report/index.js";
 import { goJSON } from "../report/helpers.js";
+import { assertBenchmarkIsolation } from "../evaluator/benchmark-isolation.js";
 
 export interface IterationObserver {
   onIterationStart(context: Context, iteration: IterationPlan): void;
@@ -93,6 +94,7 @@ export class Runner {
     cases: CaseConfig[],
     opts: EvaluateOptions = {},
   ): Promise<ExecutionPlan> {
+    assertBenchmarkIsolation(this.evalCfg, this.evalCfg.benchmark.enabled, opts.workspaceDir);
     const skillDir = this.loader.skillDir,
       cleanDir = path.resolve(skillDir);
     const skillName = path.basename(cleanDir) || path.parse(cleanDir).root;
@@ -144,6 +146,9 @@ export class Runner {
     const allResults: EvalResult[] = [];
     try {
       await validateExternalWorkspaceOutput(plan, opts.workspaceDir ?? "");
+      assertBenchmarkIsolation(this.evalCfg,
+        this.evalCfg.benchmark.enabled || plan.taskPlan.iterations.some((i) => i.tasks.some((t) => t.configuration === "without_skill")),
+        opts.workspaceDir);
       const runCount = plan.taskPlan.iterations.length;
       span.setAttributes({
         "skilled.cases.count": plan.caseCount,

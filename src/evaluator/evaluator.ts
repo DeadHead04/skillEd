@@ -70,6 +70,8 @@ import {
   type TaskObserver,
 } from "./types.js";
 import { FixtureRegistry } from "./fixtures.js";
+import { assertBenchmarkIsolation } from "./benchmark-isolation.js";
+import { DockerRuntime } from "../runtime/docker.js";
 import { collectGlobArtifacts } from "./artifacts-collect.js";
 import {
   prepareOutputDir,
@@ -176,6 +178,12 @@ export class DefaultEvaluator {
     const results: EvalResult[] = [];
     try {
       signal?.throwIfAborted();
+      assertBenchmarkIsolation(
+        this.evalCfg,
+        this.withBaseline || this.evalCfg.benchmark.enabled ||
+          tasks.some((t) => t.configuration === configurationWithoutSkill),
+        this.workspaceDir,
+      );
       if (this.ag)
         try {
           await this.ag.checkCredentials(signal);
@@ -240,6 +248,12 @@ export class DefaultEvaluator {
     signal?: AbortSignal,
     ctx: Context = otelContext.active(),
   ): Promise<EvalResult> {
+    assertBenchmarkIsolation(
+      this.evalCfg,
+      this.withBaseline || this.evalCfg.benchmark.enabled ||
+        configuration === configurationWithoutSkill,
+      this.workspaceDir,
+    );
     const maxAttempts = Math.max(
       this.evalCfg.cases.retry_policy.max_retries + 1,
       1,
@@ -301,6 +315,11 @@ export class DefaultEvaluator {
     signal?: AbortSignal,
     ctx: Context = otelContext.active(),
   ): Promise<EvalResult> {
+    const benchmark = this.withBaseline || this.evalCfg.benchmark.enabled ||
+      configuration === configurationWithoutSkill;
+    assertBenchmarkIsolation(this.evalCfg, benchmark, this.workspaceDir);
+    if (benchmark && overrideRT && !(overrideRT instanceof DockerRuntime))
+      throw new Error("benchmark runtime override must use Docker isolation");
     const start = Date.now(),
       span = tracer().startSpan(
         "evaluator.case",
@@ -500,7 +519,11 @@ export class DefaultEvaluator {
       if (rt && owned)
         try {
           await rt.close();
-        } catch {}
+        } catch (error) {
+          result.status = "ERROR";
+          result.error = new Error("runtime cleanup failed: " + asError(error).message, { cause: error });
+          warnf("Evaluator: %s", result.error.message);
+        }
       recordCaseCompleted(
         ctx,
         this.evalCfg.engine.name,
@@ -598,6 +621,46 @@ export class DefaultEvaluator {
     }
   }
   async evaluateCaseSession(
+    rt: Runtime,
+    cfg: CaseConfig,
+    configuration: string,
+    judgeCfg: JudgeConfig,
+    turnsTotal: number,
+    agent: Agent,
+    session: SessionResult | null,
+    result: EvalResult,
+    signal?: AbortSignal,
+    ctx: Context = otelContext.active(),
+  ): Promise<EvalResult> {
+    // Grade in a fresh container, never in the SUT's writable root filesystem.
+    // Killing processes alone would not remove executable persistence created
+    // by an agent. Only validated workspace data is copied to the judge.
+    const benchmark = this.withBaseline || this.evalCfg.benchmark.enabled ||
+      configuration === configurationWithoutSkill;
+    if (benchmark && rt instanceof DockerRuntime) {
+      await rt.stop(signal);
+      const snapshot = await rt.captureJudgeSnapshot(signal);
+      try {
+        const fork = await snapshot.fork(signal, (runtime) =>
+          this.prepareJudgeRuntime(runtime, judgeCfg, agent, signal));
+        try {
+          return await this.evaluateCaseSessionInRuntime(
+            fork.runtime, cfg, configuration, judgeCfg, turnsTotal,
+            agent, session, result, signal, ctx,
+          );
+        } finally {
+          await fork.cleanup();
+        }
+      } finally {
+        await snapshot.close();
+      }
+    }
+    return this.evaluateCaseSessionInRuntime(
+      rt, cfg, configuration, judgeCfg, turnsTotal,
+      agent, session, result, signal, ctx,
+    );
+  }
+  private async evaluateCaseSessionInRuntime(
     rt: Runtime,
     cfg: CaseConfig,
     configuration: string,
@@ -828,6 +891,16 @@ export class DefaultEvaluator {
         cause: e,
       });
     }
+  }
+  async prepareJudgeRuntime(
+    rt: Runtime, cfg: JudgeConfig, agent: Agent, signal?: AbortSignal,
+  ): Promise<void> {
+    if (cfg.type !== "agent_judge" || !(rt instanceof DockerRuntime)) return;
+    const judgeAgent = await this.resolveJudgeAgent(cfg, agent, signal);
+    await judgeAgent.install(rt, signal);
+    await preflight(rt, judgeAgent, signal);
+    const provisioned = await this.provisionMCPConfig();
+    await judgeAgent.installMCP(rt, provisioned.config, signal);
   }
   resolvedSkillDir(): string {
     return this.loader?.skillDir ?? this.skillDir;

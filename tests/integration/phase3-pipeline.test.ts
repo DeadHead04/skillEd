@@ -101,7 +101,7 @@ for (const runtime of ["none", "docker", "opensandbox"])
         skillDir: root,
         outputDir,
         concurrency: 2,
-        withBaseline: true,
+        withBaseline: runtime === "docker",
         deleteWorkspace: true,
         loader,
         evalCfg,
@@ -115,10 +115,12 @@ for (const runtime of ["none", "docker", "opensandbox"])
         cases,
         AbortSignal.timeout(200_000),
       );
-      assert.deepEqual(results.map(project), expected);
+      assert.deepEqual(results.map(project), runtime !== "docker"
+        ? expected.filter((r: { configuration: string }) => r.configuration === "with_skill")
+        : expected);
       assert.deepEqual(
         results.map((r) => r.status),
-        ["PASS", "PASS", "FAIL", "FAIL", "PASS", "PASS"],
+        runtime !== "docker" ? ["PASS", "FAIL", "PASS"] : ["PASS", "PASS", "FAIL", "FAIL", "PASS", "PASS"],
       );
       for (const r of results) {
         const directPath = path.join(
@@ -203,7 +205,7 @@ for (const runtime of ["none", "docker", "opensandbox"])
       const json = JSON.parse(
         await readFile(path.join(reportDir, "report.json"), "utf8"),
       );
-      assert.equal(json.case_results.length, 6);
+      assert.equal(json.case_results.length, runtime !== "docker" ? 3 : 6);
       const xml = await readFile(path.join(reportDir, "junit.xml"), "utf8");
       assert.match(xml, /tests="3"/);
       assert.match(xml, /failures="1"/);

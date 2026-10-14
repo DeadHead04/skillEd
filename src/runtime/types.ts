@@ -83,6 +83,7 @@ export interface Runtime {
 export interface JudgeSnapshot {
   fork(
     signal?: AbortSignal,
+    prepare?: (runtime: Runtime) => Promise<void>,
   ): Promise<{ runtime: Runtime; cleanup: () => Promise<void> }>;
   close(): Promise<void>;
 }
