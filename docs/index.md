@@ -64,14 +64,14 @@ The release bundles its own Node runtime and application dependencies. No source
 ::: code-group
 
 ```sh [macOS / Linux]
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
+curl -fsSL https://github.com/DeadHead04/skillEd/releases/latest/download/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 ```
 
 ```powershell [Windows]
 $installer = Join-Path $env:TEMP 'skilled-install.ps1'
-Invoke-WebRequest https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.ps1 -OutFile $installer
+Invoke-WebRequest https://github.com/DeadHead04/skillEd/releases/latest/download/install.ps1 -OutFile $installer
 & $installer
 $env:Path = "$(Join-Path $HOME '.local/bin');$env:Path"
 skilled --version
@@ -81,7 +81,23 @@ skilled --version
 
 Keep the PATH entry in your shell or user settings for future sessions. [Installation options, updates, and uninstall →](./guide/installation.md)
 
-Next, [create the Hello World example](./guide/getting-started.md) and validate it without calling a model. For a live evaluation, install and authenticate your selected engine first; provider usage may incur charges.
+Already have Skills? From your project folder, activate the bundled workflow:
+
+```sh
+skilled setup --host codex
+# Or: skilled setup --host claude-code
+```
+
+Start a new agent session in that folder and ask it to use **skilled-improve** on
+your Skill. The workflow helps it define cases, save a baseline, revise the Skill,
+and check the result. Setup preserves existing Skills and local workflow edits.
+[v0.3.0 is available](https://github.com/DeadHead04/skillEd/releases/tag/v0.3.0)
+with both setup commands.
+
+Starting from scratch? [Create the Hello World example](./guide/getting-started.md)
+and validate it without calling a model. For a live evaluation, install and
+authenticate your selected engine first; provider usage follows your account’s
+limits and billing.
 
 </div>
 

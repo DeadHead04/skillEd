@@ -29,7 +29,7 @@ installed Codex and Claude Code using native subscription logins. These checks d
 not certify every provider, device, observer host or remote sandbox service.
 
 The compatibility reference and intentional scoring differences are recorded in
-[compatibility.json](./compatibility.json) and [Scoring](./guide/scoring.md).
+[compatibility.json](https://github.com/DeadHead04/skillEd/blob/main/docs/compatibility.json) and [Scoring](./guide/scoring.md).
 The older file-disposition ledgers are historical bookkeeping, not a claim that
 every original assertion was reexecuted. Candidate evidence is complemented by the CI result for the final release commit;
 native CI does not replace authenticated host acceptance.
@@ -102,6 +102,30 @@ host layouts after installing the pinned release and again after updating to
 latest. Archive verification protects edited workflows and existing Skills.
 
 ## Published release evidence
+
+[Release 0.3.0](https://github.com/DeadHead04/skillEd/releases/tag/v0.3.0)
+was published from `71c3ddb5d18f45dc5e0a83455802c082a300d73c`.
+All eight [release jobs](https://github.com/DeadHead04/skillEd/actions/runs/38557758484)
+passed: build, native archive acceptance on Linux/macOS/Windows, publication, and
+published versioned/latest installation on those three runners. Installer checks
+exercise project setup and removal for both Codex and Claude Code.
+The final [source CI](https://github.com/DeadHead04/skillEd/actions/runs/38557622966)
+recorded 1,586 passes, zero failures, and 41 explicit skips. Its separate real
+Docker suite recorded 47 passes and two OpenSandbox skips.
+
+A fresh public install on macOS also passed both setup paths without GitHub
+login or an external Node runtime on PATH, preserving existing Skills and project
+instructions. One final real Codex case through that public CLI passed after
+42 seconds; disconnecting and reconnecting recovered the same durable run and
+worker, and JSON, HTML and JUnit reports were verified. This checked the published
+bytes after the final supervisor changes. Temporary authentication material was
+removed and the original login remained unchanged.
+
+The [actual refund-policy report screenshot](https://github.com/DeadHead04/skillEd/blob/main/docs/public/refund-policy-report.png)
+shows the 18/18 improved run described above. It is a single observed acceptance
+result, not a promise of model accuracy. Optional authenticated Codex model
+execution inside Docker remains unverified following the local daemon failure;
+Docker isolation and authenticated native Codex were tested separately.
 
 For 0.2.0, the release acceptance adds installed-bundle MCP discovery, workflow
 and template reads, source validation, dry runs and offline comparison. Source

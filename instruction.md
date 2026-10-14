@@ -11,7 +11,7 @@ skilled-improve workflow. Do not install an unrelated package from npm.
    macOS or Linux:
 
    ```sh
-   curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
+   curl -fsSL https://github.com/DeadHead04/skillEd/releases/latest/download/install.sh | bash
    export PATH="$HOME/.local/bin:$PATH"
    skilled --version
    ```
@@ -20,24 +20,27 @@ skilled-improve workflow. Do not install an unrelated package from npm.
 
    ```powershell
    $installer = Join-Path $env:TEMP 'skilled-install.ps1'
-   Invoke-WebRequest https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.ps1 -OutFile $installer
+   Invoke-WebRequest https://github.com/DeadHead04/skillEd/releases/latest/download/install.ps1 -OutFile $installer
    & $installer
    $env:Path = "$(Join-Path $HOME '.local/bin');$env:Path"
    skilled --version
    ```
 
-2. If the host supports MCP configuration, add a server named `skilled` using the
-   absolute installed launcher and arguments `mcp --workspace <absolute-project>`.
-   Use the host's supported setup method; preserve existing servers. If the host
-   cannot configure MCP, continue through the CLI. Host-specific instructions and
-   Windows executable alternatives are at
-   https://deadhead04.github.io/skillEd/guide/mcp.
+2. From the user's project folder, activate the bundled workflow with
+   `skilled setup --host codex` or `skilled setup --host claude-code` for the
+   selected host. This requires version 0.3.0 or newer; update an older CLI before
+   continuing. Preserve existing Skills and local workflow edits. Start a new
+   host session in this project to discover the workflow. Other hosts can use
+   the CLI with the bundled workflow or connect through MCP.
 
-3. Load the `skilled-improve` MCP prompt, or read its workflow resource at
-   `skilled://workflow/skilled-improve`. References and templates are additional
-   resources beneath that URI. For CLI-only use, the installed release also
-   contains `app/skills/skilled-improve/SKILL.md`; the canonical source is
-   https://raw.githubusercontent.com/DeadHead04/skillEd/main/skills/skilled-improve/SKILL.md.
+3. MCP is optional. If the user wants MCP and the host supports it, add a server
+   named `skilled` using the absolute installed launcher and arguments
+   `mcp --workspace <absolute-project>`. Use the host's supported setup method and
+   preserve existing servers. Load the `skilled-improve` prompt, or read
+   `skilled://workflow/skilled-improve` and its referenced resources. The release
+   also contains `app/skills/skilled-improve/SKILL.md` for CLI-only use.
+   Host configuration and Windows executable alternatives are at
+   https://deadhead04.github.io/skillEd/guide/mcp.
 
 4. If this project has a Skill, validate its source and existing suite with
    `skilled validate --skill <skill-directory>` and
@@ -53,7 +56,11 @@ skilled-improve workflow. Do not install an unrelated package from npm.
 
 6. If the user requested a real evaluation and the selected engine is installed
    and authenticated, run it with JSON and HTML reports. MCP execution requires
-   `--allow-execution` in the server configuration and `dryRun:false`. Credentials
+   `--allow-execution` in the server configuration. For long evaluations, use
+   `skilled_start` with a stable idempotency key, then poll `skilled_status` and
+   read `skilled_results`. Reconnect to the same workspace and reuse that key
+   if the start response is lost; do not launch a duplicate. Synchronous
+   `skilled_run` requires `dryRun:false`. Credentials
    stay in the user's configuration or environment. Respect their model budget.
    If access is missing, identify the single missing prerequisite; do not invent
    success or copy credentials between unrelated applications.

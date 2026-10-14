@@ -6,7 +6,7 @@ The repository and release assets are public. No GitHub login is required. This 
 
 ## Check the version before project setup
 
-`skilled setup --host codex` and `skilled setup --host claude-code` require **0.3.0 or newer**. Run `skilled --version` after installing. If the latest published release is older, it does not include these setup commands: use the source build below until a compatible release is available. A merged change on `main` does not update an already published archive. The release page and successful release workflow establish what is available for download.
+`skilled setup --host codex` and `skilled setup --host claude-code` require **0.3.0 or newer**. Run `skilled --version` after installing. [v0.3.0 is published](https://github.com/DeadHead04/skillEd/releases/tag/v0.3.0) and includes both setup commands. If your installation is older, rerun the installer to update it. A merged change on `main` does not update an already published archive; use the release page and its successful release workflow to identify the downloaded version.
 
 ## Install from GitHub Releases
 
