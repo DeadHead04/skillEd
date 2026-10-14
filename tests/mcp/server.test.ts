@@ -514,3 +514,16 @@ test("concurrent clients cannot overwrite identical or nested report destination
   assert.equal(nested.isError, true);
   assert.match(text(nested), /existing MCP run/);
 });
+
+test("MCP rejects a linked private run namespace before execution", async t => {
+  const { client, workspace } = await setup(t, true);
+  const skill = await fixture(workspace);
+  const base = path.join(workspace, "linked-reports");
+  await mkdir(base);
+  await symlink(base, path.join(base, ".skilled-runs"), process.platform === "win32" ? "junction" : "dir");
+  for (const name of ["skilled_run", "skilled_start"]) {
+    const result = await client.callTool({ name, arguments: { path: skill, ...(name === "skilled_start" ? { idempotencyKey: "linked" } : { dryRun: false }), outputDir: "linked-reports" } });
+    assert.equal(result.isError, true);
+    assert.match(text(result), /must not redirect through symlinks/);
+  }
+});

@@ -2,6 +2,8 @@
 
 Docker evaluations can use an existing file-based ChatGPT login through an explicit opt-in. Native evaluations continue to use the login already available on the host.
 
+**Verification status:** credential validation and private-file staging have been tested, but a complete model-backed Docker login run remains unverified because the local Docker daemon encountered a storage failure. Authenticated native Codex evaluations passed. Validate this optional Docker login path with a small evaluation before relying on it for a benchmark.
+
 ```yaml
 environment:
   type: docker

@@ -62,7 +62,7 @@ export async function readJob(root: string, runId: string): Promise<JobState> {
     state.error = "Evaluation worker exited before recording a terminal result. Inspect partial reports; use a new idempotency key to retry.";
     state.updatedAt = new Date().toISOString();
     // Derived state: a reader must never overwrite a concurrently completed worker.
-  } else if (state.status === "running") {
+  } else if (state.status === "running" || state.status === "starting") {
     const heartbeat = await stat(path.join(dir, "heartbeat")).catch(() => undefined);
     if (Date.now() - (heartbeat?.mtimeMs ?? Date.parse(state.updatedAt)) > 30_000) {
       state.status = "unresponsive";

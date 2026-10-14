@@ -70,6 +70,15 @@ run returned execution errors and was retained as failed evidence before retryin
 Native two-turn acceptance also confirmed unchanged sandbox/approval settings
 and denial of a write outside the permitted workspace.
 
+A real Codex evaluation lasting 331 seconds returned its background-job start
+response in 67 milliseconds under a one-second MCP client timeout. Closing and
+reopening the client recovered the same run without duplicate execution; the
+case passed and produced JSON, HTML and JUnit reports. A fresh project using the
+0.3.0 archive also confirmed that an authenticated Codex session discovered the
+installed skilled-improve workflow and validated all 18 policy cases while
+preserving the existing Skill. These are recorded acceptance observations, not
+performance guarantees.
+
 Docker boundary checks passed before the development machine's storage failure;
 the final Docker suite is required in source CI and release builds. Live model
 Docker authentication is separately gated on an available daemon and account.

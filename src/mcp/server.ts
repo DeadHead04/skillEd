@@ -456,10 +456,10 @@ export async function createMcpServer(
           // request identical or nested base directories. Resolve symlinks first.
           if (path.relative(workspace, outputBase).split(path.sep).includes(".skilled-runs"))
             throw new Error("outputDir cannot be inside an existing MCP run directory; choose a report base directory");
-          const outputDir = await outputDirectory(
-            workspace,
-            path.join(outputBase, ".skilled-runs", asynchronous ? jobId(args.idempotencyKey as string) : randomUUID()),
-          );
+          const expectedOutputDir = path.join(outputBase, ".skilled-runs", asynchronous ? jobId(args.idempotencyKey as string) : randomUUID());
+          const outputDir = await outputDirectory(workspace, expectedOutputDir);
+          if (outputDir !== expectedOutputDir)
+            throw new Error("MCP run directories must not redirect through symlinks; choose a report base directory without a linked .skilled-runs namespace");
           const argv = [
             "run",
             file,

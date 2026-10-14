@@ -48,6 +48,9 @@ test("stale heartbeat cannot be mistaken for a live worker after PID reuse", asy
   const state = { runId: id, status: "running", ownerPid: process.pid, outputDir: "reports", createdAt: new Date(0).toISOString(), updatedAt: new Date(0).toISOString() };
   await writeFile(path.join(directory, "state.json"), JSON.stringify(state));
   assert.equal((await readJob(root, id)).status, "unresponsive");
+  await writeFile(path.join(directory, "state.json"), JSON.stringify({ ...state, status: "starting" }));
+  assert.equal((await readJob(root, id)).status, "unresponsive");
+  await writeFile(path.join(directory, "state.json"), JSON.stringify(state));
   await writeFile(path.join(directory, "heartbeat"), "alive\n");
   assert.equal((await readJob(root, id)).status, "running");
 });
