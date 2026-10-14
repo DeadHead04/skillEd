@@ -450,7 +450,9 @@ test("durable MCP run survives disconnect, reattaches, and deduplicates across s
   const pidFile = path.join(dir, "durable-worker.pid");
   const skill = await fixture(workspace, true, pidFile);
   const caseFile = path.join(workspace, skill, "evals/cases/hash.yaml");
-  await writeFile(caseFile, (await readFile(caseFile, "utf8")).replace("30000", "2500"));
+  // Exceed the ten-second supervisor lease: active renewal must keep the
+  // evaluation alive even after the original MCP client/server disconnects.
+  await writeFile(caseFile, (await readFile(caseFile, "utf8")).replace("30000", "13000"));
   const args = { path: skill, idempotencyKey: "reconnect-case", timeoutSeconds: 30 };
   const started = await client.callTool({ name: "skilled_start", arguments: args });
   assert.equal(started.isError, false, text(started));
