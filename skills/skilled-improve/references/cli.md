@@ -24,7 +24,7 @@ skilled run [path] [flags]
 | `--runtime` | Configured value | Override `environment.type` (`none`, `opensandbox`, or `docker`). |
 | `--model` | Configured value | Override the model (`provider/name`). |
 | `--parallelism` | Configured value | Override `cases.parallelism` (1–256). |
-| `--baseline` | Configured value | Set `benchmark.enabled: true` for this run. |
+| `--baseline` | Configured value | Set `benchmark.enabled: true`. Requires Docker with a clean image and configured container credentials; native `none` and OpenSandbox benchmarks are rejected. |
 | `--api-key` | — | Pass an API key; higher priority than environment variables. |
 | `-v, --verbose` | `0` | Default `info`; `-v` gives `debug`; `-vv` or `--verbose=2` gives `trace`. |
 
@@ -38,7 +38,8 @@ skilled run ./evals/eval.yaml --include-case-name "basic-*"
 skilled run ./evals/eval.yaml --exclude-case-name "*-old"
 skilled run ./evals/eval.yaml --engine codex --model openai/gpt-4
 skilled run ./evals/eval.yaml --parallelism 4
-skilled run ./evals/eval.yaml --baseline
+# Requires environment.image and credentials configured for the container
+skilled run ./evals/eval.yaml --runtime docker --baseline
 skilled run ./evals/eval.yaml --format html --format junit
 skilled run ./evals/eval.yaml --iteration 3
 # Example terminal summary: case_a: 3 trials, 2 PASS, 1 FAIL -> flaky
@@ -150,3 +151,13 @@ The workspace's `grading.json` usually contains only `expectations` and `summary
 ### benchmark.json
 
 Baseline comparisons add fields such as `without_skill` and `delta`.
+
+## Long evaluations over MCP
+
+For long suites, use `skilled_start` with a stable `idempotencyKey` and the suite
+path, then poll `skilled_status` by `runId` and retrieve `skilled_results`. Reuse
+the same key and arguments if the connection drops; do not start another run
+just because a client timed out. Use a new key for an intentional rerun after
+changing a Skill. Background jobs survive disconnection. To stop one, call
+`skilled_cancel`, then wait for terminal cleanup. The server must enable execution.
+The suite's configured report formats are preserved, with JSON also generated.

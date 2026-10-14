@@ -29,6 +29,10 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
       - run: npm ci
       - run: npm run gate -- --phase=5
+      - name: Verify isolated Docker benchmarks with real containers
+        env:
+          SKILLED_DOCKER_INTEGRATION: '1'
+        run: node --test --test-concurrency=1 dist/tests/runtime/docker.test.js dist/tests/evaluator/benchmark-isolation.test.js dist/tests/evaluator/real.test.js dist/tests/runner/runner.test.js dist/tests/integration/phase3-pipeline.test.js dist/tests/integration/phase4-cli.test.js
       - run: npm run docs:build
       - run: npm run release:build
       - name: Verify local npm distribution
@@ -125,18 +129,81 @@ jobs:
         shell: bash
         run: |
           export INSTALL_DIR="$RUNNER_TEMP/skilled-installed/bin"
+          verify_project_setup() {
+            local project="$RUNNER_TEMP/skilled-new-user-$1"
+            mkdir -p "$project"
+            (
+              cd "$project"
+              printf '%s\n' 'Existing project instructions' > AGENTS.md
+              cp AGENTS.md expected-AGENTS.md
+              for host in codex claude-code; do
+                local folder=.agents
+                if [ "$host" = claude-code ]; then folder=.claude; fi
+                mkdir -p "$folder/skills/existing-policy"
+                printf '%s\n' 'Existing user policy' > "$folder/skills/existing-policy/SKILL.md"
+                cp "$folder/skills/existing-policy/SKILL.md" expected-policy.md
+                "$INSTALL_DIR/skilled" setup --host "$host"
+                local workflow="$folder/skills/skilled-improve"
+                grep -q 'name: skilled-improve' "$workflow/SKILL.md"
+                test -s "$workflow/references/install.md"
+                test -s "$workflow/assets/case.yaml.tmpl"
+                cp "$workflow/.skilled-install.json" expected-manifest.json
+                "$INSTALL_DIR/skilled" setup --host "$host"
+                cmp "$workflow/.skilled-install.json" expected-manifest.json
+                "$INSTALL_DIR/skilled" setup --host "$host" --remove
+                test ! -e "$workflow"
+                "$INSTALL_DIR/skilled" setup --host "$host" --remove
+                cmp "$folder/skills/existing-policy/SKILL.md" expected-policy.md
+                cmp AGENTS.md expected-AGENTS.md
+              done
+            )
+          }
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern install.sh --dir installer
           SKILLED_VERSION="$RELEASE_TAG" bash installer/install.sh
           test "$("$INSTALL_DIR/skilled" --version)" = "skilled version ${RELEASE_TAG#v}"
           "$INSTALL_DIR/skilled" init --print
           "$INSTALL_DIR/skilled" run --help
+          verify_project_setup versioned
           SKILLED_VERSION=latest bash installer/install.sh
           test "$("$INSTALL_DIR/skilled" --version)" = "skilled version ${RELEASE_TAG#v}"
+          verify_project_setup latest
       - name: Install and update published CLI on Windows
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $env:INSTALL_DIR = Join-Path $env:RUNNER_TEMP 'skilled-installed/bin'
+          function Test-ProjectSetup([string] $label) {
+            $project = Join-Path $env:RUNNER_TEMP "skilled-new-user-$label"
+            New-Item -ItemType Directory -Path $project | Out-Null
+            Push-Location $project
+            try {
+              Set-Content AGENTS.md 'Existing project instructions'
+              $instructionsHash = (Get-FileHash AGENTS.md).Hash
+              foreach ($hostName in @('codex', 'claude-code')) {
+                $folder = if ($hostName -eq 'codex') { '.agents' } else { '.claude' }
+                $existing = Join-Path $folder 'skills/existing-policy'
+                New-Item -ItemType Directory -Path $existing -Force | Out-Null
+                $existingSkill = Join-Path $existing 'SKILL.md'
+                Set-Content $existingSkill 'Existing user policy'
+                $policyHash = (Get-FileHash $existingSkill).Hash
+                & $cli setup --host $hostName
+                if ($LASTEXITCODE -ne 0) { throw 'Project setup failed' }
+                $workflow = Join-Path $folder 'skills/skilled-improve'
+                if ((Get-Content (Join-Path $workflow 'SKILL.md') -Raw) -notmatch 'name: skilled-improve') { throw 'Workflow missing' }
+                foreach ($resource in @('references/install.md', 'assets/case.yaml.tmpl')) {
+                  if (-not (Test-Path (Join-Path $workflow $resource) -PathType Leaf)) { throw "Missing workflow resource: $resource" }
+                }
+                $manifestHash = (Get-FileHash (Join-Path $workflow '.skilled-install.json')).Hash
+                & $cli setup --host $hostName
+                if ($LASTEXITCODE -ne 0 -or (Get-FileHash (Join-Path $workflow '.skilled-install.json')).Hash -ne $manifestHash) { throw 'Repeated setup changed workflow' }
+                & $cli setup --host $hostName --remove
+                if ($LASTEXITCODE -ne 0 -or (Test-Path $workflow)) { throw 'Workflow removal failed' }
+                & $cli setup --host $hostName --remove
+                if ($LASTEXITCODE -ne 0) { throw 'Repeated removal failed' }
+                if ((Get-FileHash $existingSkill).Hash -ne $policyHash -or (Get-FileHash AGENTS.md).Hash -ne $instructionsHash) { throw 'Existing project files changed' }
+              }
+            } finally { Pop-Location }
+          }
           gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern install.ps1 --dir installer
           if ($LASTEXITCODE -ne 0) { throw 'Installer download failed' }
           & ./installer/install.ps1 -UseGh -Version $env:RELEASE_TAG -InstallDir $env:INSTALL_DIR
@@ -147,5 +214,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Installed init failed' }
           & $cli run --help
           if ($LASTEXITCODE -ne 0) { throw 'Installed help failed' }
+          Test-ProjectSetup versioned
           & ./installer/install.ps1 -UseGh -Version latest -InstallDir $env:INSTALL_DIR
           if ((& $cli --version) -ne $expected -or $LASTEXITCODE -ne 0) { throw 'Updated version mismatch' }
+          Test-ProjectSetup latest

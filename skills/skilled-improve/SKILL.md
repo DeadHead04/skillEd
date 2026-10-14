@@ -195,6 +195,7 @@ Adapt language per "Language Rules for Generated Artifacts". Replace the templat
 Selection guidelines:
 
 - `environment.type`: use `none` for pure-text Skills; use `opensandbox` when you need a remote sandbox (set `OPENSANDBOX_API_KEY`, put non-secrets in `environment.kwargs`).
+- With/without-Skill benchmarks require `docker`, a clean image, and container credentials. Native `none` and OpenSandbox benchmarks are rejected until they provide the required verified isolation. Keep private graders and answer keys out of agent-visible fixtures and images.
 - `engine.name` + `engine.model`: default `claude_code`; `model` is optional. For `qodercli`, often omit `model`.
 - `judge.type`: `rule_based` (preferred), `script`, `agent_judge` (expensive) — see `references/judge-types.md`.
 - Case ID = filename without `.yaml`; prompts should exercise real Skill value.
@@ -219,7 +220,11 @@ skilled validate <skill-root>/evals/eval.yaml
 Expect: `✓ eval.yaml is valid (loaded N case(s))`.
 
 Via MCP, use `skilled_validate_skill` and `skilled_validate` with workspace-relative
-paths. Preserve separate baseline and candidate report files, then use
+paths. For long evaluations, prefer `skilled_start` with a stable idempotency key,
+then poll `skilled_status` and retrieve `skilled_results`. Reconnect using the same
+key and arguments instead of repeating a run after a timeout. Use `skilled_cancel`
+to stop a background job and wait for terminal cleanup. Preserve separate baseline
+and candidate report files, then use
 `skilled_compare` (or `skilled compare`) to inspect status, score and coverage
 changes. Read comparability warnings: identical case IDs alone do not prove
 identical evaluation inputs. Gates and judge scores are separate from 0.2.0;

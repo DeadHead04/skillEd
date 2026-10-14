@@ -1,15 +1,19 @@
 # Installation
 
-Install **`skilled` 0.2.0** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/tag/v0.2.0). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The command is `skilled`; the bundled `skilled-improve` workflow is used by your agent through MCP or a host integration, not as a separate terminal command.
+Install the latest stable **`skilled`** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/latest). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The command is `skilled`; the bundled `skilled-improve` workflow is used by your agent through MCP or a host integration, not as a separate terminal command.
 
 The repository and release assets are public. No GitHub login is required. This project does not publish the unqualified `skilled` npm registry package; install the GitHub release or the exact npm tarball attached to it.
+
+## Check the version before project setup
+
+`skilled setup --host codex` and `skilled setup --host claude-code` require **0.3.0 or newer**. Run `skilled --version` after installing. If the latest published release is older, it does not include these setup commands: use the source build below until a compatible release is available. A merged change on `main` does not update an already published archive. The release page and successful release workflow establish what is available for download.
 
 ## Install from GitHub Releases
 
 ### macOS and Linux
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.sh | bash
+curl -fsSL https://github.com/DeadHead04/skillEd/releases/latest/download/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 skilled --version
 skilled --help
@@ -20,23 +24,25 @@ Bash, curl, and standard archive tools are required. Add the PATH line to your s
 To inspect the installer before running it or pin a release:
 
 ```sh
-curl -fsSL https://github.com/DeadHead04/skillEd/releases/download/v0.2.0/install.sh -o install.sh
+# Set this to a published version listed on GitHub Releases.
+version=0.3.0
+curl -fsSL "https://github.com/DeadHead04/skillEd/releases/download/v${version}/install.sh" -o install.sh
 # Review install.sh, then run:
-SKILLED_VERSION=0.2.0 bash install.sh
+SKILLED_VERSION="$version" bash install.sh
 ```
 
 ### Windows PowerShell
 
 ```powershell
 $installer = Join-Path $env:TEMP 'skilled-install.ps1'
-Invoke-WebRequest https://raw.githubusercontent.com/DeadHead04/skillEd/main/install.ps1 -OutFile $installer
+Invoke-WebRequest https://github.com/DeadHead04/skillEd/releases/latest/download/install.ps1 -OutFile $installer
 & $installer
 $env:Path = "$(Join-Path $HOME '.local/bin');$env:Path"
 skilled --version
 skilled --help
 ```
 
-Add `$HOME\.local\bin` to your user PATH for future terminals. Pass `-Version '0.2.0'` to pin the version and `-InstallDir <path>` to choose the destination. If PowerShell prevents downloaded scripts, inspect the script and follow your organization's script policy.
+Add `$HOME\.local\bin` to your user PATH for future terminals. Pass `-Version '<published-version>'` to pin the version and `-InstallDir <path>` to choose the destination. If PowerShell prevents downloaded scripts, inspect the script and follow your organization's script policy.
 
 ### Private forks and mirrors
 
@@ -50,7 +56,7 @@ Use `SKILLED_REPOSITORY=owner/repository` for another GitHub repository, or `SKI
 | --- | --- | --- |
 | Release installer | Bash or PowerShell; GitHub CLI/login for private assets | Versioned GitHub Release |
 | Self-contained archive | Matching OS/architecture; no separate Node, Go or Python | Release `.tar.gz` or `.zip` plus checksum |
-| npm tarball | Node 24.21.0 or later in the 24.x series, npm | Exact release `skilled-0.2.0.tgz` |
+| npm tarball | Node 24.21.0 or later in the 24.x series, npm | Exact release `skilled-0.3.0.tgz` |
 | Source checkout | Node 24.21.0, npm, Git | `npm ci` and `npm run build` |
 
 Engine/provider credentials are separate from installing the CLI. Docker is required when selecting the Docker runtime. OpenSandbox needs its configured server. See [user configuration](./user-config.md).
@@ -78,7 +84,7 @@ Run from the repository root. This example selects macOS Apple Silicon. Change `
 
 ```sh
 target=darwin-arm64
-version=0.2.0
+version=$(node -p "require('./package.json').version")
 bundle="skilled_${version}_${target}"
 
 # Verify before extracting. On Linux use sha256sum -c instead.
@@ -99,7 +105,8 @@ If the archive has not been built, use `npm run package -- --target=darwin-arm64
 Use `win32-x64` or `win32-arm64` to match Windows. From the repository root in PowerShell:
 
 ```powershell
-$bundle = 'skilled_0.2.0_win32-x64'
+$version = (Get-Content package.json -Raw | ConvertFrom-Json).version
+$bundle = "skilled_${version}_win32-x64"
 $archive = Join-Path $PWD "artifacts/$bundle.zip"
 $expected = ((Get-Content "$archive.sha256") -split '\s+')[0]
 if ((Get-FileHash -Algorithm SHA256 $archive).Hash -ne $expected) {
@@ -120,7 +127,7 @@ Add that bundle directory to your user PATH for future terminals. The release wo
 From the repository root, with the candidate tarball already built:
 
 ```sh
-npm install --global ./artifacts/skilled-0.2.0.tgz
+npm install --global ./artifacts/skilled-0.3.0.tgz
 skilled --version
 skilled --help
 ```
@@ -128,7 +135,7 @@ skilled --help
 The npm package uses the installed Node runtime. Alternatively, run without a global installation:
 
 ```sh
-npm exec --yes --package=./artifacts/skilled-0.2.0.tgz -- skilled --version
+npm exec --yes --package=./artifacts/skilled-0.3.0.tgz -- skilled --version
 ```
 
 These commands deliberately identify the local tarball. This project has not published the unqualified npm package name. `private: true` currently prevents accidental registry publication. Packaging maintainers can create just the npm tarball with `npm run build` followed by `npm pack --pack-destination artifacts`.
@@ -138,15 +145,27 @@ These commands deliberately identify the local tarball. This project has not pub
 Download the matching platform archive and its checksum, then use the local extraction instructions above:
 
 ```sh
-gh release download v0.2.0 --repo DeadHead04/skillEd \
-  --pattern 'skilled_0.2.0_darwin-arm64.tar.gz*' --dir artifacts
+# Select an existing release tag from the release page.
+version=0.3.0
+gh release download "v$version" --repo DeadHead04/skillEd \
+  --pattern "skilled_${version}_darwin-arm64.tar.gz*" --dir artifacts
 ```
 
-Replace `darwin-arm64` with `darwin-x64`, `linux-arm64`, or `linux-x64`. Windows uses `skilled_0.2.0_win32-x64.zip*` or `win32-arm64`. For the npm tarball, download `skilled-0.2.0.tgz` and its `.sha256` file, verify the hash, then install that exact file globally. Never substitute an unrelated package from the npm registry.
+Replace `darwin-arm64` with `darwin-x64`, `linux-arm64`, or `linux-x64`. Windows uses `skilled_VERSION_win32-x64.zip*` or `win32-arm64`. For the npm tarball, download `skilled-0.3.0.tgz` and its `.sha256` file, verify the hash, then install that exact file globally. Never substitute an unrelated package from the npm registry.
 
 ## Verify, update and uninstall
 
-After any installation, run `skilled --version` and `skilled --help`. From this checkout, validate the included example without a model call:
+After any installation, run `skilled --version` and `skilled --help`. With version 0.3.0 or newer, activate the bundled workflow from your existing project directory:
+
+```sh
+skilled setup --host codex
+# Start a new Codex session in this same project.
+# Ask: Use skilled-improve to evaluate <path-to-my-skill>.
+```
+
+For Claude Code use `--host claude-code`. Setup installs project-local workflow files, preserves other Skills and `AGENTS.md`, and does not log into an engine. Repeating setup updates an unmodified managed copy; local edits are protected. Remove only that managed copy with `skilled setup --host codex --remove`. See [your first evaluation](./getting-started.md) for the complete evaluation and improvement journey.
+
+From this checkout, validate the included example without a model call:
 
 ```sh
 skilled validate examples/code-stats/evals/eval.yaml
@@ -177,4 +196,4 @@ The logo, docs, reports, CLI help, plugin manifests and release filenames use th
 
 The Action image can be built with `docker build -f action/Dockerfile -t skilled-action:local .`. This image runs the Action entrypoint; it is separate from the desktop CLI installation. The release workflow builds archives, verifies them on Linux/macOS/Windows, and publishes accepted assets to `DeadHead04/skillEd`. It then tests the downloaded installers against that release. Container and npm publication still need registry/package ownership and credentials. The [documentation site](https://deadhead04.github.io/skillEd/) is deployed from this repository. See [CI maintenance](./ci-maintenance.md).
 
-The published release passed native archive and installer checks on Linux, macOS, and Windows. Separate development checks covered Linux ARM64 Docker and translated/emulated x64 execution. See [verification evidence](../verification.md) for scope; six packaged targets do not imply six native device checks.
+Release acceptance runs archive checks before publication and installer checks against the published version and `latest` afterward. These checks cover project setup for Codex and Claude Code, repeat setup, removal, and preservation of existing Skills and instructions. Check the release workflow results for the particular version you install. Separate development checks covered Linux ARM64 Docker and translated/emulated x64 execution. See [verification evidence](../verification.md) for scope; six packaged targets do not imply six native device checks.

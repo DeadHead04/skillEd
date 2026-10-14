@@ -68,6 +68,12 @@ report:
 
 `skilled run --parallelism N` temporarily overrides `cases.parallelism` (1–256). `skilled run --baseline` temporarily sets `benchmark.enabled: true`.
 
+Benchmark execution requires `environment.type: docker`, a clean `environment.image`,
+and container credentials. `none` does not restrict reads of neighboring Skills
+or reports; OpenSandbox's equivalent grading boundary is not yet verified.
+Use ordinary native evaluations when reusing a host login without isolation.
+Never place answers or private grading files in shared images or case fixtures.
+
 `collect_artifacts`, defined in `cases.defaults` or a case file, selects workspace files using [doublestar](https://github.com/bmatcuk/doublestar) globs (`*` within one directory; `**` across directories). Matching files are downloaded with relative paths to `<output-dir>/<case>/<config>/outputs/workspace/` even if the agent fails or times out. Default and case patterns form a deduplicated union. This is separate from `report.artifacts` (artifact types) and the git diff string passed to `agent_judge`.
 
 `skills[].include` and `skills[].exclude` use doublestar globs relative to `skills[].path`, with `/` separators. An empty `include` selects all files; `exclude` is applied afterward and takes priority. `evals/` is never installed. An explicit `include` must contain `SKILL.md`. `judge.skills` supports the same filters.

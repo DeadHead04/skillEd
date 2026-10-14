@@ -75,7 +75,7 @@ skilled run [path] [flags]
 | `--provider`           | From config                   | Override `engine.model.provider`. When set, the complete `--model` value is preserved as an opaque model ID.                                               |
 | `--model`              | From config                   | Override model. Without `--provider`, the legacy `provider/name` form is split when the prefix is configured; otherwise the complete value is preserved.   |
 | `--parallelism`        | From config                   | Override `cases.parallelism`. Allowed range: 1–256                                                                                                          |
-| `--baseline`           | From config                   | Override `benchmark.enabled` to `true` for this run                                                                                                         |
+| `--baseline`           | From config                   | Enable with/without-Skill comparison. Requires the verified isolated `docker` runtime; native `none` is rejected because separate folders do not restrict reads. |
 | `--api-key`            | —                             | Pass an API key (higher precedence than env vars)                                                                                                          |
 | `--no-delete`          | `false`                       | Preserve workspaces or containers created by skilled after evaluation for debugging.                                                                      |
 | `--event-log`          | —                             | Write an ordered v1 JSONL evaluation event stream to a local file. The parent directory must already exist                                                  |
@@ -125,8 +125,8 @@ skilled run ./evals/eval.yaml --engine codex --provider gateway --model team/mod
 # Temporarily override case parallelism
 skilled run ./evals/eval.yaml --parallelism 4
 
-# Run with baseline comparison
-skilled run ./evals/eval.yaml --baseline
+# Run with baseline comparison after configuring environment.image and container credentials
+skilled run ./evals/eval.yaml --runtime docker --baseline
 
 # Multiple report formats
 skilled run ./evals/eval.yaml --format json --format html --format junit

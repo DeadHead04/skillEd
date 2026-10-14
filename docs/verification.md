@@ -23,7 +23,7 @@ The native archive probe also installs and removes the workflow for both hosts.
 Session lookup respects `CLAUDE_CONFIG_DIR` and `CODEX_HOME`; native records supply
 observed model names. Unavailable usage is labeled in JSON through `usage_status`.
 
-The local cumulative gate passed 1,571 tests with zero failures and 33 skips,
+Earlier candidate verification passed 1,571 tests with zero failures and 33 skips,
 including a real Chrome report check. Three policy evaluations each passed through
 installed Codex and Claude Code using native subscription logins. These checks do
 not certify every provider, device, observer host or remote sandbox service.
@@ -34,13 +34,18 @@ The older file-disposition ledgers are historical bookkeeping, not a claim that
 every original assertion was reexecuted. Candidate evidence is complemented by the CI result for the final release commit;
 native CI does not replace authenticated host acceptance.
 
-The fresh installed Codex host discovered the workflow and attempted the real
-baseline. Shell execution encountered the host sandbox's nested-process restriction.
-A second attempt through the configured MCP server reached `skilled_run`, but the
-host rejected it: `MCP tool call requires approval, but approval policy is never`.
-No successful baseline, revision, or held-out result was produced by that session.
-The full autonomous improvement cycle therefore remains **unverified**; permitting
-that tool requires the user's host approval, not a change to evaluation assertions.
+An earlier installed-host attempt was blocked by host approval. After scoped
+execution was authorized, the real Codex conversation completed a baseline,
+Skill revision, rerun, and independent holdouts: 13/18 baseline cases passed,
+18/18 improved cases passed, and 10/10 holdouts passed. Those results describe
+that policy Skill and model, not every possible evaluation parameter.
+
+That journey also found five release/runtime defects: an outdated public
+installer, permission escalation on resumed turns, client timeouts during long
+MCP calls, overridden report formats, and a native benchmark reading another
+case's Skill. The contaminated without-Skill comparison is not valid evidence
+of improvement. The repair plan is maintained in
+`docs/design/reliability-repair-plan.txt`.
 
 | Behavior | Maintained evidence | State |
 | --- | --- | --- |
@@ -53,7 +58,39 @@ that tool requires the user's host approval, not a change to evaluation assertio
 | Project workflow install, repeat, edit protection, removal | `tests/cli/setup.test.ts`, extracted archive probe | Passed locally for both host layouts |
 | Installed reference paths | `scripts/verify-package.mjs` | Passed locally |
 | Native subscription policy evaluation | Six installed CLI cases across Codex and Claude Code | Passed locally |
-| Autonomous baseline → revision → held-out evaluation | Fresh installed Codex session | Blocked by host approval; Claude full cycle unverified |
+| Baseline → revision → held-out evaluation | Real installed Codex conversation with policy Skills | Passed after scoped approval; Claude full cycle remains unverified |
+
+## Reliability regression checks
+
+The repair gate passed 1,584 tests with zero failures and 38 explicitly skipped
+checks on the local macOS host. A fresh real Codex rerun reproduced 13/18 baseline
+passes, 18/18 improved passes and 10/10 holdout passes. A deliberately broken
+Skill failed its case; restoring the Skill passed it. An intervening disk-full
+run returned execution errors and was retained as failed evidence before retrying.
+Native two-turn acceptance also confirmed unchanged sandbox/approval settings
+and denial of a write outside the permitted workspace.
+
+Docker boundary checks passed before the development machine's storage failure;
+the final Docker suite is required in source CI and release builds. Live model
+Docker authentication is separately gated on an available daemon and account.
+
+- `tests/agent/codex-resume.acceptance.mjs` exercises a real logged-in two-turn
+  Codex session, checks the recorded sandbox policy, and attempts a forbidden
+  sibling-file write. It is opt-in and uses real account access.
+- `tests/mcp/server.test.ts` starts actual evaluation processes over MCP, closes
+  the client/server, reconnects using the persisted run ID, verifies idempotency,
+  and checks cancellation, timeouts, worker crashes and all report formats.
+- `tests/mcp/jobs.test.ts` covers incomplete worker installation and bounded
+  metadata. `tests/mcp/shutdown.test.ts` preserves synchronous cleanup.
+- `tests/runtime/docker.test.ts` attacks concurrent and retained-container read
+  boundaries and checks fresh grading snapshots, background processes, symlinks,
+  private-file cleanup and provisioning before untrusted workspace upload.
+- `tests/evaluator/benchmark-isolation.test.ts` verifies unsafe benchmark modes
+  fail before credentials, model execution or report-directory mutation.
+
+Public installer acceptance runs setup, repeated setup and removal for both
+host layouts after installing the pinned release and again after updating to
+latest. Archive verification protects edited workflows and existing Skills.
 
 ## Published release evidence
 

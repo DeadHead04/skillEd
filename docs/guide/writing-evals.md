@@ -975,11 +975,52 @@ For one-off comparisons, `skilled run ./evals/eval.yaml --baseline` enables the
 same mode without changing `eval.yaml`.
 
 ```yaml
+environment:
+  type: docker
+  image: node:24-bookworm-slim  # Use a clean image with the tools your cases need
 benchmark:
   enabled: true
 ```
 
-> **Note:** benchmark mode doubles wall time and token spend. It is disabled by default.
+Benchmark execution currently requires `docker`. OpenSandbox benchmarking is
+blocked until its grading boundary has equivalent verification. Native `none` execution
+is still available for normal local evaluations, including existing CLI logins,
+but it cannot run a with/without-Skill benchmark: a new temporary directory does
+not stop an agent reading another case, your project Skills, or earlier reports.
+This check runs before model execution. There is no bypass flag that labels an
+unrestricted native run as an isolated benchmark.
+
+Docker creates a separate container for every case, variant, and retry. It does
+not mount your project, home directory, Docker socket, or other case folders.
+Only configured Skills and case fixtures are uploaded; the without-Skill arm
+omits the selected Skills. Stopped containers retained with `--no-delete` are
+also outside other cases' filesystems. Custom HTTP engines are rejected in
+benchmark mode because they execute outside the case container.
+
+For Docker benchmarks, grading runs in a fresh container after stopping the
+agent's container. Only a validated copy of its workspace is transferred; its
+writable system directories and background processes are not carried over.
+Configured setup steps and judge-engine installation run again in the clean
+grading container, before any agent-modified workspace files are uploaded; setup
+steps should therefore be repeatable. Grading scripts are uploaded after that boundary. Multi-judge
+Docker evaluations also use independent workspace copies for each judge.
+
+Keep the image and setup steps free of project Skills, old sessions, answer
+keys, and reports. Put private grading files under `evals/` (excluded from Skill
+installation), and copy only necessary inputs with `context.files` or a narrow
+`repo_fixture`. A fixture explicitly containing an answer key still exposes it;
+container isolation cannot infer which user-supplied files are secret. Connected
+MCP tools and network services must also avoid sharing grading data between arms.
+Do not mount the whole Codex home directory to reuse a login. Codex supports
+[explicitly forwarding only its login file](./docker-codex-login) into a private
+directory in each container; host configuration, global Skills, and previous
+sessions stay outside. A native login does not automatically authenticate a
+container without this opt-in.
+
+> **Note:** benchmark mode doubles model executions and can add container setup
+> and grading time. It is disabled by default. Docker requires a running daemon;
+> Filesystem isolation does not
+> imply network isolation; use the runtime's network policy where appropriate.
 
 ---
 
