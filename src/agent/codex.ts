@@ -1,9 +1,12 @@
 // Modified for the skilled TypeScript distribution.
 import { omitEmptyTranscriptFields } from "./tool-status.js";
-import { readFile } from "node:fs/promises";
+import { readFile, mkdtemp, writeFile, rm } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
+import os from "node:os";
+import { DockerRuntime } from "../runtime/docker.js";
+import { readCodexAuthFile } from "./codex-auth.js";
 import { ROOT_CONTEXT } from "@opentelemetry/api";
 import { CLIAgent } from "./cli.js";
 import {
@@ -221,9 +224,14 @@ export function buildCodexResumeCmdWithLastMessage(
   model: string,
   p: CodexProviderConfig,
   last: string,
+  sandboxFlag: string = codexProcessSandbox,
 ): string {
   return (
-    "codex exec resume --json --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox" +
+    // --sandbox belongs to exec, not the resume subcommand. Applying the same
+    // exec policy before resume preserves restrictions across conversation turns.
+    "codex exec" +
+    (sandboxFlag ? " " + sandboxFlag : "") +
+    " resume --json --skip-git-repo-check" +
     codexProviderFlags(p) +
     (model ? " -m " + shellQuote(model) : "") +
     (last ? " --output-last-message " + shellQuote(last) : "") +
@@ -1095,6 +1103,7 @@ export async function finalizeCodexTranscript(
   );
 }
 export class CodexAgent extends CLIAgent {
+  private readonly dockerAuth = new WeakMap<Runtime, Promise<string>>();
   constructor(cfg: Config) {
     super({
       ...cfg,
@@ -1117,6 +1126,38 @@ export class CodexAgent extends CLIAgent {
         codexDefaultOutputBytes,
       ),
     };
+  }
+  private async prepareDockerAuth(rt: Runtime, signal?: AbortSignal): Promise<string> {
+    const file = this.cfg.kwargs.codex_auth_file?.trim();
+    if (!file) return "";
+    if (!(rt instanceof DockerRuntime))
+      throw new Error("codex_auth_file is supported only for the Docker runtime; native execution uses its existing login");
+    if (this.cfg.apiKey || this.cfg.baseURL ||
+      (this.cfg.modelProvider && this.cfg.modelProvider !== "openai"))
+      throw new Error("codex_auth_file cannot be combined with API credentials or custom providers");
+    let prepared = this.dockerAuth.get(rt);
+    if (!prepared) {
+      prepared = (async () => {
+        const bytes = await readCodexAuthFile(file);
+        const temporary = await mkdtemp(path.join(os.tmpdir(), "skilled-auth-transfer-"));
+        try {
+          const snapshot = path.join(temporary, "auth.json");
+          await writeFile(snapshot, bytes, { mode: 0o600, flag: "wx" });
+          const staged = await rt.stagePrivateFile(snapshot, "auth.json", signal);
+          rt.mergeEnv({ CODEX_HOME: staged.directory, OPENAI_API_KEY: "", CODEX_API_KEY: "", OPENAI_BASE_URL: "" });
+          return staged.directory;
+        } finally {
+          bytes.fill(0);
+          await rm(temporary, { recursive: true, force: true });
+        }
+      })();
+      this.dockerAuth.set(rt, prepared);
+    }
+    return prepared;
+  }
+  async check(rt: Runtime, signal?: AbortSignal): Promise<void> {
+    await this.prepareDockerAuth(rt, signal);
+    await super.check(rt, signal);
   }
   appliedModelName(): string {
     return codexCustomProviderUnavailableReason(
@@ -1166,6 +1207,7 @@ export class CodexAgent extends CLIAgent {
     config: MCPConfig,
     signal?: AbortSignal,
   ): Promise<void> {
+    await this.prepareDockerAuth(rt, signal);
     if (!config.servers.length) return;
     await ensureNodeRuntime(rt, "codex", { signal });
     await installMCPServers(rt, config, buildCodexMCPInstallCmd, signal);
@@ -1200,6 +1242,7 @@ export class CodexAgent extends CLIAgent {
     sessionID: string,
   ): Promise<SessionResult> {
     requireBashTargetShell(rt);
+    const authHome = await this.prepareDockerAuth(rt, opts.signal);
     const start = performance.now();
     opts = this.mergeExecOptionsEnv(
       opts,
@@ -1208,6 +1251,10 @@ export class CodexAgent extends CLIAgent {
         sessionID ? { "codex.session_id": sessionID } : {},
       ),
     );
+    if (authHome) {
+      // The opt-in native login must never fall back to inherited API credentials.
+      opts.env = { ...opts.env, CODEX_HOME: authHome, OPENAI_API_KEY: "", CODEX_API_KEY: "", OPENAI_BASE_URL: "" };
+    }
     opts.context = contextWithConfiguredAgentSpanAttributes(
       opts.context ?? ROOT_CONTEXT,
       opts.env ?? {},
@@ -1230,6 +1277,13 @@ export class CodexAgent extends CLIAgent {
       context: opts.context,
       signal: opts.signal,
     });
+    const bypass = ["1", "t", "T", "TRUE", "true", "True"].includes(
+      (this.cfg.kwargs.bypass_sandbox ?? "").trim(),
+    );
+    const sandbox =
+      rt.requiresProcessSandbox() && !bypass
+        ? codexProcessSandbox
+        : codexBypassSandbox;
     let command: string, delivery: SessionResult["prompt_delivery"];
     if (sessionID)
       command = buildCodexResumeCmdWithLastMessage(
@@ -1238,15 +1292,9 @@ export class CodexAgent extends CLIAgent {
         this.appliedModelName(),
         this.runProviderConfig(),
         paths.lastMessagePath,
+        sandbox,
       );
     else {
-      const bypass = ["1", "t", "T", "TRUE", "true", "True"].includes(
-        (this.cfg.kwargs.bypass_sandbox ?? "").trim(),
-      );
-      const sandbox =
-        rt.requiresProcessSandbox() && !bypass
-          ? codexProcessSandbox
-          : codexBypassSandbox;
       try {
         const d = await deliverPrompt(rt, opts, instruction, {
           inline: (p) =>

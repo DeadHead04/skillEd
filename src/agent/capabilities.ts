@@ -42,6 +42,7 @@ export function capabilitiesForEngine(name: string): Capabilities {
         "bypass_sandbox",
         "max_jsonl_record_bytes",
         "max_jsonl_output_bytes",
+        "codex_auth_file",
       ];
       break;
     case "opencode":
@@ -222,6 +223,10 @@ export function resolveAdapterConfig(
           );
           delete p.kwargs[key];
         }
+      } else if (key === "codex_auth_file") {
+        // Filesystem validation belongs to the opt-in Docker login adapter;
+        // this is a host path, not one of the numeric JSONL size options.
+        continue;
       } else if (
         !/^[+]?\d+$/.test(value.trim()) ||
         Number(value) <= 0 ||
