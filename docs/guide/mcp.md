@@ -106,6 +106,13 @@ cleanup, and a recovered worker can resume reporting its actual state. A failed 
 errors. A machine restart does not resume model execution automatically: a dead
 worker is reported as interrupted, with partial reports retained.
 
+The evaluation process also requires an internal heartbeat from its supervisor.
+If renewal stops for ten seconds, it aborts and cleans up its active commands,
+including when a forced Windows process termination leaves communication handles
+open. A hung supervisor can therefore fail a run; it never triggers an automatic
+replacement evaluation. This internal check is separate from the persisted job
+heartbeat used by `skilled_status`.
+
 To stop a background run, use `skilled_cancel` on an execution-enabled server.
 Cancellation is a request; poll until terminal state confirms cleanup. Closing
 the client is not cancellation for these explicit background jobs. Synchronous

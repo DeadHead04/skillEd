@@ -11,7 +11,7 @@ test("a real broken worker installation produces interrupted startup, not perpet
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, "package.json"), '{"type":"module"}');
   // Copy production modules, deliberately omit job-worker.js to reproduce an incomplete installation.
-  for (const name of ["jobs.js", "process.js"]) await cp(new URL(`../../src/mcp/${name}`, import.meta.url), path.join(root, name));
+  for (const name of ["jobs.js", "process.js", "supervision.js"]) await cp(new URL(`../../src/mcp/${name}`, import.meta.url), path.join(root, name));
   const jobsRoot = path.join(root, "jobs"), outputDir = path.join(root, "reports");
   await mkdir(jobsRoot); await mkdir(outputDir);
   const module = await import(pathToFileURL(path.join(root, "jobs.js")).href);

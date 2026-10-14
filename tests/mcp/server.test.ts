@@ -154,8 +154,8 @@ async function waitForFile(file: string): Promise<number> {
   }
   throw new Error("Real worker did not start");
 }
-async function waitForExit(pid: number) {
-  const deadline = Date.now() + 15000;
+async function waitForExit(pid: number, timeoutMs = 15000) {
+  const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       process.kill(pid, 0);
@@ -475,10 +475,19 @@ test("durable MCP run survives disconnect, reattaches, and deduplicates across s
     assert.equal((await other.callTool({ name: "skilled_status", arguments: { runId: invalid } })).isError, true);
 });
 for (const mode of ["cancel", "timeout", "worker-crash"] as const)
-  test(`durable MCP ${mode} cleans up a real running process`, { timeout: 45000 }, async t => {
+  test(`durable MCP ${mode} cleans up a real running process`, { timeout: 60000 }, async t => {
     const { client, workspace, dir } = await setup(t, true);
     const pidFile = path.join(dir, `${mode}.pid`);
     const skill = await fixture(workspace, true, pidFile);
+    if (mode === "worker-crash") {
+      // The assertion deadline must be shorter than both natural completion
+      // and the case timeout, otherwise a leaked engine could appear cleaned.
+      const caseFile = path.join(workspace, skill, "evals/cases/hash.yaml");
+      const fixtureCase = JSON.parse(await readFile(caseFile, "utf8"));
+      fixtureCase.context.files["engine.cjs"] = fixtureCase.context.files["engine.cjs"].replace("30000", "120000");
+      fixtureCase.constraints.timeout_seconds = 180;
+      await writeFile(caseFile, JSON.stringify(fixtureCase));
+    }
     const result = await client.callTool({ name: "skilled_start", arguments: { path: skill, idempotencyKey: mode, timeoutSeconds: mode === "timeout" ? 3 : 60 } });
     assert.equal(result.isError, false, text(result));
     const state = JSON.parse(text(result));
@@ -489,7 +498,7 @@ for (const mode of ["cancel", "timeout", "worker-crash"] as const)
     } else if (mode === "worker-crash") process.kill(state.ownerPid, "SIGKILL");
     const finished = await pollJob(client, state.runId);
     assert.equal(finished.status, mode === "cancel" ? "cancelled" : mode === "timeout" ? "timed_out" : "interrupted", JSON.stringify(finished));
-    await waitForExit(pid);
+    await waitForExit(pid, mode === "worker-crash" ? 25000 : 15000);
   });
 
 test("concurrent clients cannot overwrite identical or nested report destinations", { timeout: 45000 }, async t => {

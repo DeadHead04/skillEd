@@ -1,5 +1,6 @@
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { supervisorHeartbeatMs, supervisorHeartbeatType } from "./supervision.js";
 const bootstrap = fileURLToPath(new URL("../bootstrap.js", import.meta.url));
 const maxResponseBytes = 64 * 1024;
 /** Execute the installed CLI with bounded capture and graceful cancellation before forced termination. */
@@ -18,7 +19,7 @@ export async function runMcpCli(
   }>((resolve, reject) => {
     const child = spawn(process.execPath, [bootstrap, ...args], {
       cwd: workspace,
-      env: { ...process.env, NO_COLOR: "1" },
+      env: { ...process.env, NO_COLOR: "1", SKILLED_MCP_SUPERVISED: "1" },
       detached: process.platform !== "win32",
       windowsHide: true,
       stdio: ["ignore", "pipe", "pipe", "ipc"],
@@ -29,7 +30,8 @@ export async function runMcpCli(
       stopped: Error | undefined,
       settled = false;
     let escalation: NodeJS.Timeout | undefined,
-      drain: NodeJS.Timeout | undefined;
+      drain: NodeJS.Timeout | undefined,
+      heartbeat: NodeJS.Timeout | undefined;
     const capture = (previous: Buffer, chunk: Buffer): Buffer => {
       if (previous.length + chunk.length > maxResponseBytes / 3)
         truncated = true;
@@ -65,6 +67,7 @@ export async function runMcpCli(
       clearTimeout(timeout);
       clearTimeout(escalation);
       clearTimeout(drain);
+      clearInterval(heartbeat);
       signal.removeEventListener("abort", abort);
       if (stopped || error) reject(stopped ?? error);
       else
@@ -119,6 +122,19 @@ export async function runMcpCli(
       }, 2000);
     });
     signal.addEventListener("abort", abort, { once: true });
+    const renewLease = () => {
+      if (settled || stopped) return;
+      // The CLI disconnects IPC normally before its final pipes/exit drain.
+      // Its close event (or execution deadline) owns that completion path.
+      if (!child.connected) return;
+      child.send({ type: supervisorHeartbeatType }, (error) => {
+        if (error && child.connected)
+          stop(new Error("Evaluation supervisor heartbeat failed", { cause: error }));
+      });
+    };
+    heartbeat = setInterval(renewLease, supervisorHeartbeatMs);
+    heartbeat.unref();
+    renewLease();
     if (signal.aborted) abort();
   });
 }

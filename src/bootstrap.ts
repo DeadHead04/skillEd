@@ -2,12 +2,21 @@
 // Modified for the skilled TypeScript distribution.
 import { VERSION } from "./brand.js";
 import { execute } from "./api/index.js";
+import { supervisorHeartbeatType, supervisorLeaseMs } from "./mcp/supervision.js";
 const controller = new AbortController();
+const leaseRequired = process.env.SKILLED_MCP_SUPERVISED === "1" && !!process.send;
+// Start the lease before the first message so an immediately lost supervisor
+// cannot leave a permanently unmonitored evaluation.
+let lastSupervisorHeartbeat = performance.now();
 const interrupt = () => controller.abort(new Error("Interrupted by SIGINT"));
 const terminate = () => controller.abort(new Error("Interrupted by SIGTERM"));
 const cancel = (message: unknown) => {
-  if (message && typeof message === "object" && "type" in message && message.type === "skilled.cancel")
-    controller.abort(new Error("Evaluation cancelled by MCP client"));
+  if (message && typeof message === "object" && "type" in message) {
+    if (message.type === "skilled.cancel")
+      controller.abort(new Error("Evaluation cancelled by MCP client"));
+    else if (leaseRequired && message.type === supervisorHeartbeatType)
+      lastSupervisorHeartbeat = performance.now();
+  }
 };
 process.once("SIGINT", interrupt);
 process.once("SIGTERM", terminate);
@@ -31,6 +40,14 @@ if (process.send) {
   const supervisorPid = process.ppid;
   supervisorWatch = setInterval(() => {
     if (controller.signal.aborted) return;
+    // A terminated Windows parent may still have open process/pipe handles.
+    // Require active renewal rather than treating a PID or IPC handle as proof
+    // that the supervisor is still running.
+    if (leaseRequired && performance.now() - lastSupervisorHeartbeat >= supervisorLeaseMs) {
+      process.exitCode = 1;
+      controller.abort(new Error("Evaluation supervisor heartbeat expired"));
+      return;
+    }
     try { process.kill(supervisorPid, 0); }
     catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ESRCH") disconnect();
