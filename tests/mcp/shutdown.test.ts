@@ -28,7 +28,13 @@ for (const active of [false, true]) for (const mode of ["EOF", "SIGTERM"] as con
         if (message.id !== undefined) responses.set(message.id, message);
       }
     });
-    t.after(async () => { if (child.exitCode === null) child.kill("SIGKILL"); await rm(dir, { recursive: true, force: true }); });
+    t.after(async () => {
+      if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+      // The detached evaluator can briefly retain its Windows cwd handle while
+      // it writes partial reports after its engine exits. Require release within
+      // a bounded retry window; a persistent lock still fails the test.
+      await rm(dir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 });
+    });
     const send = (id: number, method: string, params: object) => child.stdin.write(JSON.stringify({ jsonrpc: "2.0", id, method, params }) + "\n");
     const until = async (check: () => Promise<boolean> | boolean, timeoutMs = 10000) => {
       const deadline = Date.now() + timeoutMs;
