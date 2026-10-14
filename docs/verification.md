@@ -121,7 +121,7 @@ worker, and JSON, HTML and JUnit reports were verified. This checked the publish
 bytes after the final supervisor changes. Temporary authentication material was
 removed and the original login remained unchanged.
 
-The [actual refund-policy report screenshot](./public/refund-policy-report.png)
+The [actual refund-policy report screenshot](https://github.com/DeadHead04/skillEd/blob/main/docs/public/refund-policy-report.png)
 shows the 18/18 improved run described above. It is a single observed acceptance
 result, not a promise of model accuracy. Optional authenticated Codex model
 execution inside Docker remains unverified following the local daemon failure;
