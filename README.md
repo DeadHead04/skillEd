@@ -95,7 +95,7 @@ Use fresh output directories for this example, or use the actual report paths pr
 
 ## See the Skill improve
 
-A refund-policy Skill charged shipping, rounded refunds up, and rejected eligible returns after day 14. A real Codex evaluation exposed those mistakes. Revising the Skill to match the policy—**30 days, no shipping refund, round down**—fixed five cases without changing the tests.
+A refund-policy Skill refunded shipping, rounded refunds up, and rejected eligible returns after day 14. A real Codex evaluation exposed those mistakes. Revising the Skill to match the policy—**30 days, no shipping refund, round down**—fixed five cases without changing the tests.
 
 | Same 18 cases | Original Skill | Revised Skill |
 | --- | --- | --- |
