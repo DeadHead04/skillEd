@@ -1,0 +1,6 @@
+$ skilled setup --host codex
+Installed skilled-improve for codex at <project>/.agents/skills/skilled-improve
+Start a new codex session in <project> and ask: Use skilled-improve to evaluate this Skill.
+Live evaluations use your engine's existing login. MCP is optional.
+
+Exit code: 0

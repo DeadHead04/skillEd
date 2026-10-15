@@ -1,0 +1,25 @@
+$ skilled compare before.json after.json --fail-on-regression
+Compared 18 matched cases: 0 regressions, 5 improvements.
+Coverage: 0 added, 0 removed. 5 status changes; 18 comparable scores.
+Regression policy: PASS to any non-PASS status, or a decrease in a comparable assertion pass rate.
+"01-day-zero-full" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"02-day14-partial-shipping" ["with_skill"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)
+"03-day15-opened-double-floor" ["with_skill"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)
+"04-day29-digital-partial-vip" ["with_skill"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)
+"05-day30-full-vip" ["with_skill"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)
+"06-day31-vip-override" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"07-fraud-precedence" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"08-currency-precedence" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"09-receipt-precedence" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"10-digital-precedence-vip" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"11-invalid-item-precedence" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"12-invalid-shipping" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"13-invalid-days" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"14-invalid-purchased-fraction" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"15-invalid-returned-zero" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"16-invalid-excess-return" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"17-invalid-numeric-string" ["with_skill"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)
+"18-opened-zero-injection" ["with_skill"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)
+Warning: Reports do not contain complete evaluation-input, skill, fixture and judge-configuration fingerprints. Matching case IDs and prompts do not prove equivalent inputs or grading conditions.
+
+Exit code: 0

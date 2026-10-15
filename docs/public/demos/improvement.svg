@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="519" viewBox="0 0 1040 519" role="img" aria-labelledby="title desc">
+<title id="title">02 / Verify the improvement</title><desc id="desc">Real comparison: 18 matched cases, five improvements, zero regressions. Two changed cases shown.</desc>
+<rect x="1" y="1" width="1038" height="517" rx="18" fill="#101817" stroke="#344b44"/>
+<path d="M1 66h1038" stroke="#344b44"/>
+<text x="36" y="42" fill="#b1c6bd" font-family="system-ui,sans-serif" font-size="17">02 / Verify the improvement</text>
+<text x="1004" y="42" text-anchor="end" fill="#91a99e" font-family="system-ui,sans-serif" font-size="13" letter-spacing="1">RECORDED CLI OUTPUT</text>
+<g font-family="SFMono-Regular,Consolas,Liberation Mono,monospace" font-size="20"><text x="36" y="115" fill="#a6f0d2">$ skilled compare before.json after.json --fail-on-regression</text>
+<text x="36" y="146" fill="#e6ece9"></text>
+<text x="36" y="177" fill="#e6ece9">Compared 18 matched cases: 0 regressions, 5 improvements.</text>
+<text x="36" y="208" fill="#e6ece9">Coverage: 0 added, 0 removed. 5 status changes; 18 comparable scores.</text>
+<text x="36" y="239" fill="#e6ece9"></text>
+<text x="36" y="270" fill="#e6ece9">&quot;02-day14-partial-shipping&quot; [&quot;with_skill&quot;] changed: FAIL -&gt; PASS; score 0</text>
+<text x="36" y="301" fill="#e6ece9">-&gt; 1 (delta +1)</text>
+<text x="36" y="332" fill="#e6ece9">&quot;03-day15-opened-double-floor&quot; [&quot;with_skill&quot;] changed: FAIL -&gt; PASS; score</text>
+<text x="36" y="363" fill="#e6ece9">0 -&gt; 1 (delta +1)</text>
+<text x="36" y="394" fill="#e6ece9"></text>
+<text x="36" y="425" fill="#a6f0d2">exit 0</text></g>
+<text x="36" y="495" fill="#91a99e" font-family="system-ui,sans-serif" font-size="14">Output excerpt · full case list and provenance warning in the linked transcript</text>
+</svg>

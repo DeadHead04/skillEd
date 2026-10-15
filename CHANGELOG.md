@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Show Skill revisions, grader scores, and regression exits with recorded CLI transcripts; refresh the logo and add an evidence-linked visual walkthrough.
+
 - Refresh project onboarding, public release links, and the README with an actual evaluation report and verified release evidence.
 
 ## 0.3.0

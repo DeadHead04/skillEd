@@ -1,5 +1,7 @@
 # Verification and release scope
 
+For a concrete example, [watch a Skill improve](./guide/see-it-work.md): recorded CLI output, exact policy changes, grader evidence, and a deliberately caught regression.
+
 `skilled` uses production functions and actual files, processes, HTTP services, Docker containers and plugin hosts for acceptance. A missing device, credential or service remains unverified; a successful build alone does not certify it.
 
 ## Reproduce the checks

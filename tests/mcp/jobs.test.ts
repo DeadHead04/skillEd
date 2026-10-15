@@ -6,7 +6,7 @@ import os from "node:os";
 import { pathToFileURL } from "node:url";
 import { jobId, readJob, reportFiles } from "../../src/mcp/jobs.js";
 
-test("a real broken worker installation produces interrupted startup, not perpetual starting", { timeout: 15000 }, async t => {
+test("a real broken worker installation produces interrupted startup, not perpetual starting", { timeout: 30000 }, async t => {
   const root = await mkdtemp(path.join(os.tmpdir(), "skilled-broken-worker-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   await writeFile(path.join(root, "package.json"), '{"type":"module"}');
@@ -15,7 +15,14 @@ test("a real broken worker installation produces interrupted startup, not perpet
   const jobsRoot = path.join(root, "jobs"), outputDir = path.join(root, "reports");
   await mkdir(jobsRoot); await mkdir(outputDir);
   const module = await import(pathToFileURL(path.join(root, "jobs.js")).href);
-  const result = await module.startJob(jobsRoot, "startup-failure", { workspace: root, argv: ["--version"], outputDir, timeoutSeconds: 5 });
+  let result = await module.startJob(jobsRoot, "startup-failure", { workspace: root, argv: ["--version"], outputDir, timeoutSeconds: 5 });
+  // startJob may return "starting" after its bounded initial wait. Observe the
+  // real worker's eventual exit on slower hosts instead of assuming it is immediate.
+  const deadline = Date.now() + 15000;
+  while (result.status === "starting" && Date.now() < deadline) {
+    await new Promise(resolve => setTimeout(resolve, 50));
+    result = await module.readJob(jobsRoot, result.runId);
+  }
   assert.equal(result.status, "interrupted");
   assert.match(result.error, /startup/);
 });

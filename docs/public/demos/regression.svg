@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="519" viewBox="0 0 1040 519" role="img" aria-labelledby="title desc">
+<title id="title">03 / Catch a regression</title><desc id="desc">Real comparison of a passing case against an intentionally broken Skill: one regression and exit code 1.</desc>
+<rect x="1" y="1" width="1038" height="517" rx="18" fill="#101817" stroke="#344b44"/>
+<path d="M1 66h1038" stroke="#344b44"/>
+<text x="36" y="42" fill="#b1c6bd" font-family="system-ui,sans-serif" font-size="17">03 / Catch a regression</text>
+<text x="1004" y="42" text-anchor="end" fill="#91a99e" font-family="system-ui,sans-serif" font-size="13" letter-spacing="1">RECORDED CLI OUTPUT</text>
+<g font-family="SFMono-Regular,Consolas,Liberation Mono,monospace" font-size="20"><text x="36" y="115" fill="#a6f0d2">$ skilled compare passing.json regressed.json --fail-on-regression</text>
+<text x="36" y="146" fill="#e6ece9"></text>
+<text x="36" y="177" fill="#e6ece9">Compared 1 matched cases: 1 regressions, 0 improvements.</text>
+<text x="36" y="208" fill="#e6ece9">Coverage: 0 added, 0 removed. 1 status changes; 1 comparable scores.</text>
+<text x="36" y="239" fill="#e6ece9"></text>
+<text x="36" y="270" fill="#e6ece9">&quot;01-day-zero-full&quot; [&quot;with_skill&quot;] changed: PASS -&gt; FAIL; score 1 -&gt; 0</text>
+<text x="36" y="301" fill="#e6ece9">(delta -1) REGRESSION</text>
+<text x="36" y="332" fill="#e6ece9"></text>
+<text x="36" y="363" fill="#ffb6a4">Error: comparison found 1 regression(s)</text>
+<text x="36" y="394" fill="#e6ece9"></text>
+<text x="36" y="425" fill="#ffb6a4">exit 1</text></g>
+<text x="36" y="495" fill="#91a99e" font-family="system-ui,sans-serif" font-size="14">Replay of real reports · provenance warning omitted here; full transcript linked</text>
+</svg>

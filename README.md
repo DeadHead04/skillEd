@@ -1,6 +1,4 @@
-<p align="center"><img src="docs/public/readme-banner.svg" width="1120" alt="skilled — Test agent skills. Improve with evidence. Define cases, evaluate behavior, compare results." /></p>
-
-<h1 align="center">skilled</h1>
+<h1 align="center"><img src="docs/public/wordmark.svg" width="300" alt="skilled" /></h1>
 <p align="center"><strong>Test your agent’s Skills. Catch regressions. Improve with evidence.</strong></p>
 <p align="center">An open-source evaluation toolkit for Codex, Claude Code, and other coding agents.</p>
 
@@ -13,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="#install">Install</a> · <a href="#use-it-in-your-project">Get started</a> · <a href="#see-the-evidence">See a real result</a> · <a href="https://deadhead04.github.io/skillEd/">Documentation</a> · <a href="https://github.com/DeadHead04/skillEd/releases">Releases</a>
+  <a href="#install">Install</a> · <a href="#use-it-in-your-project">Get started</a> · <a href="#see-the-skill-improve">See a real result</a> · <a href="https://deadhead04.github.io/skillEd/">Documentation</a> · <a href="https://github.com/DeadHead04/skillEd/releases">Releases</a>
 </p>
 
 A Skill can look right and still fail on edge cases. skilled turns the behavior you expect into repeatable evaluations, so you can check a change to the Skill, agent, or model before relying on it.
@@ -95,22 +93,33 @@ Use fresh output directories for this example, or use the actual report paths pr
 
 **Drift detection means comparing saved evaluations.** Rerun after changing a Skill, engine, or model. Comparison surfaces verdict and coverage changes; inspect its comparability warnings before drawing conclusions. Installing skilled does not continuously monitor unrelated conversations. [Comparison and scoring →](docs/guide/comparison.md)
 
-## See the evidence
+## See the Skill improve
 
-A real Codex acceptance journey exercised a refund-policy Skill with boundary conditions, invalid inputs, and adversarial instructions:
+A refund-policy Skill refunded shipping, rounded refunds up, and rejected eligible returns after day 14. A real Codex evaluation exposed those mistakes. Revising the Skill to match the policy—**30 days, no shipping refund, round down**—fixed five cases without changing the tests.
 
-| Check | Observed result |
-| --- | --- |
-| Original Skill | 13 of 18 cases passed |
-| Revised Skill, same cases | 18 of 18 passed |
-| Independent holdouts | 10 of 10 passed |
-| Deliberate regression, then restoration | Failed as expected, then passed |
+| Same 18 cases | Original Skill | Revised Skill |
+| --- | --- | --- |
+| Cases passed | 13 / 18 (72.2%) | 18 / 18 (100%) |
+| Day 14 partial refund | 933 cents · FAIL · score 0 | 333 cents · PASS · score 1 |
+| Day 30 return | Denied · FAIL · score 0 | Approved · PASS · score 1 |
 
-These are results from one tested Skill and engine, not a general accuracy guarantee. The screenshot below is the actual improved run’s HTML report.
+![Recorded CLI comparison: 18 matched cases, five improvements, zero regressions; two case scores change from 0 to 1](docs/public/demos/improvement.svg)
 
-![Actual refund-policy report: 18 cases passed, with the selected case’s prompt, response, and grading controls](docs/public/refund-policy-report.png)
+*Typeset excerpt of actual CLI output, not a native application screenshot. [Full output, including the provenance warning](docs/public/demos/improvement.txt).*
 
-The published v0.3.0 CLI also passed a real Codex evaluation after the MCP client disconnected and reconnected to the same job. JSON, HTML, and JUnit reports were verified. [Acceptance evidence and limits →](docs/verification.md)
+Each case here has one script assertion that checks the final JSON, saved refund file, and injection side effects. **Score 1 means that assertion passed; 0 means it failed.** The percentages above are case pass rates, not confidence scores. The revised Skill also passed **10 / 10 independent holdouts**. [See the exact Skill changes and scoring evidence →](https://deadhead04.github.io/skillEd/guide/see-it-work)
+
+## Catch a regression before you ship
+
+Compare a passing report with one from an intentionally broken version of the Skill:
+
+![Recorded CLI comparison: a passing case becomes FAIL, its score drops from 1 to 0, and the command exits 1](docs/public/demos/regression.svg)
+
+*Replay of real evaluation reports; [full output](docs/public/demos/regression.txt). Exit 1 is the expected regression signal.*
+
+This is how saved-run comparison can expose behavioral drift after a change. It does not watch unrelated conversations in the background. These results demonstrate one Skill and engine; they are not an accuracy guarantee. The reports lack complete input fingerprints, so the CLI warns that matching cases alone cannot establish equivalent grading conditions. Review that warning and the underlying inputs.
+
+**Where MCP fits:** your agent starts an evaluation with `skilled_start`, checks `skilled_status`, retrieves reports with `skilled_results`, and compares runs with `skilled_compare`. Graders produce the scores; MCP makes the tools and evidence available to the agent. [Visual walkthrough →](https://deadhead04.github.io/skillEd/guide/see-it-work) · [Verification scope →](docs/verification.md)
 
 ## What you can test
 
@@ -147,6 +156,7 @@ Optional [Codex](plugins/codex-skilled/README.md) and [DSH](plugins/dsh-skilled/
 
 | I want to… | Start here |
 | --- | --- |
+| See a Skill evolve, with scores and a regression | [Recorded walkthrough](https://deadhead04.github.io/skillEd/guide/see-it-work) |
 | Create a first evaluation | [Getting started](docs/guide/getting-started.md) |
 | Write cases and configure an engine | [Writing evaluations](docs/guide/writing-evals.md) |
 | Understand scores and regressions | [Comparison](docs/guide/comparison.md) · [Scoring](docs/guide/scoring.md) |

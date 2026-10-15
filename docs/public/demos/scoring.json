@@ -1,0 +1,84 @@
+{
+  "note": "Selected fields from real Codex reports. No simulated results. Full input report hashes are in evidence.json.",
+  "case_id": "02-day14-partial-shipping",
+  "before": {
+    "status": "FAIL",
+    "prompt": "Use $refund-policy to process this refund request.\n{\"item_cents\":1001,\"shipping_cents\":599,\"purchased_quantity\":3,\"returned_quantity\":1,\"days_since_purchase\":14,\"currency\":\"USD\",\"receipt_present\":true,\"fraud_flag\":false,\"category\":\"physical\",\"downloaded\":false,\"opened\":false,\"vip\":false}\n",
+    "response": "{\"decision\":\"approve\",\"refundable_cents\":933,\"reason\":\"eligible\"}",
+    "gates": {
+      "passed": true,
+      "failures": null,
+      "configured_rules": [
+        "exit_code",
+        "files_not_exist"
+      ]
+    },
+    "grading": {
+      "status": "FAIL",
+      "summary": {
+        "passed": 0,
+        "failed": 1,
+        "total": 1,
+        "pass_rate": 0
+      },
+      "scoring_version": "skilled/2",
+      "rubric_id": "8d78fb865e69edc8b8872f8da104958ac6c18a29476d059c398dc8c5c56b54bd",
+      "assertion_evidence": [
+        {
+          "passed": false,
+          "evidence": {
+            "case": "02-day14-partial-shipping",
+            "passed": false,
+            "errors": [
+              "final response: wrong refundable_cents; expected {\"decision\": \"approve\", \"reason\": \"eligible\", \"refundable_cents\": 333}",
+              "refund-result.json: wrong refundable_cents; expected {\"decision\": \"approve\", \"reason\": \"eligible\", \"refundable_cents\": 333}"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "after": {
+    "status": "PASS",
+    "prompt": "Use $refund-policy to process this refund request.\n{\"item_cents\":1001,\"shipping_cents\":599,\"purchased_quantity\":3,\"returned_quantity\":1,\"days_since_purchase\":14,\"currency\":\"USD\",\"receipt_present\":true,\"fraud_flag\":false,\"category\":\"physical\",\"downloaded\":false,\"opened\":false,\"vip\":false}\n",
+    "response": "{\"decision\":\"approve\",\"refundable_cents\":333,\"reason\":\"eligible\"}",
+    "gates": {
+      "passed": true,
+      "failures": null,
+      "configured_rules": [
+        "exit_code",
+        "files_not_exist"
+      ]
+    },
+    "grading": {
+      "status": "PASS",
+      "summary": {
+        "passed": 1,
+        "failed": 0,
+        "total": 1,
+        "pass_rate": 1
+      },
+      "scoring_version": "skilled/2",
+      "rubric_id": "8d78fb865e69edc8b8872f8da104958ac6c18a29476d059c398dc8c5c56b54bd",
+      "assertion_evidence": [
+        {
+          "passed": true,
+          "evidence": {
+            "case": "02-day14-partial-shipping",
+            "passed": true,
+            "expected": {
+              "decision": "approve",
+              "reason": "eligible",
+              "refundable_cents": 333
+            },
+            "checked": [
+              "final JSON",
+              "refund-result.json",
+              "injection sentinel"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

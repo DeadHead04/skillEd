@@ -1,72 +1,62 @@
 ---
 layout: home
-
 hero:
   name: skilled
-  text: Better skills start with evidence.
-  tagline: Test what your agent should do. Inspect what it actually did. Improve the Skill and check the result.
+  text: Show that your Skill got better.
+  tagline: Run real cases. Revise the Skill. See what improved—and what broke—before you ship.
   actions:
     - theme: brand
-      text: Run your first check
-      link: /guide/getting-started
+      text: Install and get started
+      link: /guide/installation
     - theme: alt
-      text: Connect your agent
-      link: /guide/mcp
-
-features:
-  - title: Start without model credentials
-    details: Validate Skill files and evaluation cases, then preview a run before connecting an engine.
-    link: /guide/getting-started
-    linkText: Try a complete example
-  - title: Keep the evidence
-    details: Inspect case verdicts and outputs in HTML. Use JSON for tooling and JUnit in your CI pipeline.
-    link: /guide/cli-reference#output-layout
-    linkText: Explore the reports
-  - title: See what changed
-    details: Compare saved runs for regressions, score changes, and coverage differences. No additional model call needed.
-    link: /guide/comparison
-    linkText: Compare two runs
-  - title: Improve with your agent
-    details: The bundled skilled-improve workflow helps your agent diagnose failures, revise a Skill, and rerun the cases.
-    link: /guide/mcp
-    linkText: Connect through MCP
-  - title: Choose your evaluation
-    details: Define cases in YAML and grade them with assertions, scripts, or a model judge. Reuse existing evals.json suites.
-    link: /guide/writing-evals
-    linkText: Write evaluation cases
-  - title: Use your engine and runtime
-    details: Run a supported agent engine on the host, in Docker, or on a configured OpenSandbox server.
-    link: /guide/writing-evals#credentials
-    linkText: Configure your engine
+      text: See it work
+      link: /guide/see-it-work
 ---
 
-<div class="home-section">
-<p class="section-label">A CLEAR DIVISION OF WORK</p>
+<div class="home-section home-evidence">
+<p class="section-label">REAL CODEX RUNS · REFUND-POLICY SKILL</p>
 
-## One installation. Two parts that work together.
+## Five failures. One revised Skill. Zero regressions.
 
-| Component | Responsibility | Where you use it |
-| --- | --- | --- |
-| **skilled** | Validate, evaluate, and compare | Your terminal or an MCP-compatible agent |
-| **skilled-improve** | Guide diagnosis, revisions, and regression checks | A bundled workflow your agent follows |
+The original Skill refunded shipping, rounded up, and used the wrong eligibility window. Correcting those instructions took the same suite from **13 / 18 to 18 / 18 passing cases**. A separate set of **10 holdouts also passed**.
 
-`skilled-improve` is a prompt and workflow, not a separate executable. Your agent uses it with the evaluation tools; you keep the cases and evidence in your project.
+[![Recorded CLI output: five improvements across 18 matched cases, with two case scores rising from 0 to 1](/demos/improvement.svg)](/demos/improvement.svg)
+
+<p class="demo-caption">Actual CLI output, typeset for readability. Two changed cases shown. <a href="./guide/see-it-work">See the Skill changes, scores, and complete transcript →</a></p>
+
+The score comes from the grader: in this suite, each case has one script assertion checking the final answer, saved file, and injection side effects. **0 = failed; 1 = passed.** MCP exposes these results to your agent; it does not assign a separate score.
 
 </div>
 
 <div class="home-section">
-<p class="section-label">YOUR FIRST STEP</p>
+<p class="section-label">A CHANGE CAN ALSO MAKE THINGS WORSE</p>
 
-## Install once. Start with a local check.
+## Make regressions visible.
 
-The release bundles its own Node runtime and application dependencies. No source build or GitHub account is required.
+A deliberately broken Skill turns a passing case into a failure. Comparing the saved reports catches it and returns **exit 1**, ready for a CI gate.
+
+[![Recorded comparison: one regression, score 1 to 0, command exits 1](/demos/regression.svg)](/demos/regression.svg)
+
+<p class="demo-caption">Replay of real reports, not continuous monitoring. <a href="./guide/see-it-work#catch-a-regression">Read the full output and provenance warning →</a></p>
+
+Rerun evaluations after changing a Skill, model, or engine. Compare the same cases and review the grading conditions before interpreting a score change. These results describe one tested Skill and engine, not a general accuracy guarantee.
+
+</div>
+
+<div class="home-section">
+<p class="section-label">START IN YOUR OWN PROJECT</p>
+
+## Install once. Use the agent you already have.
+
+The public release includes the CLI, MCP tools, the **skilled-improve** workflow, and its Node runtime.
 
 ::: code-group
 
 ```sh [macOS / Linux]
 curl -fsSL https://github.com/DeadHead04/skillEd/releases/latest/download/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
-skilled --version
+skilled setup --host codex
+# Or: skilled setup --host claude-code
 ```
 
 ```powershell [Windows]
@@ -74,56 +64,29 @@ $installer = Join-Path $env:TEMP 'skilled-install.ps1'
 Invoke-WebRequest https://github.com/DeadHead04/skillEd/releases/latest/download/install.ps1 -OutFile $installer
 & $installer
 $env:Path = "$(Join-Path $HOME '.local/bin');$env:Path"
-skilled --version
-```
-
-:::
-
-Keep the PATH entry in your shell or user settings for future sessions. [Installation options, updates, and uninstall →](./guide/installation.md)
-
-Already have Skills? From your project folder, activate the bundled workflow:
-
-```sh
 skilled setup --host codex
 # Or: skilled setup --host claude-code
 ```
 
-Start a new agent session in that folder and ask it to use **skilled-improve** on
-your Skill. The workflow helps it define cases, save a baseline, revise the Skill,
-and check the result. Setup preserves existing Skills and local workflow edits.
-[v0.3.0 is available](https://github.com/DeadHead04/skillEd/releases/tag/v0.3.0)
-with both setup commands.
+:::
 
-Starting from scratch? [Create the Hello World example](./guide/getting-started.md)
-and validate it without calling a model. For a live evaluation, install and
-authenticate your selected engine first; provider usage follows your account’s
-limits and billing.
+Keep the PATH entry in your shell or user settings. Start a new agent session in the same project folder and ask:
 
-</div>
+> Use skilled-improve on my Skill. Validate the cases, run a baseline, diagnose the failures, revise the Skill, and rerun the same cases plus independent holdouts. Show what improved and what regressed.
 
-<div class="home-section">
-<p class="section-label">A REPEATABLE PROCESS</p>
+**skilled** runs evaluations and compares reports. **skilled-improve** is the workflow your agent follows to revise the Skill; it is not another CLI executable. Live runs use your configured engine and its authentication. Setup preserves existing Skills and local workflow edits.
 
-## From an expectation to an improvement
-
-<ol class="workflow-steps">
-  <li><span class="step-number">01</span><div><strong>Define</strong><p>Write the behavior you expect as versioned cases.</p></div></li>
-  <li><span class="step-number">02</span><div><strong>Evaluate</strong><p>Run the engine and inspect the report and outputs.</p></div></li>
-  <li><span class="step-number">03</span><div><strong>Improve</strong><p>Have your agent revise the Skill using failed cases.</p></div></li>
-  <li><span class="step-number">04</span><div><strong>Compare</strong><p>Rerun the suite and check what improved or regressed.</p></div></li>
-</ol>
-
-Comparisons use the reports you supply. Background drift monitoring and unrelated conversation capture are not enabled by installing the CLI or connecting MCP. [Understand the comparison model →](./guide/comparison.md)
+[Installation, updates, and uninstall →](./guide/installation.md) · [First evaluation →](./guide/getting-started.md) · [Connect through MCP →](./guide/mcp.md)
 
 </div>
 
 <div class="home-section home-closing">
 <p class="section-label">OPEN SOURCE · TYPESCRIPT · APACHE-2.0</p>
 
-## Try it on one Skill.
+## Keep the evidence beside the Skill.
 
-Start small, keep the report, and make the next change measurable.
+Write YAML cases, choose assertions, scripts, or model judges, and save HTML, JSON, and JUnit reports. Compare results before adopting the next revision.
 
-[Follow the first-evaluation guide →](./guide/getting-started.md) · [Read the verification scope](./verification.md) · [Browse the source](https://github.com/DeadHead04/skillEd)
+[Write evaluation cases](./guide/writing-evals.md) · [Scoring contract](./guide/scoring.md) · [Verification scope](./verification.md) · [Browse the source](https://github.com/DeadHead04/skillEd)
 
 </div>
