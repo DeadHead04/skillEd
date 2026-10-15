@@ -54,7 +54,10 @@ jobs:
       - run: npm ci
       - run: npm run build
       - name: Verify real MCP jobs and cancellation on this native OS
-        run: node --test dist/tests/mcp/server.test.js dist/tests/mcp/jobs.test.js dist/tests/mcp/shutdown.test.js
+        # Process-lifecycle suites exercise real supervisors and OS process trees.
+        # Match the main test gate's file-level isolation; tests within each suite
+        # still exercise concurrent clients and workers explicitly.
+        run: node --test --test-concurrency=1 dist/tests/mcp/server.test.js dist/tests/mcp/jobs.test.js dist/tests/mcp/shutdown.test.js
       - run: npm run package
       - name: Execute archive on its actual native target
         run: node scripts/verify-native-package.mjs
