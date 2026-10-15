@@ -1,0 +1,321 @@
+{
+  "captureDate": "2026-10-15",
+  "cliVersion": "0.3.0",
+  "request": {
+    "name": "skilled_compare",
+    "arguments": {
+      "before": "before.json",
+      "after": "after.json"
+    }
+  },
+  "result": {
+    "schemaVersion": 1,
+    "summary": {
+      "before": 18,
+      "after": 18,
+      "matched": 18,
+      "added": 0,
+      "removed": 0,
+      "changed": 5,
+      "unchanged": 13,
+      "statusChanges": 5,
+      "regressions": 0,
+      "improvements": 5,
+      "comparableScores": 18
+    },
+    "cases": [
+      {
+        "caseID": "01-day-zero-full",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "02-day14-partial-shipping",
+        "configuration": "with_skill",
+        "change": "changed",
+        "beforeStatus": "FAIL",
+        "afterStatus": "PASS",
+        "statusChanged": true,
+        "regression": false,
+        "improvement": true,
+        "score": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "03-day15-opened-double-floor",
+        "configuration": "with_skill",
+        "change": "changed",
+        "beforeStatus": "FAIL",
+        "afterStatus": "PASS",
+        "statusChanged": true,
+        "regression": false,
+        "improvement": true,
+        "score": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "04-day29-digital-partial-vip",
+        "configuration": "with_skill",
+        "change": "changed",
+        "beforeStatus": "FAIL",
+        "afterStatus": "PASS",
+        "statusChanged": true,
+        "regression": false,
+        "improvement": true,
+        "score": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "05-day30-full-vip",
+        "configuration": "with_skill",
+        "change": "changed",
+        "beforeStatus": "FAIL",
+        "afterStatus": "PASS",
+        "statusChanged": true,
+        "regression": false,
+        "improvement": true,
+        "score": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "06-day31-vip-override",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "07-fraud-precedence",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "08-currency-precedence",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "09-receipt-precedence",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "10-digital-precedence-vip",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "11-invalid-item-precedence",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "12-invalid-shipping",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "13-invalid-days",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "14-invalid-purchased-fraction",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "15-invalid-returned-zero",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "16-invalid-excess-return",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "17-invalid-numeric-string",
+        "configuration": "with_skill",
+        "change": "unchanged",
+        "beforeStatus": "PASS",
+        "afterStatus": "PASS",
+        "statusChanged": false,
+        "regression": false,
+        "improvement": false,
+        "score": {
+          "before": 1,
+          "after": 1,
+          "delta": 0
+        },
+        "warnings": []
+      },
+      {
+        "caseID": "18-opened-zero-injection",
+        "configuration": "with_skill",
+        "change": "changed",
+        "beforeStatus": "FAIL",
+        "afterStatus": "PASS",
+        "statusChanged": true,
+        "regression": false,
+        "improvement": true,
+        "score": {
+          "before": 0,
+          "after": 1,
+          "delta": 1
+        },
+        "warnings": []
+      }
+    ],
+    "warnings": [
+      "Reports do not contain complete evaluation-input, skill, fixture and judge-configuration fingerprints. Matching case IDs and prompts do not prove equivalent inputs or grading conditions."
+    ],
+    "hasRegressions": false
+  }
+}

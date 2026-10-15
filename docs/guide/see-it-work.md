@@ -112,6 +112,19 @@ MCP connects your host to the tools. **It does not create a separate “MCP scor
 | Retrieve evidence | `skilled_results` | Results for the completed job |
 | Compare two reports | `skilled_compare` | Case changes, score deltas where comparable, coverage changes, and warnings |
 
+A real call to the public v0.3.0 MCP server used `skilled_compare` with `before.json` and `after.json`. This is a field excerpt from the returned case:
+
+```json
+{
+  "caseID": "02-day14-partial-shipping",
+  "beforeStatus": "FAIL",
+  "afterStatus": "PASS",
+  "score": { "before": 0, "after": 1, "delta": 1 }
+}
+```
+
+[Recorded MCP request and complete comparison payload](https://deadhead04.github.io/skillEd/demos/mcp-comparison.json). The payload includes all 18 cases, five improvements, zero regressions, and the provenance warning. This call compared existing reports without running a model.
+
 Execution requires an execution-enabled MCP server and your host's approval policy. The host controls how it presents tool output, so Codex and Claude Code may display the same evidence differently. [MCP configuration and exact tool parameters →](./mcp.md)
 
 ## Evidence and reproduction
