@@ -23,6 +23,9 @@ import {
 } from "../../src/report/grading.js";
 import { writeAnthropicBenchmark } from "../../src/report/benchmark-anthropic.js";
 import type { Input } from "../../src/report/reporter.js";
+const currentLogo = (await readFile(
+  new URL("../../../assets/report/logo.png", import.meta.url),
+)).toString("base64");
 const vectors = JSON.parse(
   gunzipSync(
     await readFile(
@@ -124,8 +127,9 @@ for (const [i, v] of vectors.entries())
             html: html.replace(match[1]!, "EMBEDDED_REPORT_DATA"),
           };
         };
-        // The presentation adds skipped-state support; legacy embedded data stays exact.
+        // Adapt only intentional presentation changes; all report data and other HTML stay exact.
         const updatedTemplate = v.output
+          .replace(/data:image\/png;base64,[^"]+/, `data:image/png;base64,${currentLogo.replaceAll("+", "&#43;")}`)
           .replace('var sc = exp.passed ?', 'var sc = exp.skipped ? "a-skip" : exp.passed ?')
           .replace('var icon = exp.passed ?', 'var icon = exp.skipped ? "SKIP" : exp.passed ?');
         assert.deepEqual(extract(actual), extract(updatedTemplate));

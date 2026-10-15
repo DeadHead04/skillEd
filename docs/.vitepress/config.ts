@@ -16,6 +16,7 @@ export default defineConfig({
     socialLinks: [{ icon: "github", link: "https://github.com/DeadHead04/skillEd" }],
     nav: [
       { text: "Get started", link: "/guide/getting-started" },
+      { text: "See it work", link: "/guide/see-it-work" },
       { text: "Use with your agent", link: "/guide/mcp" },
       { text: "CLI reference", link: "/guide/cli-reference" },
       { text: "Releases", link: "https://github.com/DeadHead04/skillEd/releases" },
@@ -26,6 +27,7 @@ export default defineConfig({
         items: [
           { text: "Installation", link: "/guide/installation" },
           { text: "Getting started", link: "/guide/getting-started" },
+          { text: "See it work", link: "/guide/see-it-work" },
           { text: "Use with MCP", link: "/guide/mcp" },
         ],
       },

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="643" viewBox="0 0 1040 643" role="img" aria-labelledby="title desc">
+<title id="title">01 / Activate in your project</title><desc id="desc">Real skilled setup and validation output. Existing evaluation suite loads 18 cases.</desc>
+<rect x="1" y="1" width="1038" height="641" rx="18" fill="#101817" stroke="#344b44"/>
+<path d="M1 66h1038" stroke="#344b44"/>
+<text x="36" y="42" fill="#b1c6bd" font-family="system-ui,sans-serif" font-size="17">01 / Activate in your project</text>
+<text x="1004" y="42" text-anchor="end" fill="#91a99e" font-family="system-ui,sans-serif" font-size="13" letter-spacing="1">RECORDED CLI OUTPUT</text>
+<g font-family="SFMono-Regular,Consolas,Liberation Mono,monospace" font-size="20"><text x="36" y="115" fill="#a6f0d2">$ skilled setup --host codex</text>
+<text x="36" y="146" fill="#e6ece9"></text>
+<text x="36" y="177" fill="#e6ece9">Installed skilled-improve for codex at</text>
+<text x="36" y="208" fill="#e6ece9">&lt;project&gt;/.agents/skills/skilled-improve</text>
+<text x="36" y="239" fill="#e6ece9">Start a new codex session in &lt;project&gt; and ask: Use skilled-improve to</text>
+<text x="36" y="270" fill="#e6ece9">evaluate this Skill.</text>
+<text x="36" y="301" fill="#e6ece9">Live evaluations use your engine's existing login. MCP is optional.</text>
+<text x="36" y="332" fill="#e6ece9"></text>
+<text x="36" y="363" fill="#a6f0d2">exit 0</text>
+<text x="36" y="394" fill="#e6ece9"></text>
+<text x="36" y="425" fill="#a6f0d2">$ skilled validate refund-policy/evals/eval.yaml</text>
+<text x="36" y="456" fill="#e6ece9"></text>
+<text x="36" y="487" fill="#e6ece9">✓ eval.yaml is valid (loaded 18 case(s))</text>
+<text x="36" y="518" fill="#e6ece9"></text>
+<text x="36" y="549" fill="#a6f0d2">exit 0</text></g>
+<text x="36" y="619" fill="#91a99e" font-family="system-ui,sans-serif" font-size="14">Typeset transcript · absolute workspace path shortened to &lt;project&gt; · no model call</text>
+</svg>

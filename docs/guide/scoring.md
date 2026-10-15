@@ -1,5 +1,7 @@
 # Scoring and comparison
 
+For a worked example, see [how a refund case goes from score 0 to 1](./see-it-work.md#_3-read-the-score-from-its-evidence), including the actual response and script evidence. MCP exposes evaluation tools and reports; it does not assign a separate score.
+
 Rule grades now identify their scoring contract as `skilled/2` and include a
 `rubric_id` derived from the configured rules. Assertion IDs identify criteria;
 their display text and evidence describe the outcome. Changing an outcome does

@@ -1,0 +1,9 @@
+$ skilled compare passing.json regressed.json --fail-on-regression
+Compared 1 matched cases: 1 regressions, 0 improvements.
+Coverage: 0 added, 0 removed. 1 status changes; 1 comparable scores.
+Regression policy: PASS to any non-PASS status, or a decrease in a comparable assertion pass rate.
+"01-day-zero-full" ["with_skill"] changed: PASS -> FAIL; score 1 -> 0 (delta -1) REGRESSION
+Warning: Reports do not contain complete evaluation-input, skill, fixture and judge-configuration fingerprints. Matching case IDs and prompts do not prove equivalent inputs or grading conditions.
+Error: comparison found 1 regression(s)
+
+Exit code: 1

@@ -1,0 +1,60 @@
+{
+  "captureDate": "2026-10-15",
+  "cliVersion": "0.3.0",
+  "evaluationDate": "2026-10-14",
+  "inputReports": {
+    "before": {
+      "sha256": "ffa3141198040828506634c16e9a7373ae7eb6ae905127339030f4d75d328423",
+      "originalRun": "baseline"
+    },
+    "after": {
+      "sha256": "12817038b6d2433f597928b3d221e50477c4031e8fbfa1b54fbe5f35677b0c17",
+      "originalRun": "improved-after-disk-recovery"
+    },
+    "passing": {
+      "sha256": "f5de46f6355cebae2055659e7e725db0b996d9a17a51b7a3779254ee8f63e27d",
+      "originalRun": "restored"
+    },
+    "regressed": {
+      "sha256": "0b93a035fdbd4a64d670d780f13e05bdc21c0e7d60defa97bdfb54e4eed6997f",
+      "originalRun": "deliberate-regression"
+    }
+  },
+  "note": "Commands executed with the public CLI against original real Codex acceptance reports. Setup used a fresh project. Absolute project path replaced with <project>. Images are typeset CLI transcripts, not native application screenshots. Regression compares a passing restored case against the intentionally broken Skill run; this is a replay, not chronological drift observation.",
+  "commands": [
+    {
+      "id": "setup",
+      "command": "skilled setup --host codex",
+      "stdout": "Installed skilled-improve for codex at <project>/.agents/skills/skilled-improve\nStart a new codex session in <project> and ask: Use skilled-improve to evaluate this Skill.\nLive evaluations use your engine's existing login. MCP is optional.\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "id": "validate",
+      "command": "skilled validate refund-policy/evals/eval.yaml",
+      "stdout": "\u2713 eval.yaml is valid (loaded 18 case(s))\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "id": "improvement",
+      "command": "skilled compare before.json after.json --fail-on-regression",
+      "stdout": "Compared 18 matched cases: 0 regressions, 5 improvements.\nCoverage: 0 added, 0 removed. 5 status changes; 18 comparable scores.\nRegression policy: PASS to any non-PASS status, or a decrease in a comparable assertion pass rate.\n\"01-day-zero-full\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"02-day14-partial-shipping\" [\"with_skill\"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)\n\"03-day15-opened-double-floor\" [\"with_skill\"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)\n\"04-day29-digital-partial-vip\" [\"with_skill\"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)\n\"05-day30-full-vip\" [\"with_skill\"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)\n\"06-day31-vip-override\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"07-fraud-precedence\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"08-currency-precedence\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"09-receipt-precedence\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"10-digital-precedence-vip\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"11-invalid-item-precedence\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"12-invalid-shipping\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"13-invalid-days\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"14-invalid-purchased-fraction\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"15-invalid-returned-zero\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"16-invalid-excess-return\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"17-invalid-numeric-string\" [\"with_skill\"] unchanged: PASS -> PASS; score 1 -> 1 (delta +0)\n\"18-opened-zero-injection\" [\"with_skill\"] changed: FAIL -> PASS; score 0 -> 1 (delta +1)\nWarning: Reports do not contain complete evaluation-input, skill, fixture and judge-configuration fingerprints. Matching case IDs and prompts do not prove equivalent inputs or grading conditions.\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "id": "regression",
+      "command": "skilled compare passing.json regressed.json --fail-on-regression",
+      "stdout": "Compared 1 matched cases: 1 regressions, 0 improvements.\nCoverage: 0 added, 0 removed. 1 status changes; 1 comparable scores.\nRegression policy: PASS to any non-PASS status, or a decrease in a comparable assertion pass rate.\n\"01-day-zero-full\" [\"with_skill\"] changed: PASS -> FAIL; score 1 -> 0 (delta -1) REGRESSION\nWarning: Reports do not contain complete evaluation-input, skill, fixture and judge-configuration fingerprints. Matching case IDs and prompts do not prove equivalent inputs or grading conditions.\n",
+      "stderr": "Error: comparison found 1 regression(s)\n",
+      "exitCode": 1
+    }
+  ],
+  "holdouts": {
+    "sha256": "348c13fae2438fb1eae8ac55731a1fcb8680ff1f82046dda865eb9a4a04e0f07",
+    "originalRun": "holdouts",
+    "cases": 10,
+    "passed": 10
+  }
+}

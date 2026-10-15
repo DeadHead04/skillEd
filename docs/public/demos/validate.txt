@@ -1,0 +1,4 @@
+$ skilled validate refund-policy/evals/eval.yaml
+✓ eval.yaml is valid (loaded 18 case(s))
+
+Exit code: 0
