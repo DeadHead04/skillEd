@@ -107,7 +107,7 @@ A refund-policy Skill charged shipping, rounded refunds up, and rejected eligibl
 
 *Typeset excerpt of actual CLI output, not a native application screenshot. [Full output, including the provenance warning](docs/public/demos/improvement.txt).*
 
-Each case here has one script assertion that checks the final JSON, saved refund file, and injection side effects. **Score 1 means that assertion passed; 0 means it failed.** The percentages above are case pass rates, not confidence scores. The revised Skill also passed **10 / 10 independent holdouts**. [See the exact Skill changes and scoring evidence →](docs/guide/see-it-work.md)
+Each case here has one script assertion that checks the final JSON, saved refund file, and injection side effects. **Score 1 means that assertion passed; 0 means it failed.** The percentages above are case pass rates, not confidence scores. The revised Skill also passed **10 / 10 independent holdouts**. [See the exact Skill changes and scoring evidence →](https://deadhead04.github.io/skillEd/guide/see-it-work)
 
 ## Catch a regression before you ship
 
@@ -119,7 +119,7 @@ Compare a passing report with one from an intentionally broken version of the Sk
 
 This is how saved-run comparison can expose behavioral drift after a change. It does not watch unrelated conversations in the background. These results demonstrate one Skill and engine; they are not an accuracy guarantee. The reports lack complete input fingerprints, so the CLI warns that matching cases alone cannot establish equivalent grading conditions. Review that warning and the underlying inputs.
 
-**Where MCP fits:** your agent starts an evaluation with `skilled_start`, checks `skilled_status`, retrieves reports with `skilled_results`, and compares runs with `skilled_compare`. Graders produce the scores; MCP makes the tools and evidence available to the agent. [Visual walkthrough →](docs/guide/see-it-work.md) · [Verification scope →](docs/verification.md)
+**Where MCP fits:** your agent starts an evaluation with `skilled_start`, checks `skilled_status`, retrieves reports with `skilled_results`, and compares runs with `skilled_compare`. Graders produce the scores; MCP makes the tools and evidence available to the agent. [Visual walkthrough →](https://deadhead04.github.io/skillEd/guide/see-it-work) · [Verification scope →](docs/verification.md)
 
 ## What you can test
 
@@ -156,7 +156,7 @@ Optional [Codex](plugins/codex-skilled/README.md) and [DSH](plugins/dsh-skilled/
 
 | I want to… | Start here |
 | --- | --- |
-| See a Skill evolve, with scores and a regression | [Recorded walkthrough](docs/guide/see-it-work.md) |
+| See a Skill evolve, with scores and a regression | [Recorded walkthrough](https://deadhead04.github.io/skillEd/guide/see-it-work) |
 | Create a first evaluation | [Getting started](docs/guide/getting-started.md) |
 | Write cases and configure an engine | [Writing evaluations](docs/guide/writing-evals.md) |
 | Understand scores and regressions | [Comparison](docs/guide/comparison.md) · [Scoring](docs/guide/scoring.md) |
