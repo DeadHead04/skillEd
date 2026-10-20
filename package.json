@@ -70,7 +70,7 @@
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "commander": "15.0.0",
-    "openai": "7.32.0",
+    "openai": "7.34.0",
     "picomatch": "4.0.7",
     "re2-wasm": "1.0.2",
     "yaml": "2.9.1"
