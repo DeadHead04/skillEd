@@ -1,3 +1,8 @@
+---
+title: "Skill improvement, regression detection, and scoring"
+description: "Follow a recorded Codex evaluation with skilled: 18 refund-policy cases, a revised skill, independent holdouts, scores, and a deliberately caught regression."
+---
+
 # Watch a Skill improve
 
 Follow a real refund-policy evaluation through setup, a Skill revision, scoring, and a caught regression. This example used native Codex with an existing login. **The same 18 cases went from 13 passes to 18; 10 independent holdouts also passed.**

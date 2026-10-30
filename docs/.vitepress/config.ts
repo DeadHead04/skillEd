@@ -1,15 +1,58 @@
 import { defineConfig } from "vitepress";
 
 const base = process.env.SKILLED_DOCS_BASE || "/";
+// Canonical identity stays on the published site, including during local previews.
+const siteUrl = "https://deadhead04.github.io/skillEd/";
+const repositoryUrl = "https://github.com/DeadHead04/skillEd";
+const description = "skilled is an open-source agent skill evaluation CLI and MCP server for Codex and Claude Code. Test skills, detect regressions, and improve with evidence.";
 
 export default defineConfig({
   base,
   title: "skilled",
-  description: "Test agent skills, compare results, and improve with evidence. A TypeScript CLI with bundled MCP tools and the skilled-improve workflow.",
+  description,
   lang: "en-US",
   cleanUrls: true,
   ignoreDeadLinks: false,
   head: [["link", { rel: "icon", href: `${base}logo.svg` }]],
+  sitemap: { hostname: siteUrl },
+  transformHead({ pageData }) {
+    if (pageData.relativePath === "404.md") {
+      return [["meta", { name: "robots", content: "noindex" }]];
+    }
+    const path = pageData.relativePath
+      .replace(/(^|\/)index\.md$/, "$1")
+      .replace(/\.md$/, "");
+    const url = new URL(path, siteUrl).href;
+    const title = pageData.frontmatter.titleTemplate === false
+      ? pageData.title
+      : pageData.title ? `${pageData.title} | skilled` : "skilled";
+    const pageDescription = pageData.description || description;
+    const head: import("vitepress").HeadConfig[] = [
+      ["link", { rel: "canonical", href: url }],
+      ["meta", { property: "og:type", content: "website" }],
+      ["meta", { property: "og:site_name", content: "skilled" }],
+      ["meta", { property: "og:title", content: title }],
+      ["meta", { property: "og:description", content: pageDescription }],
+      ["meta", { property: "og:url", content: url }],
+      ["meta", { name: "twitter:card", content: "summary" }],
+      ["meta", { name: "twitter:title", content: title }],
+      ["meta", { name: "twitter:description", content: pageDescription }],
+    ];
+    if (pageData.relativePath === "index.md") {
+      head.push(["script", { type: "application/ld+json" }, JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareSourceCode",
+        name: "skilled",
+        description,
+        url: siteUrl,
+        codeRepository: repositoryUrl,
+        programmingLanguage: "TypeScript",
+        license: "https://www.apache.org/licenses/LICENSE-2.0",
+        runtimePlatform: "Node.js",
+      })]);
+    }
+    return head;
+  },
   themeConfig: {
     logo: "/logo.svg",
     search: { provider: "local" },

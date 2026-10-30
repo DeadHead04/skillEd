@@ -1,3 +1,8 @@
+---
+title: "Connect the skilled MCP server to your coding agent"
+description: "Set up the skilled MCP server for Codex, Claude Code, and compatible hosts. Run skill evaluations and use skilled-improve from your agent session."
+---
+
 # Use skilled from your agent
 
 The release bundle includes the CLI, its Node runtime, the MCP server, and the

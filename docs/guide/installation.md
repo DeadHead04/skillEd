@@ -1,3 +1,8 @@
+---
+title: "Install skilled on macOS, Linux, and Windows"
+description: "Install the skilled CLI, MCP server, and skilled-improve workflow from GitHub Releases. Includes setup for Codex and Claude Code, updates, and uninstall."
+---
+
 # Installation
 
 Install the latest stable **`skilled`** from [GitHub Releases](https://github.com/DeadHead04/skillEd/releases/latest). The self-contained CLI includes its own Node runtime; end users do not need Go, Node or npm. The command is `skilled`; the bundled `skilled-improve` workflow is used by your agent through MCP or a host integration, not as a separate terminal command.

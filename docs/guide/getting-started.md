@@ -1,3 +1,8 @@
+---
+title: "Getting started with agent skill evaluation"
+description: "Create your first skilled evaluation: write a SKILL.md file, define YAML test cases, validate the suite, run your agent, and read the results."
+---
+
 # Your first evaluation
 
 This walkthrough creates a small Skill and a real evaluation case. You can validate the files without a model account, then run the case after configuring an agent engine.
