@@ -1,5 +1,8 @@
 ---
 layout: home
+title: skilled — Agent skill evaluation CLI and MCP
+titleTemplate: false
+description: Test agent skills with skilled, the open-source evaluation CLI and MCP server for Codex and Claude Code. Compare scores, catch regressions, and improve skills with evidence.
 hero:
   name: skilled
   text: Show that your Skill got better.
@@ -12,6 +15,8 @@ hero:
       text: See it work
       link: /guide/see-it-work
 ---
+
+**skilled** is an open-source agent skill evaluation CLI and MCP server for Codex, Claude Code, and other coding agents. Find the source, releases, and issue tracker in [DeadHead04/skillEd on GitHub](https://github.com/DeadHead04/skillEd).
 
 <div class="home-section home-evidence">
 <p class="section-label">REAL CODEX RUNS · REFUND-POLICY SKILL</p>

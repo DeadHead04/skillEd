@@ -1,6 +1,7 @@
-<h1 align="center"><img src="docs/public/wordmark.svg" width="300" alt="skilled" /></h1>
+<p align="center"><img src="docs/public/wordmark.svg" width="300" alt="skilled" /></p>
+<h1 align="center">skilled — Agent skill evaluation CLI and MCP</h1>
 <p align="center"><strong>Test your agent’s Skills. Catch regressions. Improve with evidence.</strong></p>
-<p align="center">An open-source evaluation toolkit for Codex, Claude Code, and other coding agents.</p>
+<p align="center">An open-source toolkit to test agent skills, detect behavioral drift and regressions, and improve skills with Codex, Claude Code, and other coding agents.</p>
 
 <p align="center">
   <a href="https://github.com/DeadHead04/skillEd/releases/latest"><img src="https://img.shields.io/github/v/release/DeadHead04/skillEd?color=167d68" alt="Latest release" /></a>
@@ -13,6 +14,8 @@
 <p align="center">
   <a href="#install">Install</a> · <a href="#use-it-in-your-project">Get started</a> · <a href="#see-the-skill-improve">See a real result</a> · <a href="https://deadhead04.github.io/skillEd/">Documentation</a> · <a href="https://github.com/DeadHead04/skillEd/releases">Releases</a>
 </p>
+
+**skilled** is maintained in [`DeadHead04/skillEd`](https://github.com/DeadHead04/skillEd). Start with the [documentation](https://deadhead04.github.io/skillEd/), [installation guide](https://deadhead04.github.io/skillEd/guide/installation), or [real skill improvement example](https://deadhead04.github.io/skillEd/guide/see-it-work).
 
 A Skill can look right and still fail on edge cases. skilled turns the behavior you expect into repeatable evaluations, so you can check a change to the Skill, agent, or model before relying on it.
 

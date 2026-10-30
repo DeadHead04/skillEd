@@ -1,3 +1,8 @@
+---
+title: "Compare skill evaluations and detect regressions"
+description: "Compare baseline and candidate reports with skilled. Detect changed scores, inspect grading conditions, and fail CI when a skill regression is found."
+---
+
 # Compare results and understand scores
 
 ## Compare a baseline with a candidate
